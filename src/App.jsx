@@ -163,7 +163,6 @@ function Key({ btn, mode, selected, isHeard, onSelect, onMove, nc }) {
     window.addEventListener("touchend", up);
   }, [btn, onSelect, onMove]);
 
-  // Si está seleccionado por click o está siendo escuchado por sonido, activamos el "Highlight"
   const isActive = isSel || isHeard;
 
   return (
@@ -589,7 +588,6 @@ export default function App() {
   const setButtons = hand==="left" ? setLeftBtns : setRightBtns;
   const initDefs   = hand==="left" ? DEFS_L      : DEFS_R;
 
-  // Mapeos para traducir de Frecuencia Americana Científica a notas de tu app
   const ENG_TO_LAT_MAP = useMemo(() => ({
     "C":"DO", "C#":"DO#", "D":"RE", "D#":"RE#", "E":"MI", "F":"FA", 
     "F#":"FA#", "G":"SOL", "G#":"SOL#", "A":"LA", "A#":"LA#", "B":"SI"
@@ -597,7 +595,6 @@ export default function App() {
 
   const nombresNotasEng = useMemo(() => ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"], []);
 
-  // Buscar qué botones específicos en la pantalla coinciden con la nota del micrófono
   const heardIds = useMemo(() => {
     if (!heardNote) return [];
     return buttons
@@ -627,7 +624,6 @@ export default function App() {
     });
   },[setButtons]);
 
-  // Manejo de flechas físicas del teclado
   useEffect(()=>{
     const handler = e => {
       if (!selected) return;
@@ -644,7 +640,7 @@ export default function App() {
     return ()=>window.removeEventListener("keydown", handler);
   },[selected,setButtons]);
 
-  // ─── LA MAGIA DEL MICROFONO INTEGRADA AL ESTADO DINÁMICO ───
+  // ─── LÓGICA DE ESCUCHA CORREGIDA PARA EL CDN EN INDEX.HTML ───
   useEffect(() => {
     if (!isListening) {
       setHeardNote("");
@@ -657,30 +653,37 @@ export default function App() {
 
     async function startAudioLoop() {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const source = audioCtx.createMediaStreamSource(stream);
-        const analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 2048;
-        source.connect(analyser);
-
-        const dataArray = new Float32Array(analyser.fftSize);
-
-        if (!window.Pitchfinder) {
-          setErrorAudio("Pitchfinder no detectado en index.html");
+        // 1. Validar que la librería global inyectada en el index.html ya se descargó en el navegador
+        if (!window.Pitchfinder || !window.Pitchfinder.frequencies || !window.Pitchfinder.frequencies.YIN) {
+          setErrorAudio("El motor de afinación se está descargando. Espera 3 segundos y vuelve a pulsar el botón.");
           setIsListening(false);
           return;
         }
 
-        // Algoritmo YIN optimizado para el rango acústico del bandoneón
-        const detectPitch = window.Pitchfinder.YIN({ sampleRate: audioCtx.sampleRate });
+        // 2. Solicitar micrófono de forma compatible con iPad/Android
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+        
+        const source = audioCtx.createMediaStreamSource(stream);
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 2048; 
+        source.connect(analyser);
+
+        const dataArray = new Float32Array(analyser.fftSize);
+
+        // 3. Inicializar el algoritmo de Pitchfinder desde el objeto de ventana global
+        const detectPitch = window.Pitchfinder.frequencies.YIN({ 
+          sampleRate: audioCtx.sampleRate || 44100 
+        });
 
         function update() {
+          if (!analyser) return;
           analyser.getFloatTimeDomainData(dataArray);
           const pitch = detectPitch(dataArray);
 
           if (pitch && pitch > 50 && pitch < 1800) {
-            // Conversión matemática directa de Hz a nota musical
             const noteNum = 12 * (Math.log(pitch / 440) / Math.log(2)) + 69;
             const rounded = Math.round(noteNum);
             const engName = nombresNotasEng[rounded % 12];
@@ -695,7 +698,8 @@ export default function App() {
 
         update();
       } catch (err) {
-        setErrorAudio("Error accediendo al micrófono. Verificá permisos.");
+        console.error(err);
+        setErrorAudio("Error accediendo al micrófono. Asegúrate de dar los permisos correspondientes.");
         setIsListening(false);
       }
     }
@@ -743,11 +747,11 @@ export default function App() {
         </div>
       </div>
 
-      {/* ─── NUEVO PANEL DEL MICRÓFONO EN TIEMPO REAL ─── */}
+      {/* PANEL DEL MICRÓFONO EN TIEMPO REAL */}
       <div style={{
         maxWidth: 780, margin: "0 auto 12px", padding: "10px 14px",
         background: "#0a0602", border: "1.5px dashed #5a3018", borderRadius: 12,
-        display: "flex", alignItems: "center", justifyContent: "between", flexWrap: "wrap", gap: 10
+        display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flex: "1 1 auto" }}>
           <div style={{
@@ -756,7 +760,7 @@ export default function App() {
             boxShadow: isListening ? "0 0 10px #2DD4BF" : "none"
           }} />
           <div>
-            <div style={{ fontSize: 10, fontWeight: 800, color: "#eab308" }}>MODO ESCUCHA FISICA</div>
+            <div style={{ fontSize: 10, fontWeight: 800, color: "#eab308" }}>MODO ESCUCHA FÍSICA</div>
             <div style={{ fontSize: 7.5, color: "#6a4020" }}>Toca tu instrumento físico. Buscará coincidencias usando tus variables dinámicas y overrides de color.</div>
           </div>
         </div>
