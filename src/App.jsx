@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
 // ─────────────────────────────────────────────────────────────────
 // UTILS
@@ -28,7 +28,6 @@ const BTN = 44;
 // ─────────────────────────────────────────────────────────────────
 function parseCSV(text) {
   const lines = text.trim().split("\n").filter(l => l.trim());
-  // saltar header si empieza con "id" o "ID"
   const dataLines = lines[0].toLowerCase().startsWith("id") ? lines.slice(1) : lines;
   const result = [];
   for (const line of dataLines) {
@@ -50,7 +49,7 @@ function parseCSV(text) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// DATOS — coordenadas exactas del usuario (mano izquierda)
+// DATOS — coordenadas exactas (mano izquierda y derecha)
 // ─────────────────────────────────────────────────────────────────
 const DEFS_L = [
   { id:"L01", row:0, x:208, y: 46, abre:"SOL#", cierra:"SOL#", color_abre:"#ff6a00", color_cierra:"" },
@@ -130,11 +129,10 @@ const DEFS_R = [
 ];
 
 // ─────────────────────────────────────────────────────────────────
-// BOTÓN DRAGGABLE
+// BOTÓN DRAGGABLE (Con soporte para escucha activa del mic)
 // ─────────────────────────────────────────────────────────────────
-function Key({ btn, mode, selected, onSelect, onMove, nc }) {
+function Key({ btn, mode, selected, isHeard, onSelect, onMove, nc }) {
   const note  = mode === "abre" ? btn.abre : btn.cierra;
-  // Color siempre sigue la nota del modo activo; color_abre/color_cierra son overrides opcionales
   const colorOverride = mode === "abre" ? btn.color_abre : btn.color_cierra;
   const color = colorOverride || nc(note);
   const isSel = selected === btn.id;
@@ -165,21 +163,27 @@ function Key({ btn, mode, selected, onSelect, onMove, nc }) {
     window.addEventListener("touchend", up);
   }, [btn, onSelect, onMove]);
 
+  // Si está seleccionado por click o está siendo escuchado por sonido, activamos el "Highlight"
+  const isActive = isSel || isHeard;
+
   return (
     <div onMouseDown={onMouseDown} onTouchStart={onTouchStart} style={{
       position:"absolute", left:btn.x, top:btn.y,
       width:BTN, height:BTN, borderRadius:"50%",
       cursor:"grab", touchAction:"none", userSelect:"none",
       display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-      zIndex: isSel ? 100 : 10,
-      background: isSel
+      zIndex: isActive ? 100 : 10,
+      background: isActive
         ? `radial-gradient(circle at 36% 30%,${color}ff,${color}cc 55%,${color}88)`
         : `radial-gradient(circle at 36% 30%,${color}99,${color}44 60%,${color}22)`,
-      border: `2.5px solid ${isSel ? color : color+"aa"}`,
-      boxShadow: isSel
-        ? `0 0 20px ${color}cc, 0 0 40px ${color}55, inset 0 1px 3px rgba(255,255,255,.3)`
+      border: `2.5px solid ${isActive ? (isHeard ? "#ffffff" : color) : color+"aa"}`,
+      boxShadow: isActive
+        ? isHeard 
+          ? `0 0 25px #ffffff, 0 0 50px ${color}, inset 0 1px 3px rgba(255,255,255,.6)`
+          : `0 0 20px ${color}cc, 0 0 40px ${color}55, inset 0 1px 3px rgba(255,255,255,.3)`
         : `0 2px 8px rgba(0,0,0,.7), inset 0 1px 1px rgba(255,255,255,.1)`,
-      transition:"box-shadow .12s",
+      transform: isHeard ? "scale(1.08)" : "scale(1)",
+      transition: "box-shadow .12s, transform .1s, border-color .1s",
     }}>
       <div style={{
         position:"absolute", top:5, left:9, width:12, height:8,
@@ -188,13 +192,14 @@ function Key({ btn, mode, selected, onSelect, onMove, nc }) {
       }}/>
       <span style={{
         fontSize: note.length>2 ? 7.5 : 9.5, fontWeight:800,
-        color: isSel ? "#fff" : "#fff",
+        color: "#fff",
         fontFamily:"'Courier New',monospace", lineHeight:1, zIndex:1,
         textShadow:"0 1px 3px rgba(0,0,0,.8)",
       }}>{note}</span>
       <span style={{
         fontSize:6.5, fontFamily:"monospace", lineHeight:1, zIndex:1,
-        color:"rgba(255,255,255,.7)",
+        color: isHeard ? "#fff" : "rgba(255,255,255,.7)",
+        fontWeight: isHeard ? 900 : 400
       }}>{btn.id}</span>
     </div>
   );
@@ -203,7 +208,7 @@ function Key({ btn, mode, selected, onSelect, onMove, nc }) {
 // ─────────────────────────────────────────────────────────────────
 // CANVAS
 // ─────────────────────────────────────────────────────────────────
-function Canvas({ buttons, mode, selected, onSelect, onMove, showGrid, nc }) {
+function Canvas({ buttons, mode, selected, heardIds, onSelect, onMove, showGrid, nc }) {
   const W = Math.max(...buttons.map(b=>b.x)) + BTN + 24;
   const H = Math.max(...buttons.map(b=>b.y)) + BTN + 20;
   return (
@@ -216,8 +221,11 @@ function Canvas({ buttons, mode, selected, onSelect, onMove, showGrid, nc }) {
       border:"1px solid #2a1608", borderRadius:10, touchAction:"none",
     }}>
       {buttons.map(btn => (
-        <Key key={btn.id} btn={btn} mode={mode} selected={selected}
-          onSelect={onSelect} onMove={onMove} nc={nc}/>
+        <Key 
+          key={btn.id} btn={btn} mode={mode} selected={selected}
+          isHeard={heardIds.includes(btn.id)}
+          onSelect={onSelect} onMove={onMove} nc={nc}
+        />
       ))}
     </div>
   );
@@ -269,7 +277,6 @@ function ImportCSV({ onImport }) {
           background:"#0e0701", border:"1px solid #2a1608",
           borderRadius:10,
         }}>
-          {/* Cargar archivo */}
           <div style={{ marginBottom:10 }}>
             <div style={{ fontSize:9, color:"#6a4020", marginBottom:5 }}>
               Opción 1 — Cargar archivo .csv
@@ -284,7 +291,6 @@ function ImportCSV({ onImport }) {
             }}>📂 Elegir archivo</button>
           </div>
 
-          {/* Pegar texto */}
           <div>
             <div style={{ fontSize:9, color:"#6a4020", marginBottom:5 }}>
               Opción 2 — Pegar el contenido del CSV
@@ -323,11 +329,6 @@ function ImportCSV({ onImport }) {
               borderRadius:6, padding:"4px 8px",
             }}>⚠ {error}</div>
           )}
-
-          <div style={{ marginTop:8, fontSize:8, color:"#3a2010", lineHeight:1.6 }}>
-            Formato esperado: <span style={{color:"#5a4020"}}>id,row,x,y,abre,cierra,color</span><br/>
-            El campo <span style={{color:"#5a4020"}}>color</span> puede ser hex (#ff6a00) o vacío.
-          </div>
         </div>
       )}
     </div>
@@ -354,7 +355,7 @@ function NoteSelect({ value, onChange, field, nc }) {
   );
 }
 
-function Table({ buttons, mode, selected, onSelect, onEdit, nc }) {
+function Table({ buttons, mode, selected, heardIds, onSelect, onEdit, nc }) {
   return (
     <div style={{
       overflowY:"auto", maxHeight:"calc(100vh - 260px)",
@@ -377,16 +378,20 @@ function Table({ buttons, mode, selected, onSelect, onEdit, nc }) {
         </thead>
         <tbody>
           {buttons.map(btn => {
-            const isSel   = btn.id === selected;
+            const isSel = btn.id === selected;
+            const isHeard = heardIds.includes(btn.id);
             const noteNow = mode==="abre" ? btn.abre : btn.cierra;
             const colorOverrideNow = mode==="abre" ? btn.color_abre : btn.color_cierra;
             const btnColor = colorOverrideNow || nc(noteNow);
             return (
               <tr key={btn.id} onClick={()=>onSelect(btn.id)} style={{
-                background: isSel ? "rgba(245,192,96,.09)" : "transparent",
+                background: isHeard 
+                  ? "rgba(255,255,255,0.15)" 
+                  : (isSel ? "rgba(245,192,96,.09)" : "transparent"),
                 cursor:"pointer",
                 borderBottom:"1px solid rgba(26,14,4,.6)",
-                outline: isSel ? "1px solid rgba(245,192,96,.25)" : "none",
+                outline: isHeard ? "1px solid #ffffff" : (isSel ? "1px solid rgba(245,192,96,.25)" : "none"),
+                transition: "background 0.1s"
               }}>
                 <td style={{padding:"3px 6px"}}>
                   <span style={{
@@ -510,7 +515,6 @@ function ExportPanel({ buttons, hand, nc }) {
     });
   };
 
-  // Descarga directa como archivo .csv
   const download = () => {
     const blob = new Blob([csvText()], {type:"text/csv"});
     const url  = URL.createObjectURL(blob);
@@ -522,7 +526,7 @@ function ExportPanel({ buttons, hand, nc }) {
   };
 
   const bS = (active) => ({
-    padding:"5px 12px", borderRadius:7, border:"none",
+    padding:"5px 12px", borderRadius:7,
     fontFamily:"'Courier New',monospace", fontWeight:700, fontSize:10,
     cursor:"pointer", transition:"all .2s",
     background: active ? "linear-gradient(135deg,#0d9488,#2dd4bf)" : "#1a0e04",
@@ -565,7 +569,7 @@ function ExportPanel({ buttons, hand, nc }) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// APP
+// APP (Con Motor Fusión: Micrófono + Editor Estático de Configuración)
 // ─────────────────────────────────────────────────────────────────
 export default function App() {
   const [hand,      setHand]      = useState("left");
@@ -576,9 +580,33 @@ export default function App() {
   const [rightBtns, setRightBtns] = useState(()=>DEFS_R.map(b=>({...b})));
   const { colors, nc, setColor, reset: resetColors } = useNoteColors();
 
+  // Estados para el motor del micrófono en tiempo real
+  const [isListening, setIsListening] = useState(false);
+  const [heardNote,    setHeardNote]    = useState("");
+  const [errorAudio,   setErrorAudio]   = useState("");
+
   const buttons    = hand==="left" ? leftBtns    : rightBtns;
   const setButtons = hand==="left" ? setLeftBtns : setRightBtns;
   const initDefs   = hand==="left" ? DEFS_L      : DEFS_R;
+
+  // Mapeos para traducir de Frecuencia Americana Científica a notas de tu app
+  const ENG_TO_LAT_MAP = useMemo(() => ({
+    "C":"DO", "C#":"DO#", "D":"RE", "D#":"RE#", "E":"MI", "F":"FA", 
+    "F#":"FA#", "G":"SOL", "G#":"SOL#", "A":"LA", "A#":"LA#", "B":"SI"
+  }), []);
+
+  const nombresNotasEng = useMemo(() => ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"], []);
+
+  // Buscar qué botones específicos en la pantalla coinciden con la nota del micrófono
+  const heardIds = useMemo(() => {
+    if (!heardNote) return [];
+    return buttons
+      .filter(b => {
+        const notaBoton = mode === "abre" ? b.abre : b.cierra;
+        return notaBoton === heardNote;
+      })
+      .map(b => b.id);
+  }, [heardNote, buttons, mode]);
 
   const handleMove = useCallback((id,x,y)=>{
     setButtons(prev=>prev.map(b=>b.id===id?{...b,x,y}:b));
@@ -588,13 +616,10 @@ export default function App() {
     setButtons(prev=>prev.map(b=>b.id===id?{...b,[field]:value}:b));
   },[setButtons]);
 
-  // Importar CSV — mantiene el orden por id si coincide, agrega nuevos
   const handleImport = useCallback((parsed) => {
     setButtons(prev => {
-      // Mapa de existentes por id
       const map = {};
       prev.forEach(b => { map[b.id] = b; });
-      // Mergear: usar datos del CSV, preservar lo que no viene
       return parsed.map(p => ({
         ...(map[p.id] || {}),
         ...p,
@@ -602,7 +627,7 @@ export default function App() {
     });
   },[setButtons]);
 
-  // Teclado
+  // Manejo de flechas físicas del teclado
   useEffect(()=>{
     const handler = e => {
       if (!selected) return;
@@ -618,6 +643,71 @@ export default function App() {
     window.addEventListener("keydown", handler);
     return ()=>window.removeEventListener("keydown", handler);
   },[selected,setButtons]);
+
+  // ─── LA MAGIA DEL MICROFONO INTEGRADA AL ESTADO DINÁMICO ───
+  useEffect(() => {
+    if (!isListening) {
+      setHeardNote("");
+      return;
+    }
+
+    let audioCtx = null;
+    let stream = null;
+    let animationFrameId = null;
+
+    async function startAudioLoop() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioCtx.createMediaStreamSource(stream);
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 2048;
+        source.connect(analyser);
+
+        const dataArray = new Float32Array(analyser.fftSize);
+
+        if (!window.Pitchfinder) {
+          setErrorAudio("Pitchfinder no detectado en index.html");
+          setIsListening(false);
+          return;
+        }
+
+        // Algoritmo YIN optimizado para el rango acústico del bandoneón
+        const detectPitch = window.Pitchfinder.YIN({ sampleRate: audioCtx.sampleRate });
+
+        function update() {
+          analyser.getFloatTimeDomainData(dataArray);
+          const pitch = detectPitch(dataArray);
+
+          if (pitch && pitch > 50 && pitch < 1800) {
+            // Conversión matemática directa de Hz a nota musical
+            const noteNum = 12 * (Math.log(pitch / 440) / Math.log(2)) + 69;
+            const rounded = Math.round(noteNum);
+            const engName = nombresNotasEng[rounded % 12];
+            const latName = ENG_TO_LAT_MAP[engName] || "DO";
+
+            setHeardNote(latName);
+          } else {
+            setHeardNote("");
+          }
+          animationFrameId = requestAnimationFrame(update);
+        }
+
+        update();
+      } catch (err) {
+        setErrorAudio("Error accediendo al micrófono. Verificá permisos.");
+        setIsListening(false);
+      }
+    }
+
+    startAudioLoop();
+
+    return () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      if (audioCtx) audioCtx.close();
+    };
+  }, [isListening, nombresNotasEng, ENG_TO_LAT_MAP]);
 
   const selBtn = buttons.find(b=>b.id===selected);
 
@@ -647,11 +737,62 @@ export default function App() {
         <div style={{
           fontSize:18, fontWeight:900, color:"#f5c060",
           letterSpacing:"0.1em", textShadow:"0 0 20px rgba(245,192,96,.4)",
-        }}>BANDONEÓN · EDITOR</div>
+        }}>BANDONEÓN · EDITOR V2</div>
         <div style={{fontSize:8, color:"#5a3018", letterSpacing:"0.18em", marginTop:1}}>
-          SNAP 2px · ARRASTRÁ · IMPORTÁ/EXPORTÁ CSV · EDITÁ NOTAS Y COLORES
+          FUSIÓN MICRÓFONO EN TIEMPO REAL + CONFIGURACIÓN DE TECLADO PERSONALIZADA
         </div>
       </div>
+
+      {/* ─── NUEVO PANEL DEL MICRÓFONO EN TIEMPO REAL ─── */}
+      <div style={{
+        maxWidth: 780, margin: "0 auto 12px", padding: "10px 14px",
+        background: "#0a0602", border: "1.5px dashed #5a3018", borderRadius: 12,
+        display: "flex", alignItems: "center", justifyContent: "between", flexWrap: "wrap", gap: 10
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flex: "1 1 auto" }}>
+          <div style={{
+            width: 10, height: 10, borderRadius: "50%",
+            background: isListening ? "#2DD4BF" : "#4a2e10",
+            boxShadow: isListening ? "0 0 10px #2DD4BF" : "none"
+          }} />
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 800, color: "#eab308" }}>MODO ESCUCHA FISICA</div>
+            <div style={{ fontSize: 7.5, color: "#6a4020" }}>Toca tu instrumento físico. Buscará coincidencias usando tus variables dinámicas y overrides de color.</div>
+          </div>
+        </div>
+
+        {/* Indicador de Nota Detectada */}
+        {isListening && (
+          <div style={{
+            background: heardNote ? `${DEFAULT_NOTE_COLORS[heardNote]}22` : "#140c05",
+            border: `1px solid ${heardNote ? DEFAULT_NOTE_COLORS[heardNote] : "#3a2010"}`,
+            padding: "4px 12px", borderRadius: 8, minWidth: 65, textAlign: "center", transition: "all 0.1s"
+          }}>
+            <span style={{ fontSize: 8, color: "#6a4020", display: "block" }}>NOTA MIC</span>
+            <span style={{ fontSize: 13, fontWeight: 900, color: heardNote ? DEFAULT_NOTE_COLORS[heardNote] : "#4a2e10" }}>
+              {heardNote || "..."}
+            </span>
+          </div>
+        )}
+
+        <button 
+          onClick={() => { setIsListening(p => !p); setErrorAudio(""); }}
+          style={{
+            padding: "6px 14px", borderRadius: 8, border: "none",
+            fontFamily: "monospace", fontWeight: 700, fontSize: 10, cursor: "pointer",
+            background: isListening ? "linear-gradient(135deg,#941c1c,#ef4444)" : "linear-gradient(135deg,#134e4a,#2dd4bf)",
+            color: isListening ? "#fff" : "#0f172a"
+          }}
+        >
+          {isListening ? "✕ Apagar Mic" : "🎙️ Escuchar Instrumento"}
+        </button>
+      </div>
+
+      {errorAudio && (
+        <div style={{ maxWidth: 780, margin: "0 auto 10px", padding: "6px 12px", background: "#270808", border: "1px solid #ef444455", borderRadius: 6, fontSize: 9, color: "#f87171", fontFamily: "monospace" }}>
+          ⚠ {errorAudio}
+        </div>
+      )}
 
       {/* CONTROLES */}
       <div style={{display:"flex", gap:7, justifyContent:"center", flexWrap:"wrap", marginBottom:10}}>
@@ -660,8 +801,8 @@ export default function App() {
           <button style={cBtn(mode==="cierra")} onClick={()=>setMode("cierra")}>◁ CERRANDO</button>
         </div>
         <div style={{display:"flex", background:"#100802", border:"1.5px solid #3a2010", borderRadius:10, padding:3, gap:3}}>
-          <button style={cBtn(hand==="left","blue")}  onClick={()=>{setHand("left");  setSelected(null);}}>IZQ 33</button>
-          <button style={cBtn(hand==="right","blue")} onClick={()=>{setHand("right"); setSelected(null);}}>DER 38</button>
+          <button style={cBtn(hand==="left","blue")}  onClick={()=>{setHand("left");  setSelected(null);}}>IZQ {leftBtns.length}</button>
+          <button style={cBtn(hand==="right","blue")} onClick={()=>{setHand("right"); setSelected(null);}}>DER {rightBtns.length}</button>
         </div>
         <button onClick={()=>setShowGrid(p=>!p)} style={{
           padding:"6px 11px", borderRadius:10, border:"1.5px solid #3a2010",
@@ -693,36 +834,35 @@ export default function App() {
       {/* LAYOUT */}
       <div style={{display:"flex", gap:12, maxWidth:1200, margin:"0 auto", flexWrap:"wrap"}}>
 
-        {/* CANVAS + herramientas */}
+        {/* CANVAS */}
         <div style={{flex:"1 1 420px", minWidth:340}}>
           <div style={{fontSize:10, fontWeight:800, color:"#f5c060", letterSpacing:"0.14em", marginBottom:6}}>
-            {hand==="left"?"MANO IZQUIERDA · 33 botones":"MANO DERECHA · 38 botones"}
+            {hand==="left"?"MANO IZQUIERDA":"MANO DERECHA"}
           </div>
           <div style={{fontSize:8, color:"#6a4020", background:"#1a0e04", border:"1px solid #2a1608",
             borderRadius:6, padding:"4px 9px", marginBottom:8, lineHeight:1.6}}>
-            🖱 Arrastrá · ⌨ Flechas 2px (Shift=10px) · 📱 ← → ↑ ↓
+            🖱 Arrastrá · ⌨ Flechas 2px (Shift=10px) · 🎙️ Activa el mic para ver qué botones físicos estás presionando.
           </div>
 
-          {/* Importar CSV */}
           <ImportCSV onImport={handleImport}/>
-
-          {/* Colores globales */}
           <ColorPanel colors={colors} setColor={setColor} onReset={resetColors}/>
 
           <div style={{overflowX:"auto", paddingBottom:6}}>
-            <Canvas buttons={buttons} mode={mode} selected={selected}
-              onSelect={setSelected} onMove={handleMove} showGrid={showGrid} nc={nc}/>
+            <Canvas 
+              buttons={buttons} mode={mode} selected={selected} heardIds={heardIds}
+              onSelect={setSelected} onMove={handleMove} showGrid={showGrid} nc={nc}
+            />
           </div>
 
           {/* Info seleccionado */}
           {selBtn && (
             <div style={{
               display:"flex", gap:6, alignItems:"center", flexWrap:"wrap",
-              background:"#1a0e04", border:"1px solid #3a2010",
+              background:"#1a0e04", border:"1px solid #3a1010",
               borderRadius:8, padding:"6px 10px", marginTop:8,
             }}>
               <span style={{color:"#f5c060", fontWeight:700, fontSize:11}}>{selBtn.id}</span>
-              <span style={{color:"#4a2e10", fontSize:9}}>x:{selBtn.x} y:{selBtn.y}</span>
+              <span style={{color:"#7a5030", fontSize:9}}>x:{selBtn.x} y:{selBtn.y}</span>
               <span style={{fontSize:9, color:selBtn.color_abre||nc(selBtn.abre)}}>▷ {selBtn.abre}</span>
               <span style={{fontSize:9, color:selBtn.color_cierra||nc(selBtn.cierra)}}>◁ {selBtn.cierra}</span>
               <div style={{marginLeft:"auto", display:"flex", gap:3}}>
@@ -742,17 +882,17 @@ export default function App() {
           <ExportPanel buttons={buttons} hand={hand} nc={nc}/>
         </div>
 
-        {/* TABLA */}
+        {/* TABLA EDITABLE */}
         <div style={{flex:"0 0 340px", minWidth:300}}>
           <div style={{fontSize:10, fontWeight:800, color:"#f5c060", letterSpacing:"0.14em", marginBottom:6}}>
             TABLA · NOTAS Y COLORES
           </div>
           <div style={{fontSize:8, color:"#6a4020", background:"#1a0e04", border:"1px solid #2a1608",
             borderRadius:6, padding:"4px 9px", marginBottom:8, lineHeight:1.6}}>
-            Clic en fila → selecciona · Desplegable → nota · 🎨 → color del botón
+            Muestra feedback blanco en la fila si la nota ingresa por el mic.
           </div>
           <Table
-            buttons={buttons} mode={mode} selected={selected}
+            buttons={buttons} mode={mode} selected={selected} heardIds={heardIds}
             onSelect={setSelected} onEdit={handleEdit} nc={nc}
           />
         </div>
