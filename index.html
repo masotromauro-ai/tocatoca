@@ -5,7 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bandoneón · Editor V2</title>
 
-    <script defer src="https://cdn.jsdelivr.net/npm/pitchfinder@2.3.0/dist/pitchfinder.min.js"></script>
+    <!--
+      SIN defer: debe cargar sincrónicamente antes que React
+      para que window.Pitchfinder exista al montar el componente.
+      Versión 2.0.1 UMD expone: window.Pitchfinder.YIN directamente.
+    -->
+    <script src="https://cdn.jsdelivr.net/npm/pitchfinder@2.0.1/dist/pitchfinder.umd.min.js"></script>
+    <script>
+      // Normalización defensiva: garantiza window.Pitchfinder.YIN
+      // sin importar cómo la versión UMD exponga su API.
+      (function() {
+        var P = window.Pitchfinder;
+        if (!P) return;
+        // Versión donde la API real está en .default
+        if (!P.YIN && P.default && P.default.YIN) {
+          Object.assign(P, P.default);
+        }
+        // Versión vieja donde estaba en .frequencies
+        if (!P.YIN && P.frequencies && P.frequencies.YIN) {
+          P.YIN  = P.frequencies.YIN;
+          P.AMDF = P.frequencies.AMDF;
+        }
+        console.log("[Pitchfinder] API disponible:", typeof P.YIN);
+      })();
+    </script>
   </head>
   <body style="margin:0;padding:0;background:#060301">
     <div id="root"></div>
