@@ -34,15 +34,16 @@ function parseCSV(text) {
   for (const line of dataLines) {
     const parts = line.split(",").map(s => s.trim());
     if (parts.length < 6) continue;
-    const [id, row, x, y, abre, cierra, color] = parts;
+    const [id, row, x, y, abre, cierra, color_abre, color_cierra] = parts;
     result.push({
       id,
       row: parseInt(row),
       x:   parseInt(x),
       y:   parseInt(y),
-      abre:   abre   || "DO",
-      cierra: cierra || "DO",
-      color:  color  || "",
+      abre:        abre        || "DO",
+      cierra:      cierra      || "DO",
+      color_abre:  color_abre  || "",
+      color_cierra:color_cierra|| "",
     });
   }
   return result;
@@ -52,7 +53,7 @@ function parseCSV(text) {
 // DATOS — coordenadas exactas del usuario (mano izquierda)
 // ─────────────────────────────────────────────────────────────────
 const DEFS_L = [
-  { id:"L01", row:0, x:208, y: 46, abre:"SOL#", cierra:"SOL#", color:"#ff6a00" },
+  { id:"L01", row:0, x:208, y: 46, abre:"SOL#", cierra:"SOL#", color_abre:"#ff6a00", color_cierra:"" },
   { id:"L02", row:0, x:308, y: 40, abre:"LA#",  cierra:"LA#",  color:"#d946ef" },
   { id:"L03", row:0, x:416, y: 42, abre:"DO#",  cierra:"RE#",  color:"#00a1d8" },
   { id:"L04", row:0, x:526, y: 58, abre:"FA",   cierra:"RE#",  color:"#fdc700" },
@@ -70,12 +71,12 @@ const DEFS_L = [
   { id:"L16", row:2, x:410, y:162, abre:"MI",   cierra:"FA#",  color:"#583300" },
   { id:"L17", row:2, x:528, y:164, abre:"DO",   cierra:"DO#",  color:"#285ff4" },
   { id:"L18", row:2, x:618, y:170, abre:"SOL",  cierra:"FA#",  color:"#fefb41" },
-  { id:"L19", row:3, x: 66, y:252, abre:"MI",   cierra:"SOL#", color:"#583300" },
+  { id:"L19", row:3, x: 66, y:252, abre:"MI",   cierra:"SOL#", color_abre:"#583300", color_cierra:"" },
   { id:"L20", row:3, x:158, y:230, abre:"SOL#", cierra:"SOL",  color:"#ff6a00" },
   { id:"L21", row:3, x:254, y:222, abre:"SI",   cierra:"LA",   color:"#4d22b2" },
   { id:"L22", row:3, x:354, y:218, abre:"RE",   cierra:"RE#",  color:"#4e7a27" },
   { id:"L23", row:3, x:458, y:224, abre:"FA#",  cierra:"FA#",  color:"#fdc700" },
-  { id:"L24", row:3, x:560, y:234, abre:"DO#",  cierra:"SOL#", color:"#00a1d8" },
+  { id:"L24", row:3, x:560, y:234, abre:"DO#",  cierra:"SOL#", color_abre:"#00a1d8", color_cierra:"" },
   { id:"L25", row:3, x:646, y:246, abre:"FA#",  cierra:"SI",   color:"#fdc700" },
   { id:"L26", row:4, x: 26, y:328, abre:"RE",   cierra:"MI",   color:"#4e7a27" },
   { id:"L27", row:4, x:110, y:308, abre:"SI",   cierra:"SI",   color:"#371a94" },
@@ -89,8 +90,8 @@ const DEFS_L = [
 
 const DEFS_R = [
   { id:"R01", row:0, x:  4, y: 14, abre:"SI",   cierra:"SI",   color:"" },
-  { id:"R02", row:0, x: 56, y: 14, abre:"SOL#", cierra:"SOL#", color:"" },
-  { id:"R03", row:0, x:108, y: 14, abre:"SOL",  cierra:"SOL#", color:"" },
+  { id:"R02", row:0, x: 56, y: 14, abre:"SOL#", cierra:"SOL#", color_abre:"", color_cierra:"" },
+  { id:"R03", row:0, x:108, y: 14, abre:"SOL",  cierra:"SOL#", color_abre:"", color_cierra:"" },
   { id:"R04", row:0, x:160, y: 14, abre:"SOL",  cierra:"SOL",  color:"" },
   { id:"R05", row:0, x:212, y: 14, abre:"LA",   cierra:"SOL",  color:"" },
   { id:"R06", row:0, x:264, y: 14, abre:"FA",   cierra:"FA",   color:"" },
@@ -111,7 +112,7 @@ const DEFS_R = [
   { id:"R21", row:2, x:264, y:118, abre:"RE#",  cierra:"FA#",  color:"" },
   { id:"R22", row:2, x:316, y:118, abre:"FA#",  cierra:"LA",   color:"" },
   { id:"R23", row:2, x:368, y:118, abre:"LA",   cierra:"RE",   color:"" },
-  { id:"R24", row:2, x:420, y:118, abre:"RE",   cierra:"SOL#", color:"" },
+  { id:"R24", row:2, x:420, y:118, abre:"RE",   cierra:"SOL#", color_abre:"", color_cierra:"" },
   { id:"R25", row:3, x:  4, y:170, abre:"FA",   cierra:"LA",   color:"" },
   { id:"R26", row:3, x: 56, y:170, abre:"LA",   cierra:"RE#",  color:"" },
   { id:"R27", row:3, x:108, y:170, abre:"RE#",  cierra:"FA#",  color:"" },
@@ -133,7 +134,9 @@ const DEFS_R = [
 // ─────────────────────────────────────────────────────────────────
 function Key({ btn, mode, selected, onSelect, onMove, nc }) {
   const note  = mode === "abre" ? btn.abre : btn.cierra;
-  const color = btn.color || nc(note);
+  // Color siempre sigue la nota del modo activo; color_abre/color_cierra son overrides opcionales
+  const colorOverride = mode === "abre" ? btn.color_abre : btn.color_cierra;
+  const color = colorOverride || nc(note);
   const isSel = selected === btn.id;
 
   const onMouseDown = useCallback((e) => {
@@ -376,7 +379,8 @@ function Table({ buttons, mode, selected, onSelect, onEdit, nc }) {
           {buttons.map(btn => {
             const isSel   = btn.id === selected;
             const noteNow = mode==="abre" ? btn.abre : btn.cierra;
-            const btnColor= btn.color || nc(noteNow);
+            const colorOverrideNow = mode==="abre" ? btn.color_abre : btn.color_cierra;
+            const btnColor = colorOverrideNow || nc(noteNow);
             return (
               <tr key={btn.id} onClick={()=>onSelect(btn.id)} style={{
                 background: isSel ? "rgba(245,192,96,.09)" : "transparent",
@@ -403,13 +407,18 @@ function Table({ buttons, mode, selected, onSelect, onEdit, nc }) {
                 </td>
                 <td style={{padding:"2px 4px"}} onClick={e=>e.stopPropagation()}>
                   <input type="color"
-                    value={btn.color || btnColor}
-                    onChange={e=>onEdit(btn.id,"color",e.target.value)}
-                    style={{
-                      width:28, height:22, padding:1, borderRadius:4,
-                      border:"1px solid #3a2010", background:"#1a0e04",
-                      cursor:"pointer",
-                    }}
+                    value={btn.color_abre || nc(btn.abre)}
+                    onChange={e=>onEdit(btn.id,"color_abre",e.target.value)}
+                    title="Color al ABRIR"
+                    style={{width:26,height:22,padding:1,borderRadius:4,border:"1px solid #3a2010",background:"#1a0e04",cursor:"pointer"}}
+                  />
+                </td>
+                <td style={{padding:"2px 4px"}} onClick={e=>e.stopPropagation()}>
+                  <input type="color"
+                    value={btn.color_cierra || nc(btn.cierra)}
+                    onChange={e=>onEdit(btn.id,"color_cierra",e.target.value)}
+                    title="Color al CERRAR"
+                    style={{width:26,height:22,padding:1,borderRadius:4,border:"1px solid #3a2010",background:"#1a0e04",cursor:"pointer"}}
                   />
                 </td>
               </tr>
@@ -474,10 +483,11 @@ function ExportPanel({ buttons, hand, nc }) {
   const [copied, setCopied] = useState(false);
 
   const csvText = () => {
-    const h = "id,row,x,y,abre,cierra,color";
+    const h = "id,row,x,y,abre,cierra,color_abre,color_cierra";
     const r = buttons.map(b => {
-      const color = b.color || nc(b.abre);
-      return `${b.id},${b.row},${b.x},${b.y},${b.abre},${b.cierra},${color}`;
+      const ca = b.color_abre   || nc(b.abre);
+      const cc = b.color_cierra || nc(b.cierra);
+      return `${b.id},${b.row},${b.x},${b.y},${b.abre},${b.cierra},${ca},${cc}`;
     });
     return [h,...r].join("\n");
   };
@@ -485,8 +495,9 @@ function ExportPanel({ buttons, hand, nc }) {
   const jsText = () => {
     const name = hand==="left" ? "LEFT_HAND" : "RIGHT_HAND";
     const lines = buttons.map(b => {
-      const color = b.color || nc(b.abre);
-      return `  { id:"${b.id}", x:${b.x}, y:${b.y}, row:${b.row}, abre:"${b.abre}", cierra:"${b.cierra}", color:"${color}" },`;
+      const ca = b.color_abre   || nc(b.abre);
+      const cc = b.color_cierra || nc(b.cierra);
+      return `  { id:"${b.id}", x:${b.x}, y:${b.y}, row:${b.row}, abre:"${b.abre}", cierra:"${b.cierra}", color_abre:"${ca}", color_cierra:"${cc}" },`;
     });
     return `const ${name} = [\n${lines.join("\n")}\n];`;
   };
@@ -712,8 +723,8 @@ export default function App() {
             }}>
               <span style={{color:"#f5c060", fontWeight:700, fontSize:11}}>{selBtn.id}</span>
               <span style={{color:"#4a2e10", fontSize:9}}>x:{selBtn.x} y:{selBtn.y}</span>
-              <span style={{fontSize:9, color:selBtn.color||nc(selBtn.abre)}}>▷ {selBtn.abre}</span>
-              <span style={{fontSize:9, color:selBtn.color||nc(selBtn.cierra)}}>◁ {selBtn.cierra}</span>
+              <span style={{fontSize:9, color:selBtn.color_abre||nc(selBtn.abre)}}>▷ {selBtn.abre}</span>
+              <span style={{fontSize:9, color:selBtn.color_cierra||nc(selBtn.cierra)}}>◁ {selBtn.cierra}</span>
               <div style={{marginLeft:"auto", display:"flex", gap:3}}>
                 {[["←",-SNAP,0],["→",SNAP,0],["↑",0,-SNAP],["↓",0,SNAP]].map(([l,dx,dy])=>(
                   <button key={l} onClick={()=>setButtons(prev=>prev.map(b=>
