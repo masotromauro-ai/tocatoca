@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { YIN } from "pitchfinder";
 
 const ALL_NOTES = ["DO","DO#","RE","RE#","MI","FA","FA#","SOL","SOL#","LA","LA#","SI"];
 
@@ -391,18 +392,8 @@ export default function App() {
 
     async function start(){
       try{
-        // Resolver YINFactory independiente de la versión del UMD
-        const PF = window.Pitchfinder;
-        const YINFactory = PF && (
-          PF.YIN ||
-          (PF.default && PF.default.YIN) ||
-          (PF.frequencies && PF.frequencies.YIN)
-        );
-        if(!YINFactory){
-          setErrorAudio("Pitchfinder aún no cargó. Esperá 2 segundos y volvé a intentar.");
-          setIsListening(false);
-          return;
-        }
+        // YIN importado directamente desde el paquete npm — sin CDN externo
+        const YINFactory = YIN;
 
         stream = await navigator.mediaDevices.getUserMedia({audio:true,video:false});
         const AC = window.AudioContext || window.webkitAudioContext;
@@ -415,7 +406,7 @@ export default function App() {
         src.connect(analyser);
 
         const buf     = new Float32Array(analyser.fftSize);
-        const detect  = YINFactory({sampleRate: audioCtx.sampleRate || 44100});
+        const detect  = YINFactory({ sampleRate: audioCtx.sampleRate || 44100 });
 
         function tick(){
           analyser.getFloatTimeDomainData(buf);
