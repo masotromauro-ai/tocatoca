@@ -1142,25 +1142,87 @@ function BandBtn({ btn, bellows, pressed, isHeard, onDown, onUp, draggable=false
   );
 }
 
-// ─── CANVAS ───────────────────────────────────────────────────────────────────
-function BandCanvas({ buttons, bellows, pressed, heardIds=[], onDown, onUp, draggable=false, onMove, showGrid=false, onSelect=null, selected=null }) {
-  const W = Math.max(...buttons.map(b=>b.x)) + BTN_SIZE + 16;
-  const H = Math.max(...buttons.map(b=>b.y)) + BTN_SIZE + 16;
-  return (
-    <div onClick={()=>onSelect&&onSelect(null)} style={{
-      position:"relative", width:W, height:H, flexShrink:0,
-      background: showGrid
-        ? `repeating-linear-gradient(0deg,transparent,transparent 9px,rgba(90,58,24,.18) 10px),repeating-linear-gradient(90deg,transparent,transparent 9px,rgba(90,58,24,.18) 10px),#0e0701`
-        : "linear-gradient(145deg,#281a08,#140e04)",
-      border:`2px solid ${draggable?"#f5c06055":"#6b4c1e"}`, borderRadius:16,
-      boxShadow:"0 8px 24px rgba(0,0,0,.7)", touchAction:"none",
-    }}>
+// ─── CANVAS RESPONSIVE ───────────────────────────────────────────────────────
+// En móvil usa CSS transform:scale para ajustar al ancho disponible sin 
+// modificar las coordenadas absolutas de los botones.
+function BandCanvas({ buttons, bellows, pressed, heardIds=[], onDown, onUp,
+  draggable=false, onMove, showGrid=false, onSelect=null, selected=null, mobile=false }) {
+
+  const xs = buttons.map(b=>b.x);
+  const ys = buttons.map(b=>b.y);
+  const xMin = Math.min(...xs);
+  const yMin = Math.min(...ys);
+  const W    = Math.max(...xs) + BTN_SIZE + 16;
+  const H    = Math.max(...ys) + BTN_SIZE + 16;
+
+  // En móvil escalamos el canvas para que entre en el ancho del contenedor
+  // containerRef mide el ancho real disponible
+  const containerRef = useRef(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(()=>{
+    if (!mobile) { setScale(1); return; }
+    const measure = () => {
+      if (!containerRef.current) return;
+      const availW = containerRef.current.offsetWidth;
+      // Área real de botones (sin padding vacío)
+      const realW = Math.max(...xs) - xMin + BTN_SIZE + 8;
+      setScale(Math.min(1, availW / realW));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (containerRef.current) ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, [mobile, xs, xMin]);
+
+  // Alto visual escalado (para que el contenedor no quede con espacio vacío)
+  const scaledH = mobile ? Math.ceil(H * scale) : H;
+  // Offset para eliminar el espacio vacío a la izquierda en móvil
+  const offsetX  = mobile ? -xMin : 0;
+  const offsetY  = mobile ? -yMin : 0;
+
+  const inner = (
+    <div
+      onClick={()=>onSelect&&onSelect(null)}
+      style={{
+        position:"relative",
+        width: W, height: H,
+        flexShrink: 0,
+        background: showGrid
+          ? `repeating-linear-gradient(0deg,transparent,transparent 9px,rgba(90,58,24,.18) 10px),repeating-linear-gradient(90deg,transparent,transparent 9px,rgba(90,58,24,.18) 10px),#0e0701`
+          : "linear-gradient(145deg,#281a08,#140e04)",
+        border:`2px solid ${draggable?"#f5c06055":"#6b4c1e"}`,
+        borderRadius:16,
+        boxShadow:"0 8px 24px rgba(0,0,0,.7)",
+        touchAction:"none",
+      }}
+    >
       {buttons.map(btn=>(
         <BandBtn key={btn.id} btn={btn} bellows={bellows}
-          pressed={selected?[selected]:pressed} isHeard={heardIds.includes(btn.id)}
+          pressed={selected?[selected]:pressed}
+          isHeard={heardIds.includes(btn.id)}
           onDown={e=>{onSelect&&onSelect(btn.id); onDown&&onDown(btn);}}
           onUp={onUp} draggable={draggable} onMove={onMove}/>
       ))}
+    </div>
+  );
+
+  if (!mobile) {
+    return <div style={{overflowX:"auto",paddingBottom:4}}>{inner}</div>;
+  }
+
+  // Versión móvil: wrapper que recorta y escala
+  return (
+    <div ref={containerRef} style={{width:"100%",overflow:"hidden"}}>
+      <div style={{
+        width: W,
+        height: scaledH,
+        overflow:"hidden",
+        transformOrigin:"top left",
+        transform:`scale(${scale}) translate(${offsetX}px,${offsetY}px)`,
+      }}>
+        {inner}
+      </div>
     </div>
   );
 }
@@ -1576,6 +1638,15 @@ function BandoneonTab() {
     color:active?(v==="orange"?"#0a0502":"#fff"):"#6a4020",
   });
 
+  // Detectar móvil
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(()=>{
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  },[]);
+
   if (!leftBtns.length) return <div style={{color:"#555",padding:20,fontSize:13}}>Cargando...</div>;
 
   if (editMode) return (
@@ -1620,59 +1691,27 @@ function BandoneonTab() {
       {errorAudio&&<div style={{marginBottom:10,padding:"5px 10px",background:"#270808",border:"1px solid #ef444455",borderRadius:6,fontSize:9,color:"#f87171"}}>⚠ {errorAudio}</div>}
 
       {/* Controles fuelle/vista */}
-      <div style={{display:"flex",gap:7,flexWrap:"wrap",marginBottom:12,alignItems:"center"}}>
-        <div style={{display:"flex",background:"#100802",border:"1.5px solid #3a2010",borderRadius:10,padding:3,gap:3}}>
-          <button style={pill(bellows==="abre")}   onClick={()=>{setBellows("abre");   setPressedL([]);setPressedR([]);}}>▷ ABRIENDO</button>
-          <button style={pill(bellows==="cierra")} onClick={()=>{setBellows("cierra"); setPressedL([]);setPressedR([]);}}>◁ CERRANDO</button>
-        </div>
-        <div style={{display:"flex",background:"#100802",border:"1.5px solid #2a3060",borderRadius:10,padding:3,gap:3}}>
-          {["ambas","izquierda","derecha"].map(v=>(
-            <button key={v} style={pill(view===v,"blue")} onClick={()=>setView(v)}>
-              {v==="ambas"?"Ambas":v==="izquierda"?"IZQ":"DER"}
-            </button>
+      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10,alignItems:"center"}}>
+        {/* Fuelle */}
+        <div style={{display:"flex",background:"#100802",border:"1.5px solid #3a2010",borderRadius:10,padding:3,gap:2}}>
+          {[["abre","▷ Abre"],["cierra","◁ Cierra"]].map(([b,l])=>(
+            <button key={b} style={{...pill(bellows===b),padding:isMobile?"5px 10px":"5px 12px"}}
+              onClick={()=>{setBellows(b);setPressedL([]);setPressedR([]);}}>{l}</button>
           ))}
         </div>
-        <button onClick={()=>{setPressedL([]);setPressedR([]);}} style={{padding:"5px 10px",borderRadius:9,border:"1px solid #3a2010",background:"transparent",color:"#6a4020",fontFamily:"monospace",fontSize:10,cursor:"pointer"}}>✕ Limpiar</button>
+        {/* Vista — en móvil solo mostrar si es "ambas" para ahorrar espacio */}
+        <div style={{display:"flex",background:"#100802",border:"1.5px solid #2a3060",borderRadius:10,padding:3,gap:2}}>
+          {[["ambas","Ambas"],["izquierda","IZQ"],["derecha","DER"]].map(([v,l])=>(
+            <button key={v} style={{...pill(view===v,"blue"),padding:isMobile?"5px 8px":"5px 12px"}}
+              onClick={()=>setView(v)}>{l}</button>
+          ))}
+        </div>
+        <button onClick={()=>{setPressedL([]);setPressedR([]);}}
+          style={{padding:"5px 9px",borderRadius:9,border:"1px solid #3a2010",background:"transparent",color:"#6a4020",fontFamily:"monospace",fontSize:10,cursor:"pointer",marginLeft:"auto"}}>
+          ✕
+        </button>
       </div>
 
       {/* Notas + acorde */}
       {(activeNotes.length>0||heardNote)&&(
-        <div style={{marginBottom:12,padding:"7px 12px",background:"#0c0c1a",border:"1px solid #2a2a4a",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:7}}>
-          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-            {heardNote&&<span style={{padding:"2px 9px",borderRadius:20,background:"#88aaff22",border:"1px solid #88aaff",color:"#88aaff",fontWeight:700,fontSize:11}}>🎙️ {heardNote}</span>}
-            {activeNotes.map(n=>(
-              <span key={n} style={{padding:"2px 9px",borderRadius:20,background:nc(n)+"22",border:`1px solid ${nc(n)}`,color:nc(n),fontWeight:700,fontSize:11}}>{ENG_TO_LAT[n]??n}</span>
-            ))}
-          </div>
-          {detected&&(
-            <div style={{textAlign:"right"}}>
-              <div style={{fontSize:9,color:"#555",marginBottom:2}}>Acorde detectado</div>
-              <div style={{fontSize:20,fontWeight:900,color:"#88aaff",fontFamily:"serif"}}>{detected}</div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Canvas */}
-      <div style={{display:"flex",gap:14,flexWrap:"wrap",overflowX:"auto",paddingBottom:8}}>
-        {(view==="ambas"||view==="izquierda")&&(
-          <div>
-            <div style={{fontSize:9,color:"#7a5030",marginBottom:5,letterSpacing:"0.12em"}}>MANO IZQUIERDA · {leftBtns.length} botones</div>
-            <BandCanvas buttons={leftBtns} bellows={bellows} pressed={pressedL} heardIds={heardIdsL} onDown={downL} onUp={upL}/>
-          </div>
-        )}
-        {(view==="ambas"||view==="derecha")&&(
-          <div>
-            <div style={{fontSize:9,color:"#7a5030",marginBottom:5,letterSpacing:"0.12em"}}>MANO DERECHA · {rightBtns.length} botones</div>
-            <BandCanvas buttons={rightBtns} bellows={bellows} pressed={pressedR} heardIds={heardIdsR} onDown={downR} onUp={upR}/>
-          </div>
-        )}
-      </div>
-
-      <div style={{marginTop:10,padding:"7px 11px",background:"#0a0a12",border:"1px solid #1a1a2a",borderRadius:8,fontSize:11,color:"#555"}}>
-        <b style={{color:"#7a5030"}}>Sistema Rheinische</b> · 71 botones · Bisonoro: nota diferente al{" "}
-        <span style={{color:"#34d399"}}>abrir</span> y al <span style={{color:"#f472b6"}}>cerrar</span> el fuelle.
-      </div>
-
-      {showSaved&&<SavedModal cssText={cssText} onClose={()=>setShowSaved(false)}/>}
-      {showImport&&<ImportM
+        <div style={{marginBottom:10,padding:isMobile?"6px 10px":"7px 12px",background:"#0c0c1a",border:"1px solid #2a2a4a",borderRadius:
