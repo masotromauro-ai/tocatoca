@@ -2316,14 +2316,14 @@ function analizarAcorde(pcs,bajoPc,opt={}){
   const ev=(r)=>{
     const S=new Set(set.filter(p=>p!==r).map(p=>(p-r+12)%12)), key=[0,...[...S].sort((x,y)=>x-y)].join(",");
     const c=cifSufijo(S,est), custom=propios[key]!==undefined, suf=custom?propios[key]:c.suf;
-    const raiz=nombreLat(RAIZ_NOM[r]), cuerpo=suf===""?"mayor":suf==="m"?"menor":suf;
+    const raiz=nombreLat(RAIZ_NOM[r]), cuerpo=suf===""?"mayor":suf==="m"?"menor":suf==="°"?"disminuido":suf==="+"?"aumentado":suf;
     const barra=r!==bajoPc?" / "+nombreLat(RAIZ_NOM[bajoPc]):"";
     return {nombre:raiz+" "+cuerpo+barra,suf,key,rootPc:r,grados:c.g,custom,defaultSuf:c.suf,score:(custom?-10:c.score)+(r===bajoPc?0:3),intervalo:false};
   };
   const todos=set.map(ev).sort((x,y)=>x.score-y.score);
   const elegido=(opt.raiz!=null&&todos.find(x=>x.rootPc===opt.raiz))||todos[0];
   const vistos=new Set([elegido.nombre]), alts=[];
-  todos.forEach(x=>{ if(x!==elegido&&x.score<=4&&!/\(/.test(x.nombre)&&!vistos.has(x.nombre)){ vistos.add(x.nombre); alts.push({nombre:x.nombre,rootPc:x.rootPc}); } });
+  todos.forEach(x=>{ if(x!==elegido&&x.score<=4&&!/\(|add11|sus/.test(x.nombre)&&!vistos.has(x.nombre)){ vistos.add(x.nombre); alts.push({nombre:x.nombre,rootPc:x.rootPc}); } });
   return {...elegido,alts:alts.slice(0,3)};
 }
 function nombreAcordePcs(pcs,bajoPc,raiz){ const r=analizarAcorde(pcs,bajoPc,{raiz}); return r?r.nombre:null; }
@@ -4213,7 +4213,7 @@ function EntrenadorTab({preset}={}){
   const [camElige,setCamElige]=useState({}), [camSuena,setCamSuena]=useState(null), [camLey,setCamLey]=useState(false);
   const esCam = modo==="camino" || modo==="arpegio" || modo==="voz";       // vistas "Ver y escuchar" (escalas y acordes)
   const [acoInv,setAcoInv]=useState(0), [acoUltimo,setAcoUltimo]=useState("arpegio");   // inversión y última vista de la pestaña Acordes
-  useEffect(()=>{ if(modo==="arpegio"||modo==="acordes"||modo==="construir") setAcoUltimo(modo); },[modo]);
+  useEffect(()=>{ if(modo==="arpegio"||modo==="acordes"||modo==="construir"||modo==="armonizar") setAcoUltimo(modo); },[modo]);
   const nTonosArp=acorde.tones.filter(t=>!t.up).length, acoInvOk=Math.min(acoInv,Math.max(0,nTonosArp-1),3);
   const [escUltimo,setEscUltimo]=useState("camino");   // última vista de la pestaña Escalas
   useEffect(()=>{ if(modo==="camino"||modo==="escalas") setEscUltimo(modo); },[modo]);
@@ -4345,6 +4345,43 @@ function EntrenadorTab({preset}={}){
   const conGuardar=()=>{ if(!conAn||conAn.intervalo) return; const p={...cifPropios()}, t=conTxt.trim(); if(t===""||t===conAn.defaultSuf) delete p[conAn.key]; else p[conAn.key]=t; cifGuardarPropios(p); setConVer(v=>v+1); setConMsg(t===""||t===conAn.defaultSuf?"Volvió al nombre automático.":"Guardado. Se usará siempre que armes esta estructura, en cualquier tonalidad."); };
   const conCopiar=()=>{ const p=cifPropios(), txt=Object.keys(p).map(k=>k+" = "+p[k]).join("\n"); try{ navigator.clipboard.writeText("Mis nombres de acordes (intervalos en semitonos desde la raíz = sufijo)\n"+txt); setConMsg("Copiado: pegalo para pasármelo."); }catch(e){ setConMsg("No se pudo copiar."); } };
   const [flechasModo,setFlechasModo]=useState("canal");
+  // Armonizar una escala + Mis acordes (tarjetas guardadas en este dispositivo)
+  const [armGrado,setArmGrado]=useState(0), [armCuat,setArmCuat]=useState(false), [conNota,setConNota]=useState("");
+  const [misAcordes,setMisAcordes]=useState(()=>{ try{ const v=JSON.parse(localStorage.getItem("harmonia_mis_acordes")||"[]"); return Array.isArray(v)?v:[]; }catch(e){ return []; } });
+  useEffect(()=>{ try{ localStorage.setItem("harmonia_mis_acordes",JSON.stringify(misAcordes)); }catch(e){} },[misAcordes]);
+  const escTipo7 = ESC_ENT.slice(0,4).some(e=>e.id===escTipo) ? escTipo : "mayor";
+  const armRoot = noteIdx(escRoot);
+  const armPcs = ESC_ENT.find(e=>e.id===escTipo7).ivs.map(iv=>(armRoot+iv)%12);
+  const armAcordes = useMemo(()=>armPcs.map((pc,i)=>{
+    const tri=[armPcs[i],armPcs[(i+2)%7],armPcs[(i+4)%7]], pcs=armCuat?[...tri,armPcs[(i+6)%7]]:tri;
+    const an=analizarAcorde(pcs,pcs[0],{raiz:pcs[0]}), t=(tri[1]-tri[0]+12)%12, q=(tri[2]-tri[0]+12)%12;
+    const num=(t===3?ROM_N[i].toLowerCase():ROM_N[i])+(q===6?"°":q===8?"+":"");
+    return {i,pc,pcs,nombre:an?an.nombre:"",num};
+  }),[escRoot,escTipo7,armCuat,conVer]);
+  const armSel = armAcordes[Math.min(armGrado,6)];
+  const armVoz = (pcs)=>{   // posición cerrada desde el bajo: raíz en la mano izquierda y las demás notas lo más cerca posible por encima
+    const L=itemsMano(leftBtns,bellows), R=itemsMano(rightBtns,bellows), all=[...L,...R];
+    const bajo=(L.filter(i=>i.pc===pcs[0]).sort((a,b)=>a.midi-b.midi)[0])||(all.filter(i=>i.pc===pcs[0]).sort((a,b)=>a.midi-b.midi)[0]); if(!bajo) return [];
+    const ids=[bajo.b.id];
+    pcs.slice(1).forEach(pc=>{ const c=all.filter(i=>i.pc===pc&&i.midi>bajo.midi&&i.midi<=bajo.midi+19).sort((a,b)=>a.midi-b.midi); const el=c.find(i=>L.includes(i))||c[0]; if(el) ids.push(el.b.id); });
+    return ids;
+  };
+  const armItems = (pcs)=>armVoz(pcs).map(id=>conBy[id]).filter(Boolean).map(b=>itemsMano([b],bellows)[0]);
+  const armTocar = (arp)=>{ const o=armItems(armSel.pcs).sort((a,b)=>a.midi-b.midi); o.forEach((it,i)=>playBandDur(CHROMATIC[it.pc],it.oct,arp?0.38:1.8,arp?i*0.32:i*0.012)); };
+  const armRecorrer = ()=>{ armAcordes.forEach((a,k)=>{ armItems(a.pcs).sort((x,y)=>x.midi-y.midi).forEach(it=>playBandDur(CHROMATIC[it.pc],it.oct,1.1,k*1.25)); }); };
+  const armStateOf=(btn)=>{
+    const it=itemDe(btn), nt=CHROMATIC[it.pc], col=nc(nt), k=armSel.pcs.indexOf(it.pc), enEsc=armPcs.includes(it.pc);
+    if(k>=0) return {bg:col,border:"3px solid #fff",glow:`0 0 0 3px #ffffff55, 0 0 14px ${col}`,
+      content:<span style={{display:"flex",flexDirection:"column",alignItems:"center",lineHeight:1.05,color:"#fff",textShadow:"0 1px 3px rgba(0,0,0,.95)"}}>
+        <b style={{fontSize:12}}>{CROM_SIMPLE[nt]}</b><span style={{fontSize:9,fontWeight:800,fontFamily:"monospace"}}>{GRADO_LABEL[(it.pc-armSel.pc+12)%12]}</span></span>};
+    if(enEsc) return {bg:col+"55",border:`2px solid ${col}aa`,glow:"none",content:<span style={{fontSize:9,fontWeight:700,color:"#ffffffc0",textShadow:"0 1px 2px #000"}}>{CROM_SIMPLE[nt]}</span>};
+    return {bg:"#17171a",border:"2px solid #26262a",glow:"none",content:null};
+  };
+  const armTap=(btn)=>{ const it=itemDe(btn); tocarItem(it); const i=armPcs.indexOf(it.pc); if(i>=0) setArmGrado(i); };
+  const cardGuardar=(nombre,nota,ids,bel)=>{ if(!ids||!ids.length) return; setMisAcordes(l=>[{id:Date.now().toString(36),nombre,nota:(nota||"").trim(),bellows:bel,ids:[...ids]},...l]); };
+  const cardItems=(c)=>c.ids.map(id=>conBy[id]).filter(Boolean).map(b=>itemsMano([b],c.bellows)[0]);
+  const cardTocar=(c)=>{ cardItems(c).sort((a,b)=>a.midi-b.midi).forEach((it,i)=>playBandDur(CHROMATIC[it.pc],it.oct,1.8,i*0.012)); };
+  const cardAbrir=(c)=>{ setBellows(c.bellows); setConSel(m=>({...m,[c.bellows]:c.ids.filter(id=>conBy[id])})); setConRaiz(null); setModo("construir"); cardTocar(c); };
   // Ubicar líneas
   const [linTipo,setLinTipo]=useState("filas"), [linSel,setLinSel]=useState(-1), [linRot,setLinRot]=useState("pos");
   const linL=useMemo(()=>lineasDe("L",leftBtns,linTipo,bellows),[leftBtns,linTipo,bellows]);
@@ -4544,17 +4581,19 @@ function EntrenadorTab({preset}={}){
     <div style={{display:"flex",gap:6,marginBottom:12,flexWrap:"wrap"}}>
       <button style={uiPill(modo==="arpegio",{padding:"7px 16px"})} onClick={()=>setModo("arpegio")}>🧭 Ver y escuchar</button>
       <button style={uiPill(modo==="construir",{padding:"7px 16px"})} onClick={()=>setModo("construir")}>🏗 Construir</button>
+      <button style={uiPill(modo==="armonizar",{padding:"7px 16px"})} onClick={()=>setModo("armonizar")}>🎹 Armonizar</button>
       <button style={uiPill(modo==="acordes",{padding:"7px 16px"})} onClick={()=>setModo("acordes")}>🎼 Armar</button>
     </div>
   );
-  const scaleProps = modo==="construir" ? { stateOf:conStateOf } : modo==="lineas" ? { stateOf:linStateOf } : modo==="escalas" ? { stateOf:escStateOf } : modo==="notas" ? { stateOf:notaStateOf } : esCam ? { stateOf:camStateOf } : null;
-  const tapBtn = (btn, rect)=> modo==="construir" ? conTap(btn) : modo==="lineas" ? linTap(btn) : modo==="acordes" ? toggleSel(btn) : modo==="escalas" ? escTap(btn, rect) : modo==="notas" ? setNotaPicker({btn,rect}) : esCam ? camTap(btn) : openPicker(btn, rect);
+  const scaleProps = modo==="armonizar" ? { stateOf:armStateOf } : modo==="construir" ? { stateOf:conStateOf } : modo==="lineas" ? { stateOf:linStateOf } : modo==="escalas" ? { stateOf:escStateOf } : modo==="notas" ? { stateOf:notaStateOf } : esCam ? { stateOf:camStateOf } : null;
+  const tapBtn = (btn, rect)=> modo==="armonizar" ? armTap(btn) : modo==="construir" ? conTap(btn) : modo==="lineas" ? linTap(btn) : modo==="acordes" ? toggleSel(btn) : modo==="escalas" ? escTap(btn, rect) : modo==="notas" ? setNotaPicker({btn,rect}) : esCam ? camTap(btn) : openPicker(btn, rect);
   const painted = allButtons.filter(b=>guesses[keyOf(b.id)]);
   const correctos = painted.filter(b=>guesses[keyOf(b.id)]===correctOf(b));
 
   const reiniciarFuelle = ()=>{
     if(modo==="lineas"){ setLinSel(-1); return; }
     if(modo==="construir"){ setConSel(m=>({...m,[bellows]:[]})); setConRaiz(null); return; }
+    if(modo==="armonizar"){ setArmGrado(0); return; }
     if(modo==="escalas"){ setProg({i:1,err:0,hint:false,wrong:null}); return; }
     if(esCam){ camParar(); setCamElige({}); if(modo==="voz") setVoz(v=>({...v,man:{},soloLista:false})); return; }
     if(modo==="forma"){ setFormaPts(f=>({L:view!=="derecha"?[]:f.L, R:view!=="izquierda"?[]:f.R})); setChecked(false); setReveal(false); return; }
@@ -4650,14 +4689,69 @@ function EntrenadorTab({preset}={}){
     ? <div style={{display:"flex",flexDirection:"column",gap:10}}>{escSelects}{camSonido}{camControles}</div>
     : <div style={{display:"flex",flexDirection:"column",gap:10}}>{arpAcorde}{arpSonido}{camControles}</div>;
 
+  const misAcordesPanel = (
+    <details open={misAcordes.length>0} style={{background:"#121212",border:"1px solid #2a2a2a",borderRadius:12,padding:"8px 12px",marginBottom:12}}>
+      <summary style={{cursor:"pointer",fontFamily:UI_FONT,fontSize:12,fontWeight:700,color:"#e6e6e6"}}>★ Mis acordes ({misAcordes.length})</summary>
+      <div style={{marginTop:8}}>
+        {misAcordes.length===0
+          ? <p style={{fontSize:11.5,color:"#7c7c82",margin:0,lineHeight:1.5}}>Todavía no guardaste ninguno. Armá un acorde y tocá "★ Guardar en mis acordes": queda anotado en este dispositivo y lo abrís cuando quieras.</p>
+          : misAcordes.map(c=>(
+              <div key={c.id} style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",padding:"6px 0",borderTop:"1px solid #1c1c1f"}}>
+                <div style={{flex:"1 1 220px",minWidth:0}}>
+                  <div style={{fontSize:13,fontWeight:700,color:"#ececec",fontFamily:"'Libre Baskerville',serif"}}>{c.nombre} <span style={{fontFamily:UI_FONT,fontSize:10,fontWeight:600,color:"#7c7c82"}}>· {c.bellows==="abre"?"abre":"cierra"}</span></div>
+                  <div style={{fontSize:11,color:"#9a9aa2"}}>{cardItems(c).sort((a,b)=>a.midi-b.midi).map(it=>nombreLat(RAIZ_NOM[it.pc])+it.oct).join(" · ")}</div>
+                  {c.nota ? <div style={{fontSize:11,color:"#c9a25a",fontStyle:"italic"}}>{c.nota}</div> : null}
+                </div>
+                <button style={uiPlay(false,{padding:"4px 12px",fontSize:11.5})} onClick={()=>cardTocar(c)}>▶</button>
+                <button style={uiTool(false)} onClick={()=>cardAbrir(c)}>Abrir en Construir</button>
+                <button style={uiGhost} onClick={()=>setMisAcordes(l=>l.filter(x=>x.id!==c.id))} title="Borrar">✕</button>
+              </div>))}
+      </div>
+    </details>
+  );
+  const panelArmonizar = (
+    <div className="rounded-xl mb-3" style={{background:"#121212",border:"1px solid #2a2a2a",padding:"8px 12px"}}>
+      {acoVistas}
+      <div style={{display:"flex",flexWrap:"wrap",gap:"8px 20px",alignItems:"flex-end",marginBottom:10}}>
+        <GrupoMini t="Escala">
+          <Desplegable ancho={80} etiqueta="Tónica" valor={escRoot} opciones={ACORDE_RAICES.map(x=>[x,nombreLat(x)])} onChange={v=>{setEscRoot(v);}}/>
+          <Desplegable ancho={140} etiqueta="Escala" valor={escTipo7} opciones={ESC_ENT.slice(0,4).map(e=>[e.id,e.nombre])} onChange={v=>{setEscTipo(v);}}/>
+        </GrupoMini>
+        <GrupoMini t="Acordes de">
+          <div style={{display:"flex",background:"#0e0e10",border:"1px solid #2f2f35",borderRadius:8,padding:2,gap:2}}>
+            {[[false,"3 sonidos"],[true,"4 sonidos (7ª)"]].map(([v,l])=>(<button key={String(v)} style={uiVista(armCuat===v,{padding:"4px 10px"})} onClick={()=>setArmCuat(v)}>{l}</button>))}
+          </div>
+        </GrupoMini>
+      </div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
+        {armAcordes.map(a=>{ const col=nc(CHROMATIC[a.pc]), on=a.i===armSel.i; return (
+          <button key={a.i} onClick={()=>{setArmGrado(a.i);}} style={{minWidth:86,padding:"5px 10px 6px",borderRadius:10,cursor:"pointer",textAlign:"center",
+            background:on?"#26262b":"#0e0e10",border:`1px solid ${on?"#cfcfd4":"#2c2c30"}`,borderTop:`4px solid ${col}`,color:"#ececec"}}>
+            <div style={{fontSize:10,fontFamily:"monospace",color:"#9a9aa2",fontWeight:700}}>{a.num}</div>
+            <div style={{fontSize:12.5,fontWeight:700,fontFamily:"'Libre Baskerville',serif"}}>{a.nombre}</div>
+          </button>); })}
+      </div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:6,alignItems:"center"}}>
+        <span style={{fontSize:12,color:"#cfcfd4",marginRight:4}}><b style={{fontFamily:"'Libre Baskerville',serif"}}>{armSel.nombre}</b> · {armSel.pcs.map(pc=>CROM_SIMPLE[CHROMATIC[pc]]).join(" · ")}</span>
+        <button style={uiPlay(false,{padding:"5px 14px"})} onClick={()=>armTocar(false)}>▶ Escuchar acorde</button>
+        <button style={uiPlay(false,{padding:"5px 14px"})} onClick={()=>armTocar(true)}>▶ Arpegio</button>
+        <button style={uiPlay(false,{padding:"5px 14px"})} onClick={armRecorrer}>▶ Recorrer los siete</button>
+        <button style={uiTool(false,{marginLeft:"auto"})} onClick={()=>{ const ids=armVoz(armSel.pcs); setConSel(m=>({...m,[bellows]:ids})); setConRaiz(null); setModo("construir"); }}>→ Llevar a Construir</button>
+        <button style={uiTool(false)} onClick={()=>cardGuardar(armSel.nombre,"",armVoz(armSel.pcs),bellows)}>★ Guardar en mis acordes</button>
+      </div>
+      <p style={{fontSize:10.5,color:"#6a6a70",margin:"8px 0 0"}}>Tocá una nota resaltada del teclado para ver el acorde de ese grado. El acorde se arma en posición cerrada desde la raíz grave; en Construir lo podés modificar.</p>
+    </div>
+  );
+
   return (
     <div style={{fontFamily:UI_FONT}}>
       <div style={{display:"flex",flexWrap:"wrap",alignItems:"baseline",gap:"2px 14px",marginBottom:8}}>
         <h2 className="text-base font-bold" style={{fontFamily:"'Libre Baskerville',serif",margin:0}}>
-          🎓 Entrenador — {modo==="lineas"?"Ubicar líneas":modo==="forma"?"Armá el teclado":modo==="notas"?"Poné las notas":(modo==="camino"||modo==="escalas")?"Escalas":(modo==="arpegio"||modo==="acordes"||modo==="voz"||modo==="construir")?"Acordes":"Pintá el teclado"}
+          🎓 Entrenador — {modo==="lineas"?"Ubicar líneas":modo==="forma"?"Armá el teclado":modo==="notas"?"Poné las notas":(modo==="camino"||modo==="escalas")?"Escalas":(modo==="arpegio"||modo==="acordes"||modo==="voz"||modo==="construir"||modo==="armonizar")?"Acordes":"Pintá el teclado"}
         </h2>
         <p className="text-xs text-gray-500" style={{margin:0,flex:"1 1 320px",fontSize:11,lineHeight:1.4}}>
-          {modo==="construir" ? "Armá un acorde tocando los botones, con las dos manos, y mirá cómo se llama."
+          {modo==="armonizar" ? "Elegí una escala y mirá el acorde que se forma sobre cada una de sus notas."
+            : modo==="construir" ? "Armá un acorde tocando los botones, con las dos manos, y mirá cómo se llama."
             : modo==="lineas" ? "Mirá cómo se ordenan los botones en filas y diagonales, contalos y escuchá cada línea para encontrar la lógica del teclado."
             : modo==="camino" ? "Mirá y escuchá el camino de cada escala sobre los dos teclados, abriendo o cerrando."
             : modo==="escalas" ? "Practicá la escala sobre el teclado, con la guía o de memoria."
@@ -4673,7 +4767,7 @@ function EntrenadorTab({preset}={}){
       {/* Modo del ejercicio */}
       <div style={{display:"flex",flexWrap:"wrap",background:"#121212",border:"1.5px solid #2a2a2a",borderRadius:10,padding:3,gap:2,marginBottom:10,width:"fit-content",maxWidth:"100%"}}>
         {[["lineas","📐 Ubicar líneas"],["colores","🎨 Pintar colores"],["acordes","🎼 Acordes"],["escalas","🎶 Escalas"],["forma","◯ Armar el teclado"],["notas","♪ Poner las notas"]].map(([m,l])=>(
-          <button key={m} style={{...pill(modo===m||(m==="escalas"&&modo==="camino")||(m==="acordes"&&(modo==="arpegio"||modo==="voz"||modo==="construir"))),padding:"6px 14px",fontSize:11}} onClick={()=>setModo(m==="escalas"?escUltimo:m==="acordes"?acoUltimo:m)}>{l}</button>
+          <button key={m} style={{...pill(modo===m||(m==="escalas"&&modo==="camino")||(m==="acordes"&&(modo==="arpegio"||modo==="voz"||modo==="construir"||modo==="armonizar"))),padding:"6px 14px",fontSize:11}} onClick={()=>setModo(m==="escalas"?escUltimo:m==="acordes"?acoUltimo:m)}>{l}</button>
         ))}
       </div>
 
@@ -4797,6 +4891,8 @@ function EntrenadorTab({preset}={}){
           </table></div>
         </div>); })()}
 
+      {modo==="armonizar" && panelArmonizar}
+      {(modo==="construir"||modo==="armonizar") && misAcordesPanel}
       {modo==="construir" && (()=>{
         const orden=[...conItems].sort((a,b)=>a.midi-b.midi||a.orden-b.orden), propios=cifPropios(), claves=Object.keys(propios);
         const ejC=(k)=>k.split(",").map(n=>CROM_SIMPLE[CHROMATIC[Number(n)%12]]).join(" · ");
@@ -4831,6 +4927,10 @@ function EntrenadorTab({preset}={}){
             <button disabled={!orden.length} style={uiPlay(false,{padding:"7px 14px"})} onClick={()=>conTocar(true)}>▶ Arpegio</button>
             <button disabled={!orden.length} style={uiGhost} onClick={()=>conIds.length&&conQuitar(conIds[conIds.length-1])}>↶ Quitar la última</button>
             <button disabled={!orden.length} style={{...uiGhost,marginLeft:"auto"}} onClick={()=>{setConSel(m=>({...m,[bellows]:[]}));setConRaiz(null);}}>⟳ Limpiar</button>
+          </div>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center",marginTop:10}}>
+            <input value={conNota} onChange={e=>setConNota(e.target.value)} placeholder="Anotación opcional (ej.: marcato, mano izquierda)" style={{...inpS,flex:"1 1 220px",fontSize:12,padding:"6px 8px"}}/>
+            <button disabled={orden.length<2} style={uiTool(false,{padding:"6px 12px",opacity:orden.length<2?0.45:1})} onClick={()=>{ cardGuardar(conAn?conAn.nombre:"Acorde",conNota,conIds,bellows); setConNota(""); }}>★ Guardar en mis acordes</button>
           </div>
           <details style={{marginTop:12,borderTop:"1px solid #232326",paddingTop:10}}>
             <summary style={{cursor:"pointer",fontFamily:UI_FONT,fontSize:12,fontWeight:600,color:"#cfcfd4"}}>Nombres: cómo se escribe y nombres propios</summary>
@@ -4958,7 +5058,7 @@ function EntrenadorTab({preset}={}){
               👁 {reveal?"Ocultar respuesta":"Ver respuesta"}
             </button>
           )}
-          {modo!=="escalas" && !esCam && modo!=="lineas" && modo!=="construir" && <button onClick={()=>setChecked(true)} style={{padding:"6px 14px",borderRadius:9,border:"none",background:"#e6e6e6",color:"#0a0a0a",fontWeight:800,fontSize:11,cursor:"pointer"}}>
+          {modo!=="escalas" && !esCam && modo!=="lineas" && modo!=="construir" && modo!=="armonizar" && <button onClick={()=>setChecked(true)} style={{padding:"6px 14px",borderRadius:9,border:"none",background:"#e6e6e6",color:"#0a0a0a",fontWeight:800,fontSize:11,cursor:"pointer"}}>
             ✓ Corregir
           </button>}
           <button onClick={reiniciarFuelle} style={uiGhost}>
@@ -4974,6 +5074,12 @@ function EntrenadorTab({preset}={}){
             <span style={{color:"#8a8a8a"}}>{modo==="voz"?"Acorde":modo==="arpegio"?"Arpegio":"Camino"}: <b style={{color:"#e6e6e6"}}>{modo==="voz" ? acorde.name : modo==="arpegio" ? acorde.name+" · "+(acoInvOk===0?"fundamental":acoInvOk+"ª inversión") : nombreLat(escRoot)+" "+camDef.nombre}</b></span>
             <span style={{color:"#8a8a8a"}}>Fuelle: <b style={{color:"#e6e6e6"}}>{bellows==="abre"?"abriendo":"cerrando"}</b></span>
             {cam && <span style={{color:"#8a8a8a"}}>Izq.: <b style={{color:"#e6e6e6"}}>{cam.manos.L.nodos.length-cam.manos.L.faltan.length}/{cam.manos.L.nodos.length}</b> · Der.: <b style={{color:"#e6e6e6"}}>{cam.manos.R.nodos.length-cam.manos.R.faltan.length}/{cam.manos.R.nodos.length}</b></span>}
+          </>
+        ) : modo==="armonizar" ? (
+          <>
+            <span style={{color:"#8a8a8a"}}>Escala: <b style={{color:"#e6e6e6"}}>{nombreLat(escRoot)} {ESC_ENT.find(e=>e.id===escTipo7).nombre.toLowerCase()}</b></span>
+            <span style={{color:"#8a8a8a"}}>Acorde: <b style={{color:"#e6e6e6"}}>{armSel.num} · {armSel.nombre}</b></span>
+            <span style={{color:"#8a8a8a"}}>Fuelle: <b style={{color:"#e6e6e6"}}>{bellows==="abre"?"abriendo":"cerrando"}</b></span>
           </>
         ) : modo==="construir" ? (
           <>
