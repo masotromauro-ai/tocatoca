@@ -103,8 +103,10 @@ const uiPill = (on, extra={}) => ({
   ...extra,
 });
 // Estilos por función: modos (uiPill, blanco) · vista del teclado (uiVista) · reproducir (uiPlay) · herramientas (uiTool) · limpiar/soltar (uiGhost)
-const uiPlay=(on,extra={})=>({fontFamily:UI_FONT,fontSize:12,fontWeight:700,letterSpacing:"0.02em",padding:"6px 14px",borderRadius:999,cursor:"pointer",lineHeight:1.2,
-  border:`1px solid ${on?"#c9776f":"#5fb8a6"}`,background:on?"#3a1d1b":"#10302b",color:on?"#f3c8c3":"#c4f2e6",...extra});
+const uiPlay=(on,extra={})=>({fontFamily:UI_FONT,fontSize:12.5,fontWeight:800,letterSpacing:"0.02em",padding:"7px 16px",borderRadius:999,cursor:"pointer",lineHeight:1.2,
+  border:`1px solid ${on?"#f08a82":"#4fe0c4"}`,background:on?"#f2837a":"#2dd4bf",color:"#04211c",boxShadow:`0 0 0 3px ${on?"rgba(242,131,122,.22)":"rgba(45,212,191,.22)"}`,...extra});
+const uiMarcar=(on,extra={})=>({fontFamily:UI_FONT,fontSize:12,fontWeight:800,letterSpacing:"0.02em",padding:"6px 14px",borderRadius:999,cursor:"pointer",lineHeight:1.2,
+  border:"1px solid #f2c14e",background:on?"#f2c14e":"#2c2310",color:on?"#251a02":"#f6d57f",boxShadow:on?"0 0 0 3px rgba(242,193,78,.25)":"0 0 0 2px rgba(242,193,78,.12)",...extra});
 const uiVista=(on,extra={})=>({fontFamily:UI_FONT,fontSize:11.5,fontWeight:600,padding:"5px 11px",borderRadius:8,cursor:"pointer",lineHeight:1.2,
   border:`1px solid ${on?"#8f8f98":"transparent"}`,background:on?"#2a2a30":"transparent",color:on?"#ffffff":"#8a8a92",...extra});
 const uiTool=(on,extra={})=>({fontFamily:UI_FONT,fontSize:11,fontWeight:600,padding:"4px 10px",borderRadius:7,cursor:"pointer",lineHeight:1.2,
@@ -1727,7 +1729,7 @@ function DisponibilidadAcorde({ tones, leftBtns, rightBtns, bellows, voz }){
         <div className="flex flex-wrap gap-1.5 items-center">
           <button style={uiPlay(false,{padding:"6px 14px"})} onClick={()=>voz.res.notas.forEach((n,i)=>setTimeout(()=>playBand(CHROMATIC[n.pc],n.oct),i*45))}>▶ Tocar este voicing</button>
           <button style={uiPill(voz.solo,{padding:"6px 14px"})} onClick={()=>voz.setSolo(!voz.solo)}>{voz.solo?"Mostrando solo estas teclas":"Resaltar solo estas teclas"}</button>
-          {voz.onMarcar && voz.res.notas.length>0 && <button style={uiPill(false,{padding:"6px 14px"})} onClick={voz.onMarcar} title="Pasa estas notas a Notas marcadas, para escucharlas y modificarlas sobre el teclado">◎ Marcar estas teclas</button>}
+          {voz.onMarcar && voz.res.notas.length>0 && <button style={uiMarcar(false)} onClick={voz.onMarcar} title="Pasa estas notas a Notas marcadas, para escucharlas y modificarlas sobre el teclado">◎ Marcar estas teclas</button>}
         </div>
         <p style={{fontSize:10.5,color:"#6a6a70",margin:"8px 0 0",lineHeight:1.5}}>
           {voz.mano==="izq" ? "Mano izquierda: el bajo es la fundamental más grave; la séptima va justo encima y el resto del acorde desde el Do3. Ejemplo: La menor = La1 (bajo) + Do3 + Mi3; con séptima, Sol2 entre el bajo y el Do3."
@@ -2325,6 +2327,34 @@ function analizarAcorde(pcs,bajoPc,opt={}){
   return {...elegido,alts:alts.slice(0,3)};
 }
 function nombreAcordePcs(pcs,bajoPc,raiz){ const r=analizarAcorde(pcs,bajoPc,{raiz}); return r?r.nombre:null; }
+// ─── Escucha por micrófono: detector de varias notas por espectro, acotado a las notas que el teclado puede producir ───
+function micEstimar(mag,sr,N,cands,maxN){
+  const binHz=sr/N, nb=mag.length;
+  const res=Float32Array.from(mag);
+  const win=(f)=>{ const k=f/binHz; return [Math.max(1,Math.floor(k*0.985-0.5)),Math.min(nb-2,Math.ceil(k*1.015+0.5))]; };
+  const peak=(f)=>{ const [a,b]=win(f); let m=0; for(let i=a;i<=b;i++) if(res[i]>m) m=res[i]; return m; };
+  let maxAll=0; for(let i=Math.floor(40/binHz);i<Math.min(nb,Math.floor(3000/binHz));i++) if(res[i]>maxAll) maxAll=res[i];
+  if(maxAll<1e-3) return [];
+  const W=[1,.7,.5,.35,.25,.18], salida=[]; let primero=0;
+  const puntaje=new Map();
+  const score=(m)=>{ const f=440*Math.pow(2,(m-69)/12); if(f<55||f>1800) return 0;
+    const p=[]; for(let h=1;h<=6;h++){ p.push(f*h>4000?0:peak(f*h)); }
+    let s=0; for(let h=0;h<6;h++) s+=W[h]*p[h];
+    s*=Math.min(1,0.15+2.5*p[0]/Math.max(p[0],p[1],p[2],1e-9));   // la fundamental pesa, pero puede ser débil
+    return s; };
+  for(let it=0;it<maxN;it++){
+    let best=null,bs=0; const sc=new Map();
+    for(const m of cands){ if(salida.includes(m)) continue; const s=score(m); sc.set(m,s); if(s>bs){bs=s;best=m;} }
+    if(best===null) break;
+    // si la octava de abajo explica casi igual de bien, es esa (las lengüetas duplican la octava de arriba)
+    const baja=best-12; if(cands.has(baja)){ const sb=sc.has(baja)?sc.get(baja):score(baja); if(sb>=0.8*bs){ best=baja; bs=sb; } }
+    if(it===0){ if(bs<0.6*maxAll) break; primero=bs; } else if(bs<0.4*primero) break;
+    salida.push(best);
+    const f=440*Math.pow(2,(best-69)/12);
+    for(let h=1;h<=8;h++){ if(f*h>4000) break; const [a,b]=win(f*h); for(let i=a;i<=b;i++) res[i]*=0.03; }
+  }
+  return salida.sort((a,b)=>a-b);
+}
 function PanelMarcadas({marcadas,marcar,onRemove,onClear}){
   const orden=[...marcadas].sort((a,b)=>a.midi-b.midi||a.orden-b.orden);
   const nombre=(m)=>nombreLat(RAIZ_NOM[m.pc]);
@@ -2381,7 +2411,11 @@ function BandoneonTab() {
   const [pressedL,    setPressedL]    = useState([]);
   const [pressedR,    setPressedR]    = useState([]);
   const [isListening, setIsListening] = useState(false);
-  const [heardNote,   setHeardNote]   = useState("");
+  const [heardMidis,  setHeardMidis]  = useState([]);
+  const [micModo,     setMicModo]     = useState("acorde");   // nota | acorde
+  const [micMano,     setMicMano]     = useState("ambas");    // ambas | izq | der
+  const [micOct,      setMicOct]      = useState(0);          // ajuste de octava del micrófono
+  const [micExacta,   setMicExacta]   = useState(true);       // iluminar por octava exacta o solo por nombre
   const [errorAudio,  setErrorAudio]  = useState("");
   const [showSaved,   setShowSaved]   = useState(false);
   const [showImport,  setShowImport]  = useState(false);
@@ -2406,95 +2440,6 @@ function BandoneonTab() {
     try { setFromStorage(!!localStorage.getItem(STORAGE_KEY_L)); } catch {}
   },[]);
 
-  // Micrófono YIN
-  const NOTES_ENG_MEMO  = useMemo(()=>NOTES_ENG, []);
-  const ENG_TO_LAT_MEMO = useMemo(()=>ENG_TO_LAT,[]);
-
-  useEffect(()=>{
-    if(!isListening){setHeardNote("");return;}
-
-    // Refs para garantizar cleanup aunque el componente se desmonte
-    let audioCtx = null;
-    let stream   = null;
-    let rafId    = null;
-    let alive    = true;  // flag para cancelar tick si el efecto se limpió
-
-    async function start(){
-      try{
-        stream = await navigator.mediaDevices.getUserMedia({audio:true,video:false});
-        if(!alive){stream.getTracks().forEach(t=>t.stop());return;}
-
-        const AC = window.AudioContext||(window.webkitAudioContext);
-        audioCtx = new AC();
-        if(audioCtx.state==="suspended") await audioCtx.resume();
-        if(!alive){audioCtx.close();stream.getTracks().forEach(t=>t.stop());return;}
-
-        const src      = audioCtx.createMediaStreamSource(stream);
-        const analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 2048;
-        src.connect(analyser);
-
-        const buf    = new Float32Array(analyser.fftSize);
-        const detect = YIN({sampleRate: audioCtx.sampleRate||44100});
-
-        function tick(){
-          if(!alive) return;  // no seguir si el efecto fue limpiado
-          analyser.getFloatTimeDomainData(buf);
-          const pitch = detect(buf);
-          if(pitch && pitch > 50 && pitch < 2000){
-            const noteNum  = 12*(Math.log(pitch/440)/Math.log(2))+69;
-            const midiRnd  = Math.round(noteNum);
-            const eng      = NOTES_ENG[midiRnd % 12];
-            const octave   = Math.floor(midiRnd / 12) - 1;
-            const lat      = ENG_TO_LAT[eng] || "DO";
-            setHeardNote(lat + octave);
-          } else {
-            setHeardNote("");
-          }
-          rafId = requestAnimationFrame(tick);
-        }
-        tick();
-      }catch(err){
-        if(alive){
-          setErrorAudio("Error de micrófono: "+(err?.message??"permisos denegados"));
-          setIsListening(false);
-        }
-      }
-    }
-
-    start();
-
-    return()=>{
-      alive = false;  // detiene el tick inmediatamente
-      if(rafId)    cancelAnimationFrame(rafId);
-      if(stream)   stream.getTracks().forEach(t=>t.stop());
-      if(audioCtx && audioCtx.state!=="closed") audioCtx.close();
-    };
-  },[isListening]);
-
-
-  // IDs iluminados por mic
-  // heardNote es "SOL3" (nota+octava) — iluminar solo el botón con esa nota en esa octava
-  const heardIdsL = useMemo(()=>{
-    if(!heardNote) return [];
-    const octMapL = bellows==="abre" ? OCT_L_OPEN : OCT_L_CLOSE;
-    return leftBtns
-      .filter(b=>{
-        const nota = bellows==="abre" ? b.abre : b.cierra;
-        return (nota + (octMapL[b.id]??"")) === heardNote;
-      })
-      .map(b=>b.id);
-  }, [heardNote,bellows,leftBtns]);
-  const heardIdsR = useMemo(()=>{
-    if(!heardNote) return [];
-    const octMapR = bellows==="abre" ? OCT_R_OPEN : OCT_R_CLOSE;
-    return rightBtns
-      .filter(b=>{
-        const nota = bellows==="abre" ? b.abre : b.cierra;
-        return (nota + (octMapR[b.id]??"")) === heardNote;
-      })
-      .map(b=>b.id);
-  }, [heardNote,bellows,rightBtns]);
 
   // Notas activas
   const activeNotes = useMemo(()=>{
@@ -2599,6 +2544,60 @@ function BandoneonTab() {
   // Corta todo lo que esté sonando si el componente se desmonta
   useEffect(()=>()=>stopAllNotes(),[stopAllNotes]);
 
+  // ─── Escucha física: varias notas a la vez, acotadas a lo que el teclado puede producir ───
+  const micCandsH=useMemo(()=>{
+    const set=new Set(), add=(btns)=>btns.forEach(b=>{ const lat=bellows==="abre"?b.abre:b.cierra, pc=noteIdxB(LAT[lat]||lat); if(pc<0) return; set.add(12*(getOct(b,bellows)+1)+pc-12*micOct); });
+    if(micMano!=="der") add(leftBtns); if(micMano!=="izq") add(rightBtns); return set;
+  },[leftBtns,rightBtns,bellows,micMano,micOct,getOct]);
+  const micRef=useRef({}); micRef.current={modo:micModo,cands:micCandsH,shift:micOct};
+  useEffect(()=>{
+    if(!isListening){ setHeardMidis([]); return; }
+    let audioCtx=null, stream=null, rafId=null, alive=true, ultimo=0; const hist=[];
+    async function start(){
+      try{
+        // sin control automático de ganancia, supresión de ruido ni cancelación de eco: alteran el sonido sostenido
+        stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});
+        if(!alive){ stream.getTracks().forEach(t=>t.stop()); return; }
+        const AC=window.AudioContext||window.webkitAudioContext; audioCtx=new AC();
+        if(audioCtx.state==="suspended") await audioCtx.resume();
+        if(!alive){ audioCtx.close(); stream.getTracks().forEach(t=>t.stop()); return; }
+        const src=audioCtx.createMediaStreamSource(stream), analyser=audioCtx.createAnalyser();
+        analyser.fftSize=16384; analyser.smoothingTimeConstant=0.3; analyser.minDecibels=-110; analyser.maxDecibels=-5;
+        src.connect(analyser);
+        const N=analyser.fftSize, db=new Float32Array(N/2), mag=new Float32Array(N/2);
+        function tick(t){
+          if(!alive) return;
+          rafId=requestAnimationFrame(tick);
+          if(t-ultimo<70) return; ultimo=t;
+          analyser.getFloatFrequencyData(db);
+          for(let i=0;i<db.length;i++) mag[i]=Math.pow(10,db[i]/20);
+          const {modo,cands,shift}=micRef.current;
+          hist.push(micEstimar(mag,audioCtx.sampleRate,N,cands,modo==="nota"?1:5)); if(hist.length>6) hist.shift();
+          const cuenta=new Map(); hist.forEach(a=>a.forEach(m=>cuenta.set(m,(cuenta.get(m)||0)+1)));
+          const necesito=Math.min(4,Math.ceil(hist.length*0.6));
+          const fin=[...cuenta].filter(([,c])=>c>=necesito).map(([m])=>m+12*shift).sort((x,y)=>x-y);
+          setHeardMidis(prev=>(prev.length===fin.length&&prev.every((v,i)=>v===fin[i]))?prev:fin);
+        }
+        rafId=requestAnimationFrame(tick);
+      }catch(err){
+        if(alive){ setErrorAudio("Error de micrófono: "+(err?.message??"permisos denegados")); setIsListening(false); }
+      }
+    }
+    start();
+    return()=>{ alive=false; if(rafId) cancelAnimationFrame(rafId); if(stream) stream.getTracks().forEach(t=>t.stop()); if(audioCtx&&audioCtx.state!=="closed") audioCtx.close(); };
+  },[isListening]);
+  const heardPcs=useMemo(()=>new Set(heardMidis.map(m=>((m%12)+12)%12)),[heardMidis]);
+  const heardIdsDe=(btns)=>{
+    if(!heardMidis.length) return [];
+    return btns.filter(b=>{ const lat=bellows==="abre"?b.abre:b.cierra, pc=noteIdxB(LAT[lat]||lat); if(pc<0) return false;
+      return micExacta ? heardMidis.includes(12*(getOct(b,bellows)+1)+pc) : heardPcs.has(pc); }).map(b=>b.id);
+  };
+  const heardIdsL=useMemo(()=>micMano==="der"?[]:heardIdsDe(leftBtns),[heardMidis,micExacta,micMano,bellows,leftBtns,getOct]);
+  const heardIdsR=useMemo(()=>micMano==="izq"?[]:heardIdsDe(rightBtns),[heardMidis,micExacta,micMano,bellows,rightBtns,getOct]);
+  const heardNotas=heardMidis.map(m=>({m,txt:nombreLat(RAIZ_NOM[((m%12)+12)%12])+(Math.floor(m/12)-1),pc:((m%12)+12)%12}));
+  const heardAcorde=(micModo==="acorde"&&heardPcs.size>=2)?nombreAcordePcs([...heardPcs],heardMidis[0]%12):null;
+  const heardTxt=heardNotas.map(n=>n.txt).join(" · ");
+
   // ─── MARCAR: elegir notas sobre el teclado para armar un acorde ───────────
   const [marcar,setMarcar]=useState(false);
   const [marks,setMarks]=useState({abre:[],cierra:[]});
@@ -2693,23 +2692,31 @@ function BandoneonTab() {
           <div style={cardS}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}>
               <div style={{display:"flex",alignItems:"center",gap:8,minWidth:0}}>
-                <div style={{width:9,height:9,borderRadius:"50%",background:isListening?"#e6e6e6":"#2c2c30",boxShadow:isListening?"0 0 8px #e6e6e6":"none",flexShrink:0}}/>
+                <div style={{width:9,height:9,borderRadius:"50%",background:isListening?"#2dd4bf":"#2c2c30",boxShadow:isListening?"0 0 8px #2dd4bf":"none",flexShrink:0}}/>
                 <div>
                   <p style={{...uiLabel,margin:0}}>Escucha física</p>
-                  <p style={{fontSize:11,color:"#7c7c82",margin:"2px 0 0"}}>Tocá tu instrumento: las teclas con esa nota brillan en blanco.</p>
+                  <p style={{fontSize:11,color:"#7c7c82",margin:"2px 0 0"}}>Tocá tu instrumento: las teclas con esas notas brillan en blanco.</p>
                 </div>
               </div>
-              <div style={{display:"flex",alignItems:"center",gap:8}}>
-                {isListening&&(
-                  <span style={{fontSize:13,fontWeight:800,color:heardNote?"#e6e6e6":"#555",minWidth:50,textAlign:"center"}}>
-                    {heardNote ? heardNote.replace(/(\d+)$/, "") + " " + (heardNote.match(/\d+$/) || [""])[0] : "..."}
-                  </span>
-                )}
-                <button onClick={()=>{setIsListening(p=>!p);setErrorAudio("");}} style={uiPill(isListening,{padding:"6px 14px"})}>
-                  {isListening?"✕ Apagar mic":"🎙️ Escuchar"}
-                </button>
-              </div>
+              <button onClick={()=>{setIsListening(p=>!p);setErrorAudio("");}} style={uiPlay(isListening,{padding:"6px 14px"})}>
+                {isListening?"■ Apagar mic":"🎙️ Escuchar"}
+              </button>
             </div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:10,alignItems:"flex-end"}}>
+              <Desplegable ancho={104} etiqueta="Reconoce" valor={micModo} opciones={[["nota","Una nota"],["acorde","Acordes"]]} onChange={setMicModo}/>
+              <Desplegable ancho={100} etiqueta="Mano" valor={micMano} opciones={[["ambas","Ambas"],["izq","Izquierda"],["der","Derecha"]]} onChange={setMicMano}/>
+              <Desplegable ancho={72} etiqueta="Octava" valor={micOct} opciones={[[-1,"−1"],[0,"0"],[1,"+1"]]} onChange={v=>setMicOct(Number(v))}/>
+              <Desplegable ancho={124} etiqueta="Teclas" valor={micExacta?"ex":"nom"} opciones={[["ex","Octava exacta"],["nom","Solo el nombre"]]} onChange={v=>setMicExacta(v==="ex")}/>
+            </div>
+            {isListening && (
+              <div style={{marginTop:10,padding:"8px 10px",borderRadius:10,background:"#0e0e10",border:"1px solid #26262a",minHeight:36}}>
+                {heardNotas.length===0
+                  ? <span style={{fontSize:12,color:"#6a6a70"}}>Escuchando… tocá una nota sostenida.</span>
+                  : <div style={{display:"flex",flexWrap:"wrap",gap:6,alignItems:"center"}}>
+                      {heardNotas.map(n=>{ const col=nc(CHROMATIC[n.pc]); return (<span key={n.m} style={{padding:"2px 9px",borderRadius:999,background:col,color:txtSobre(col),fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:13}}>{n.txt}</span>); })}
+                      {heardAcorde && <b style={{marginLeft:6,fontFamily:"'Libre Baskerville',serif",fontSize:16,color:"#ececec"}}>{heardAcorde}</b>}
+                    </div>}
+              </div>)}
             {errorAudio&&<p style={{margin:"8px 0 0",fontSize:11,color:"#d98f88"}}>⚠ {errorAudio}</p>}
           </div>
   );
@@ -2760,7 +2767,7 @@ function BandoneonTab() {
         <GrupoCtl t="Disposición"><ControlesDisposicion d={disp} isMobile={isMobile}/></GrupoCtl>
         <GrupoCtl t="Marcar notas">
           <div style={segS}>
-            <button style={uiTool(marcar,{padding:"5px 14px",fontSize:11.5})} onClick={()=>{stopAllNotes();setPressedL([]);setPressedR([]);setMarcar(v=>!v);}}
+            <button style={uiMarcar(marcar)} onClick={()=>{stopAllNotes();setPressedL([]);setPressedR([]);setMarcar(v=>!v);}}
               title="Con Marcar activo, tocar una tecla la agrega o la saca del acorde">◎ Marcar{marksB.length?` · ${marksB.length}`:""}</button>
           </div>
         </GrupoCtl>
@@ -2770,12 +2777,12 @@ function BandoneonTab() {
 
       {/* Notas que suenan + acorde detectado — altura fija para no desplazar el teclado */}
       <div style={{minHeight:40,marginBottom:6}}>
-      {(activeNotes.length>0||heardNote)&&(
+      {(activeNotes.length>0||heardMidis.length>0)&&(
         <div style={{padding:isMobile?"6px 10px":"6px 12px",background:"#121214",border:"1px solid #26262a",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:5}}>
           <div style={{display:"flex",gap:4,flexWrap:"wrap",flex:"1 1 auto"}}>
-            {heardNote&&(
-              <span style={{padding:"2px 8px",borderRadius:20,background:"#e6e6e622",border:"1px solid #e6e6e6",color:"#e6e6e6",fontWeight:700,fontSize:isMobile?10:11}}>
-                🎙️ {heardNote}
+            {heardMidis.length>0&&(
+              <span style={{padding:"2px 8px",borderRadius:20,background:"#2dd4bf22",border:"1px solid #2dd4bf",color:"#7ff0dd",fontWeight:700,fontSize:isMobile?10:11}}>
+                🎙️ {heardTxt}{heardAcorde?" → "+heardAcorde:""}
               </span>
             )}
             {activeNotes.map(n=>{
@@ -3488,13 +3495,50 @@ const CAPITULOS = [
 )},
 ];
 
-// Capítulos que ven los alumnos: cómo se llega a la distribución de los doce colores y el temperamento. El resto queda en el manual completo del Organizador.
-const CAP_PUBLICOS = ["cap0","cap5","cap7"];
+// Capítulos que ven los alumnos: solo lo técnico del temperamento cromático. El manual completo (CAPITULOS) queda en el Organizador.
+const CAPITULOS_TEC = [
+{ parte:"El método", id:"cap0", titulo:"El código de color", body: (
+  <>
+    <div className="rounded-xl p-4 mb-4 border" style={{background:"#0a0a0a",borderColor:"#333333"}}>
+      <p className="text-[10px] uppercase tracking-widest mb-2" style={{color:"#8a8a8a"}}>Antes de empezar</p>
+      <p className="text-sm text-gray-300 leading-relaxed">Antes de que este sistema te ahorre un solo segundo de cálculo, te va a pedir algo: que te aprendas doce colores de memoria, con la misma seriedad con la que en algún momento te aprendiste el nombre de las doce notas. Esto no es gratis, y vale la pena decirlo así, sin vueltas, en la primera página: hay una inversión inicial antes de que aparezca la ganancia. Cualquier método serio la tiene —el solfeo, la digitación, las escalas— y este no es la excepción.</p>
+    </div>
+    <CapP>Lo que sí cambia es qué estás memorizando. No estás memorizando teoría todavía. Estás memorizando una paleta: doce parches de color, cada uno con un nombre de nota al lado. Nada más. La teoría llega después, paso a paso, apoyada en esa memorización — pero si llegás a los acordes sin tener el color automatizado, vas a estar leyendo colores en vez de reconociéndolos, y ahí el sistema entero pierde su función.</CapP>
+
+    <CapH3>El orden en que conviene aprenderlo</CapH3>
+    <CapP>Se presenta la paleta en tres pasos, cada uno con un propósito distinto.</CapP>
+    <PasoCard n="1" titulo="Primero, una tira">Las doce notas en fila, igual que las teclas de un piano o de un bandoneón desplegadas en línea recta. Es la forma más directa de un primer contacto — no hay ángulos que leer, no hay geometría que entender todavía. Solo doce colores, uno al lado del otro, cada uno con su nombre.</PasoCard>
+    <PasoCard n="2" titulo="Después, la rueda">Las mismas doce notas, ahora en círculo. Acá aparece algo que la tira no podía mostrar: que las notas no son una lista que termina, sino un ciclo que vuelve sobre sí mismo — la relación circular entre semitonos que vas a necesitar más adelante para entender intervalos, el círculo de quintas, y la geometría de los acordes.</PasoCard>
+    <PasoCard n="3" titulo="Por último, tarjetas de estudio">Una nota por vez, con su color y su enarmónico (por ejemplo, Do sostenido y Re bemol comparten color). Este es el paso de memorización activa propiamente dicho: repetición, no explicación. Es donde el código deja de ser información y empieza a ser reflejo. (Podés practicar esto en la pestaña <b>Colores</b> de la app: tocá cada tarjeta para escuchar la nota mientras fijás el color.)</PasoCard>
+  </>
+)},
+{ parte:"El método", id:"tec5", titulo:"De la pentatónica al cromatismo", body: (
+  <>
+    <CapP>Los cinco colores de origen no se quedan aislados: se combinan entre sí, por mezcla directa, para generar los siete colores restantes y completar la rueda de doce.</CapP>
+    <CapP>Do (azul) y Re (verde) se mezclan y dan Do sostenido, celeste —un color espectral real, entre el azul y el verde—. Re (verde) y Mi (marrón) dan Re sostenido, un oliva. Mi (marrón) y Sol (amarillo) dan, en dos pasos, Fa y Fa sostenido, un dorado que se aclara a medida que se acerca al amarillo. Sol (amarillo) y La (rojo) dan Sol sostenido, naranja. La (rojo) y Do (azul) dan Si, violeta, que mezclado otra vez con La da Si bemol, rosa.</CapP>
+    <CapP>El marrón no existe como banda de luz: es un naranja oscurecido y desaturado, un color que solo aparece por mezcla o por sombra, nunca en un prisma. Por eso ubicarlo entre el verde y el amarillo no viola ninguna ley óptica.</CapP>
+    <CapFig caption="Las cinco notas ancla y las mezclas que completan la rueda de doce.">
+      <RuedaCromatica highlight={["C","D","E","G","A"]}/>
+    </CapFig>
+  </>
+)},
+{ parte:"El método", id:"tec7", titulo:"El temperamento cromático", body: (
+  <>
+    <CapP>La música occidental temperada no usa las proporciones "puras" de la afinación natural —la serie armónica—. Las ajusta, deliberadamente, para dividir la octava en doce semitonos exactamente iguales. Es una decisión práctica: se sacrifica la pureza acústica para ganar un sistema funcional y transportable a cualquier tonalidad.</CapP>
+    <CapP>El código de color hace el mismo gesto: no deriva los colores de una fórmula física, los ajusta con criterio explícito para que la paleta de doce sea funcional y se pueda transportar a las doce tonalidades.</CapP>
+    <CapH3>Por qué no hay una correspondencia física directa</CapH3>
+    <CapP><b className="text-gray-200">El espectro de luz no es una octava.</b> El espectro visible ocupa apenas menos de una octava, así que ningún mapeo directo de la frecuencia del sonido a la frecuencia de la luz hace entrar las doce notas completas en el rango visible: algo siempre queda afuera, en infrarrojo o ultravioleta.</CapP>
+    <CapP><b className="text-gray-200">Subir el sonido hasta la luz tampoco coincide.</b> Aun elevando una frecuencia de audio cuarenta octavas para llevarla al rango visible, el resultado no coincide con los colores del sistema e invierte varias asignaciones: Do queda en infrarrojo, invisible, y La queda naranja, no rojo.</CapP>
+    <CapNota>Como la física no entrega una correspondencia, el sistema es temperado: está construido con criterios explícitos y defendibles, no derivado de una fórmula de la naturaleza. No pretende ser un hallazgo, sino un lenguaje.</CapNota>
+  </>
+)},
+];
+
 // ─── Componente de la pestaña "El Código" ────────────────────────────────────
 function ElCodigoTab({irA,completo=false}={}){
   const [vista, setVista] = useState("metodo");   // metodo | entrenar
   const [capIdx, setCapIdx] = useState(0);
-  const CAPS = completo ? CAPITULOS : CAPITULOS.filter(c=>CAP_PUBLICOS.includes(c.id));
+  const CAPS = completo ? CAPITULOS : CAPITULOS_TEC;
   const cap = CAPS[capIdx];
   const partes = [...new Set(CAPS.map(c=>c.parte))];
 
