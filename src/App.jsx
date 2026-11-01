@@ -3093,8 +3093,16 @@ function PaletaRueda({compacta=false}){
   const esc=ESCALAS_HERO.find(e=>e.id===escId);
   const escritas=buildScale(root,esc.ivs);
   const pcs=escritas.map(noteIdx);
-  const sorteo=(prev)=>{ let o=pcs[Math.random()*pcs.length|0]; if(pcs.length>1) while(o===prev) o=pcs[Math.random()*pcs.length|0]; return o; };
-  useEffect(()=>{ if(juego&&juego.obj===null) setJuego(j=>j?{...j,obj:sorteo(-1),res:null}:j); },[juego]);
+  // niveles (solo con la escala cromática): 1 naturales · 2 sostenidos · 3 bemoles · 4 todas
+  const crom = escId==="crom";
+  const NOM_S=["Do","Do♯","Re","Re♯","Mi","Fa","Fa♯","Sol","Sol♯","La","La♯","Si"], NOM_B=["Do","Re♭","Re","Mi♭","Mi","Fa","Sol♭","Sol","La♭","La","Si♭","Si"];
+  const NAT=[0,2,4,5,7,9,11], NIV=["","Notas naturales","Sostenidos","Bemoles","Todas las notas"];
+  const poolDe=(n)=>crom?(n===1?NAT:[...Array(12).keys()]):pcs;
+  const nivel = juego ? juego.nivel : 1;
+  const pool = poolDe(nivel);
+  const nombreJ=(pc,alt)=>!crom?(nombreDe[pc]||CROM_SIMPLE[CHROMATIC[pc]]):(NAT.includes(pc)||nivel===2)?NOM_S[pc]:nivel===3?NOM_B[pc]:(alt?NOM_B[pc]:NOM_S[pc]);
+  const sorteo=(prev,n)=>{ const pl=poolDe(n||nivel); let o=pl[Math.random()*pl.length|0]; if(pl.length>1) while(o===prev) o=pl[Math.random()*pl.length|0]; return o; };
+  useEffect(()=>{ if(juego&&juego.obj===null) setJuego(j=>j?{...j,obj:sorteo(-1,j.nivel),alt:Math.random()<0.5,res:null}:j); },[juego]);
   const nombreDe={}; escritas.forEach(n=>{ nombreDe[noteIdx(n)]=nombreLat(n); });
   const gradoDe={}; esc.ivs.forEach((iv,i)=>{ gradoDe[pcs[i]]=GRADO_LABEL[iv]; });
   const pasos=esc.ivs.map((iv,i)=>(i===esc.ivs.length-1?12:esc.ivs[i+1])-iv);
@@ -3102,14 +3110,20 @@ function PaletaRueda({compacta=false}){
 
   const stop=()=>{ timers.current.forEach(clearTimeout); timers.current=[]; setPlaying(null); };
   const tocar=(pc)=>{ setSel(pc); playBand(CHROMATIC[pc],4); };
-  const jugar=(modo)=>{ stop(); setSel(null); setJuego(j=>({modo:modo||(j&&j.modo)||"nota",obj:sorteo(-1),ok:j?j.ok:0,total:j?j.total:0,racha:j?j.racha:0,res:null})); };
+  const jugar=(modo)=>{ stop(); setSel(null); setJuego({modo:modo||"nota",obj:sorteo(-1,1),alt:false,ok:0,total:0,racha:0,mejor:0,nivel:1,res:null,fin:false,sube:false}); };
+  const seguir=()=>{ timers.current.forEach(clearTimeout); timers.current=[]; setJuego(j=>{ const n=j.sube?Math.min(4,j.nivel+1):j.nivel; return {...j,nivel:n,obj:sorteo(-1,n),alt:Math.random()<0.5,ok:0,total:0,res:null,fin:false,sube:false}; }); };
   const salirJuego=()=>{ stop(); setJuego(null); setSel(null); };
   const reiniciaPregunta=()=>{ timers.current.forEach(clearTimeout); timers.current=[]; setJuego(j=>j?{...j,obj:null,res:null}:j); };
   const responder=(pc)=>{
-    if(!juego||juego.res||juego.obj===null||!pcs.includes(pc)) return;
+    if(!juego||juego.res||juego.obj===null||juego.fin||!poolDe(juego.nivel).includes(pc)) return;
     const bien=pc===juego.obj; playBand(CHROMATIC[juego.obj],4);
-    setJuego({...juego,res:{pc,bien},ok:juego.ok+(bien?1:0),total:juego.total+1,racha:bien?juego.racha+1:0});
-    timers.current.push(setTimeout(()=>setJuego(j=>j?{...j,obj:sorteo(j.obj),res:null}:j),bien?650:1400));
+    const racha=bien?juego.racha+1:0;
+    setJuego({...juego,res:{pc,bien},ok:juego.ok+(bien?1:0),total:juego.total+1,racha,mejor:Math.max(juego.mejor,racha)});
+    timers.current.push(setTimeout(()=>setJuego(j=>{
+      if(!j) return j;
+      if(j.total>=10) return {...j,fin:true,res:null,sube:crom&&j.ok>=8&&j.nivel<4};
+      return {...j,obj:sorteo(j.obj,j.nivel),alt:Math.random()<0.5,res:null};
+    }),bien?650:1400));
   };
   const tocarEscala=()=>{
     stop(); const seq=[...esc.ivs,12], r=noteIdx(root);
@@ -3129,10 +3143,12 @@ function PaletaRueda({compacta=false}){
         <p style={{fontFamily:"'Libre Baskerville',serif",fontSize:compacta?15:19,fontWeight:700,letterSpacing:"0.04em",color:UI.text,margin:0}}>{juego?(jm==="nota"?"Asigná el color a la nota":"Asigná la nota al color"):"La paleta de los doce colores"}</p>
         {juego ? (
           <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center",alignItems:"center",marginTop:8}}>
-            <div style={{display:"flex",background:"#0e0e10",border:"1px solid #2f2f35",borderRadius:8,padding:2,gap:2}}>
+            {!juego.fin && (<div style={{display:"flex",background:"#0e0e10",border:"1px solid #2f2f35",borderRadius:8,padding:2,gap:2}}>
               {[["nota","Nota → color"],["color","Color → nota"]].map(([v,l])=>(<button key={v} style={uiVista(jm===v,{padding:"4px 10px"})} onClick={()=>{ timers.current.forEach(clearTimeout); timers.current=[]; setJuego(j=>({...j,modo:v,obj:null,res:null})); }}>{l}</button>))}
-            </div>
-            <span style={{fontFamily:"monospace",fontSize:12,color:UI.text}}>✓ {juego.ok}/{juego.total}{juego.racha>1?` · racha ${juego.racha}`:""}</span>
+            </div>)}
+            {crom && <span style={{fontSize:11,fontWeight:700,color:"#9fe9dc",border:"1px solid #2b6f64",background:"#0f2a26",borderRadius:999,padding:"2px 10px"}}>Nivel {juego.nivel} · {NIV[juego.nivel]}</span>}
+            <span style={{fontFamily:"monospace",fontSize:12,color:UI.text}}>{juego.fin?"Ronda terminada":`${Math.min(juego.total+(juego.res?0:1),10)}/10`} · ✓ {juego.ok} · racha {juego.racha}</span>
+            {juego.fin && <button style={uiPlay(false,{padding:"6px 18px",fontSize:13})} onClick={seguir}>▶ Seguir</button>}
             <button style={uiGhost} onClick={salirJuego}>✕ Salir</button>
           </div>
         ) : (
@@ -3144,27 +3160,37 @@ function PaletaRueda({compacta=false}){
         <svg viewBox="0 0 440 440" width="100%" style={{display:"block",overflow:"visible",userSelect:"none",WebkitUserSelect:"none"}}>
           <circle cx={C} cy={C} r={R1+14} fill="none" stroke={UI.line} strokeWidth="1"/>
           {[...Array(12)].map((_,pc)=>{
-            const a=pc*30, on=pcs.includes(pc), col=nc(CHROMATIC[pc]), son=playing===pc, selx=sel===pc;
+            const a=pc*30, on=(juego?pool:pcs).includes(pc), col=nc(CHROMATIC[pc]), son=playing===pc, selx=sel===pc;
             const [tx,ty]=cqPol(C,C,(R0+R1)/2+2,a), gx=tx, gy=ty+(compacta?13:15);
             return(
               <g key={pc} onClick={()=>juego?responder(pc):tocar(pc)} style={{cursor:"pointer",transformOrigin:`${C}px ${C}px`,transform:son?"scale(1.07)":on?"scale(1.025)":"scale(1)",transition:"transform .16s ease, opacity .25s ease",opacity:on?1:0.2,filter:son?`drop-shadow(0 0 14px ${col})`:"none"}}>
                 <path d={cqSector(C,C,R0,R1,a-14.4,a+14.4)} fill={jm==="color"&&!(rev&&pc===juego.obj)?"#26262b":col}
                   stroke={rev&&pc===juego.obj?"#ffffff":rev&&!rev.bien&&pc===rev.pc?"#e5645b":on?"rgba(255,255,255,.55)":"rgba(255,255,255,.12)"} strokeWidth={rev&&(pc===juego.obj||pc===rev.pc)?4.5:selx?2.6:1.2}/>
-                {jm!=="nota" && <text x={tx} y={on&&!jm?ty-7:ty+1} textAnchor="middle" dominantBaseline="middle" style={{fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:compacta?17:19,fill:jm==="color"&&!(rev&&pc===juego.obj)?"#ececec":txtSobre(col),pointerEvents:"none"}}>{(nombreDe[pc]||CROM_SIMPLE[CHROMATIC[pc]]).split(" ")[0]}</text>}
+                {jm!=="nota" && !(jm==="color"&&!on) && (()=>{ const t=jm==="color"?((crom&&nivel>=2&&!NAT.includes(pc))?(nivel===2?NOM_S[pc]:nivel===3?NOM_B[pc]:NOM_S[pc]+"/"+NOM_B[pc]):nombreJ(pc,false)):(nombreDe[pc]||CROM_SIMPLE[CHROMATIC[pc]]).split(" ")[0];
+                  return <text x={tx} y={on&&!jm?ty-7:ty+1} textAnchor="middle" dominantBaseline="middle" style={{fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:t.length>5?12.5:compacta?17:19,fill:jm==="color"&&!(rev&&pc===juego.obj)?"#ececec":txtSobre(col),pointerEvents:"none"}}>{t}</text>; })()}
                 {on && !jm && <text x={gx} y={gy} textAnchor="middle" dominantBaseline="middle" style={{fontFamily:UI_FONT,fontWeight:800,fontSize:11.5,fill:txtSobre(col),opacity:.85,pointerEvents:"none"}}>{fmtG(gradoDe[pc])}</text>}
               </g>
             );
           })}
           <circle cx={C} cy={C} r={R0-8} fill="#0b0b0c" stroke={UI.line} strokeWidth="1.5"/>
-          {juego ? (jm==="nota" ? (<>
+          {juego ? (juego.fin ? (<>
+              <circle cx={C} cy={C} r={R0-22} fill="none" stroke={juego.ok>=8?"#6b9c7c":"#3a3a3e"} strokeWidth="3"/>
+              <text x={C} y={C-14} textAnchor="middle" dominantBaseline="middle" style={{fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:60,fill:UI.text}}>{juego.ok}<tspan style={{fontSize:28,fill:"#6a6a70"}}>/10</tspan></text>
+              <text x={C} y={C+30} textAnchor="middle" dominantBaseline="middle" style={{fontFamily:UI_FONT,fontWeight:700,fontSize:14,fill:"#cfcfd4"}}>{juego.ok===10?"¡Perfecto!":juego.ok>=8?"Muy bien":juego.ok>=5?"Vas bien":"Seguí practicando"}</text>
+              <text x={C} y={C+52} textAnchor="middle" dominantBaseline="middle" style={{fontFamily:UI_FONT,fontWeight:600,fontSize:11.5,fill:"#8a8a90"}}>{juego.sube?`Subís al nivel ${juego.nivel+1}`:(crom?"Repetí el nivel · ":"")+`racha máxima ${juego.mejor}`}</text>
+            </>) : jm==="nota" ? (<>
               <circle cx={C} cy={C} r={R0-22} fill="none" stroke={rev?(rev.bien?"#6b9c7c":"#c0615a"):"#3a3a3e"} strokeWidth="3" style={{transition:"stroke .2s"}}/>
-              <text x={C} y={C+2} textAnchor="middle" dominantBaseline="middle" style={{fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:juego.obj!==null&&(nombreDe[juego.obj]||"").length>4?36:52,fill:UI.text}}>{juego.obj!==null?(nombreDe[juego.obj]||CROM_SIMPLE[CHROMATIC[juego.obj]]):""}</text>
+              <text x={C} y={C+2} textAnchor="middle" dominantBaseline="middle" style={{fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:juego.obj!==null&&nombreJ(juego.obj,juego.alt).length>4?36:52,fill:UI.text}}>{juego.obj!==null?nombreJ(juego.obj,juego.alt):""}</text>
             </>) : (<>
               <circle cx={C} cy={C} r={R0-26} fill={juego.obj!==null?nc(CHROMATIC[juego.obj]):"#0b0b0c"} stroke={rev?(rev.bien?"#6b9c7c":"#c0615a"):"rgba(255,255,255,.35)"} strokeWidth="4" style={{transition:"stroke .2s"}}/>
             </>)) : sel===null ? (
-            <g onClick={()=>jugar("nota")} style={{cursor:"pointer"}}>
-              <circle cx={C} cy={C} r={R0-30} fill="#2dd4bf" stroke="#4fe0c4" strokeWidth="3" style={{filter:"drop-shadow(0 0 14px rgba(45,212,191,.45))"}}/>
-              <text x={C} y={C+2} textAnchor="middle" dominantBaseline="middle" style={{fontFamily:UI_FONT,fontWeight:900,fontSize:30,letterSpacing:"0.08em",fill:"#04211c",pointerEvents:"none"}}>▶ JUGAR</text>
+            <g onClick={()=>jugar("nota")} style={{cursor:"pointer"}} className="jugar-btn">
+              <style>{`@keyframes jpulso{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.55)}} .jugar-btn .jd{transform-box:fill-box;transform-origin:center} .jugar-btn:hover .jc{fill:#ffffff}`}</style>
+              <circle cx={C} cy={C} r={R0-12} fill="#0b0b0c" stroke="#2a2a2e" strokeWidth="1.5"/>
+              {[...Array(12)].map((_,i)=>{ const [dx,dy]=cqPol(C,C,80,i*30); return <circle key={i} className="jd" cx={dx} cy={dy} r="6.5" fill={nc(CHROMATIC[i])} style={{animation:`jpulso 2.6s ease-in-out ${i*0.2}s infinite`}}/>; })}
+              <circle className="jc" cx={C} cy={C} r="50" fill="#ececec" style={{transition:"fill .2s"}}/>
+              <path d={`M${C-9},${C-26} L${C+17},${C-9} L${C-9},${C+8} Z`} fill="#0b0b0c" style={{pointerEvents:"none"}}/>
+              <text x={C} y={C+30} textAnchor="middle" dominantBaseline="middle" style={{fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:14,letterSpacing:"0.24em",fill:"#0b0b0c",pointerEvents:"none"}}>JUGAR</text>
             </g>
           ) : null}
           {!juego && sel!==null && <circle cx={C} cy={C} r={R0-22} fill="none" stroke={nc(CHROMATIC[centroPc])} strokeWidth="3" style={{transition:"stroke .25s"}}/>}
