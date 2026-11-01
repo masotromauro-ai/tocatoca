@@ -15,7 +15,6 @@ const NC = {
   "A#":"#da4571","Bb":"#da4571",
 };
 const nc = (n) => { const k=n?.replace(/[0-9]/g,"").trim(); if(NC[k]) return NC[k]; const i=noteIdx(k); return (i>=0 && NC[CHROMATIC[i]]) || "#888"; };
-
 // ─── MEZCLA DE COLOR DE ACORDES (Capítulo 10 del manual) ──────────────────────
 // Modelo "luz" (promedio aditivo en RGB) con criterio "raíz dominante":
 // la fundamental se queda con rootWeight% del peso total (80% por defecto) y el
@@ -3185,12 +3184,13 @@ function PaletaRueda({compacta=false}){
               <circle cx={C} cy={C} r={R0-26} fill={juego.obj!==null?nc(CHROMATIC[juego.obj]):"#0b0b0c"} stroke={rev?(rev.bien?"#6b9c7c":"#c0615a"):"rgba(255,255,255,.35)"} strokeWidth="4" style={{transition:"stroke .2s"}}/>
             </>)) : sel===null ? (
             <g onClick={()=>jugar("nota")} style={{cursor:"pointer"}} className="jugar-btn">
-              <style>{`@keyframes jpulso{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.55)}} .jugar-btn .jd{transform-box:fill-box;transform-origin:center} .jugar-btn:hover .jc{fill:#ffffff}`}</style>
+              <style>{`.jugar-btn .pr-disc{transition:fill .25s} .jugar-btn:hover .pr-disc{fill:#202026} .jugar-btn .pr-play,.jugar-btn .pr-txt{transition:fill .25s} .jugar-btn:hover .pr-play,.jugar-btn:hover .pr-txt{fill:#2dd4bf}`}</style>
+              <defs><radialGradient id="prG" cx="50%" cy="30%" r="80%"><stop offset="0%" stopColor="#27272d"/><stop offset="100%" stopColor="#0d0d0f"/></radialGradient></defs>
               <circle cx={C} cy={C} r={R0-12} fill="#0b0b0c" stroke="#2a2a2e" strokeWidth="1.5"/>
-              {[...Array(12)].map((_,i)=>{ const [dx,dy]=cqPol(C,C,80,i*30); return <circle key={i} className="jd" cx={dx} cy={dy} r="6.5" fill={nc(CHROMATIC[i])} style={{animation:`jpulso 2.6s ease-in-out ${i*0.2}s infinite`}}/>; })}
-              <circle className="jc" cx={C} cy={C} r="50" fill="#ececec" style={{transition:"fill .2s"}}/>
-              <path d={`M${C-9},${C-26} L${C+17},${C-9} L${C-9},${C+8} Z`} fill="#0b0b0c" style={{pointerEvents:"none"}}/>
-              <text x={C} y={C+30} textAnchor="middle" dominantBaseline="middle" style={{fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:14,letterSpacing:"0.24em",fill:"#0b0b0c",pointerEvents:"none"}}>JUGAR</text>
+              {[...Array(12)].map((_,i)=>(<path key={i} d={cqSector(C,C,86,95,i*30-13,i*30+13)} fill={nc(CHROMATIC[i])}/>))}
+              <circle className="pr-disc" cx={C} cy={C} r="77" fill="url(#prG)" stroke="#3b3b43" strokeWidth="1.2"/>
+              <path className="pr-play" d={`M${C-10},${C-36} L${C+21},${C-18} L${C-10},${C+0} Z`} fill="#ececec" style={{pointerEvents:"none"}}/>
+              <text className="pr-txt" x={C} y={C+33} textAnchor="middle" dominantBaseline="middle" style={{fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:19,letterSpacing:"0.06em",fill:"#ececec",pointerEvents:"none"}}>Practicar</text>
             </g>
           ) : null}
           {!juego && sel!==null && <circle cx={C} cy={C} r={R0-22} fill="none" stroke={nc(CHROMATIC[centroPc])} strokeWidth="3" style={{transition:"stroke .25s"}}/>}
@@ -3213,7 +3213,7 @@ function PaletaRueda({compacta=false}){
             <b style={{color:UI.text,fontFamily:"'Libre Baskerville',serif",fontSize:14}}>{nombreLat(root)} {esc.nombre}</b><br/>{escritas.map(nombreLat).join(" · ")}
           </p>
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-            {!juego && sel!==null && <button onClick={()=>jugar("nota")} style={uiPlay(false,{padding:"8px 16px"})}>▶ Jugar</button>}
+            {!juego && sel!==null && <button onClick={()=>jugar("nota")} style={uiPlay(false,{padding:"8px 16px"})}>▶ Practicar</button>}
             <button onClick={playing!==null?stop:tocarEscala} style={uiPlay(false,{padding:"8px 16px"})}>{playing!==null?"■ Parar":"▶ Tocar escala"}</button>
           </div>
         </div>
@@ -3317,14 +3317,33 @@ function EntrenaColores(){
   );
 }
 
-const PasoCard=({n,titulo,children})=>(
+const PasoCard=({n,titulo,children,fig})=>(
   <div className="flex gap-3 rounded-xl border p-3 my-2" style={{background:"#121212",borderColor:"#2a2a2a"}}>
     <div className="flex-shrink-0 flex items-center justify-center rounded-full font-black"
       style={{width:30,height:30,background:"#e6e6e6",color:"#0a0a0a",fontFamily:"serif",fontSize:15}}>{n}</div>
-    <div className="min-w-0">
+    <div className="min-w-0 flex-1">
       <p className="text-sm font-bold mb-1" style={{color:"#d4d4d4"}}>{titulo}</p>
       <p className="text-xs text-gray-400 leading-relaxed">{children}</p>
+      {fig ? <div style={{marginTop:10}}>{fig}</div> : null}
     </div>
+  </div>
+);
+const TiraColores=()=>(
+  <div style={{display:"flex",gap:3,width:"100%"}}>
+    {CHROMATIC.map(n=>(
+      <div key={n} onClick={()=>playTone(n,4,0.6)} style={{flex:1,minWidth:0,cursor:"pointer",textAlign:"center"}}>
+        <div style={{height:34,borderRadius:7,background:nc(n),border:"1px solid rgba(255,255,255,.2)"}}/>
+        <div style={{fontSize:9,color:"#aaa",fontFamily:"serif",marginTop:3,whiteSpace:"nowrap"}}>{CROM_SIMPLE[n]}</div>
+      </div>))}
+  </div>
+);
+const TarjetasMuestra=()=>(
+  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+    {[["C","Do"],["C#","Do♯ / Re♭"],["D","Re"]].map(([n,t])=>(
+      <div key={n} onClick={()=>playTone(n,4,0.6)} style={{width:92,borderRadius:10,overflow:"hidden",border:"1px solid #2f2f35",background:"#0e0e10",cursor:"pointer"}}>
+        <div style={{height:46,background:nc(n)}}/>
+        <div style={{padding:"5px 6px",textAlign:"center",fontFamily:"'Libre Baskerville',serif",fontSize:12,fontWeight:700,color:"#ececec"}}>{t}</div>
+      </div>))}
   </div>
 );
 
@@ -3562,17 +3581,12 @@ const CAPITULOS = [
 const CAPITULOS_TEC = [
 { parte:"El método", id:"cap0", titulo:"El código de color", body: (
   <>
-    <div className="rounded-xl p-4 mb-4 border" style={{background:"#0a0a0a",borderColor:"#333333"}}>
-      <p className="text-[10px] uppercase tracking-widest mb-2" style={{color:"#8a8a8a"}}>Antes de empezar</p>
-      <p className="text-sm text-gray-300 leading-relaxed">Antes de que este sistema te ahorre un solo segundo de cálculo, te va a pedir algo: que te aprendas doce colores de memoria, con la misma seriedad con la que en algún momento te aprendiste el nombre de las doce notas. Esto no es gratis, y vale la pena decirlo así, sin vueltas, en la primera página: hay una inversión inicial antes de que aparezca la ganancia. Cualquier método serio la tiene —el solfeo, la digitación, las escalas— y este no es la excepción.</p>
-    </div>
-    <CapP>Lo que sí cambia es qué estás memorizando. No estás memorizando teoría todavía. Estás memorizando una paleta: doce parches de color, cada uno con un nombre de nota al lado. Nada más. La teoría llega después, paso a paso, apoyada en esa memorización — pero si llegás a los acordes sin tener el color automatizado, vas a estar leyendo colores en vez de reconociéndolos, y ahí el sistema entero pierde su función.</CapP>
-
-    <CapH3>El orden en que conviene aprenderlo</CapH3>
-    <CapP>Se presenta la paleta en tres pasos, cada uno con un propósito distinto.</CapP>
-    <PasoCard n="1" titulo="Primero, una tira">Las doce notas en fila, igual que las teclas de un piano o de un bandoneón desplegadas en línea recta. Es la forma más directa de un primer contacto — no hay ángulos que leer, no hay geometría que entender todavía. Solo doce colores, uno al lado del otro, cada uno con su nombre.</PasoCard>
-    <PasoCard n="2" titulo="Después, la rueda">Las mismas doce notas, ahora en círculo. Acá aparece algo que la tira no podía mostrar: que las notas no son una lista que termina, sino un ciclo que vuelve sobre sí mismo — la relación circular entre semitonos que vas a necesitar más adelante para entender intervalos, el círculo de quintas, y la geometría de los acordes.</PasoCard>
-    <PasoCard n="3" titulo="Por último, tarjetas de estudio">Una nota por vez, con su color y su enarmónico (por ejemplo, Do sostenido y Re bemol comparten color). Este es el paso de memorización activa propiamente dicho: repetición, no explicación. Es donde el código deja de ser información y empieza a ser reflejo. (Podés practicar esto en la pestaña <b>Colores</b> de la app: tocá cada tarjeta para escuchar la nota mientras fijás el color.)</PasoCard>
+    <CapP>Antes de que el sistema te ahorre cálculo hay una inversión inicial: aprender <b className="text-gray-200">doce colores de memoria</b>, con la misma seriedad con que aprendiste el nombre de las doce notas.</CapP>
+    <CapP>Lo que memorizás es una paleta —doce colores, cada uno con su nombre de nota—, no teoría. La teoría llega después, apoyada en esa memoria.</CapP>
+    <CapH3>El orden para aprenderla</CapH3>
+    <PasoCard n="1" titulo="Primero, una tira" fig={<TiraColores/>}>Las doce notas en fila, cada una con su color y su nombre.</PasoCard>
+    <PasoCard n="2" titulo="Después, la rueda" fig={<RuedaCromatica size={210}/>}>Las mismas doce en círculo: no son una lista que termina, sino un ciclo que vuelve a empezar.</PasoCard>
+    <PasoCard n="3" titulo="Por último, tarjetas" fig={<TarjetasMuestra/>}>Una nota por vez, con su color y su enarmónico (Do♯ y Re♭ comparten color). Repetición hasta que sea reflejo; se practica en la pestaña <b>Colores</b>.</PasoCard>
   </>
 )},
 { parte:"El método", id:"tec5", titulo:"De la pentatónica al cromatismo", body: (
@@ -4253,7 +4267,7 @@ function EntrenadorTab({preset}={}){
   const [checked, setChecked] = useState(false);
   const [picker, setPicker]   = useState(null); // botón abierto en la hoja de color
   const [copied, setCopied]   = useState(false);
-  const [modo, setModo]       = useState("colores");   // "colores" | "acordes" | "escalas" | "forma" | "notas" | "camino"
+  const [modo, setModo]       = useState("forma");   // "colores" | "acordes" | "escalas" | "forma" | "notas" | "camino"
   const [chordSel, setChordSel] = useState({});         // `${id}|${bellows}` -> true
   const [reveal, setReveal]     = useState(false);
   const [formaPts, setFormaPts] = useState({L:[],R:[]});   // círculos puestos de memoria (ejercicio "Armar el teclado")
@@ -4829,9 +4843,15 @@ function EntrenadorTab({preset}={}){
 
       {/* Modo del ejercicio */}
       <div style={{display:"flex",flexWrap:"wrap",background:"#121212",border:"1.5px solid #2a2a2a",borderRadius:10,padding:3,gap:2,marginBottom:10,width:"fit-content",maxWidth:"100%"}}>
-        {[["lineas","📐 Ubicar líneas"],["colores","🎨 Pintar colores"],["acordes","🎼 Acordes"],["escalas","🎶 Escalas"],["forma","◯ Armar el teclado"],["notas","♪ Poner las notas"]].map(([m,l])=>(
-          <button key={m} style={{...pill(modo===m||(m==="escalas"&&modo==="camino")||(m==="acordes"&&(modo==="arpegio"||modo==="voz"||modo==="construir"||modo==="armonizar"))),padding:"6px 14px",fontSize:11}} onClick={()=>setModo(m==="escalas"?escUltimo:m==="acordes"?acoUltimo:m)}>{l}</button>
-        ))}
+        {[["forma","◯ Armar el teclado"],["lineas","📐 Ubicar líneas"],["notas","♪ Poner las notas"],["colores","🎨 Pintar colores"],["escalas","🎶 Escalas"],["acordes","🎼 Acordes"]].map(([m,l])=>{
+          const act=modo===m||(m==="escalas"&&modo==="camino")||(m==="acordes"&&(modo==="arpegio"||modo==="voz"||modo==="construir"||modo==="armonizar"));
+          const musical=m==="escalas"||m==="acordes";   // herramientas con finalidad musical: un tono distinto
+          return (
+            <span key={m} style={{display:"contents"}}>
+              {m==="escalas" && <span style={{width:1,alignSelf:"stretch",background:"#34343a",margin:"4px 5px"}}/>}
+              <button style={{...pill(act),padding:"6px 14px",fontSize:11,...(musical&&!act?{background:"#1f1f25",border:"1px solid #3a3a43",color:"#d6d6dc"}:{})}} onClick={()=>setModo(m==="escalas"?escUltimo:m==="acordes"?acoUltimo:m)}>{l}</button>
+            </span>);
+        })}
       </div>
 
       {modo==="escalas" && (
