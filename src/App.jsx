@@ -15,6 +15,7 @@ const NC = {
   "A#":"#da4571","Bb":"#da4571",
 };
 const nc = (n) => { const k=n?.replace(/[0-9]/g,"").trim(); if(NC[k]) return NC[k]; const i=noteIdx(k); return (i>=0 && NC[CHROMATIC[i]]) || "#888"; };
+
 // ─── MEZCLA DE COLOR DE ACORDES (Capítulo 10 del manual) ──────────────────────
 // Modelo "luz" (promedio aditivo en RGB) con criterio "raíz dominante":
 // la fundamental se queda con rootWeight% del peso total (80% por defecto) y el
