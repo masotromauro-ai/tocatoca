@@ -203,7 +203,7 @@ const FORMULAS={
   "13":  {intervals:[0,4,7,10,2,9], degs:[0,2,4,6,1,5],   label:"Dom. 13ª",   symbol:"13"  },
   "7b9": {intervals:[0,4,7,10,1], degs:[0,2,4,6,1],     label:"Dom. b9",    symbol:"7b9" },
   "7#9": {intervals:[0,4,7,10,3], degs:[0,2,4,6,1],     label:"Dom. #9",    symbol:"7#9" },
-  "7alt":{intervals:[0,4,7,10,1,3,8], degs:[0,2,4,6,1,1,5], label:"Alt.",       symbol:"7alt"},
+  "7alt":{intervals:[0,4,10,1,3,6,8], degs:[0,2,6,1,1,4,5], label:"Alt.",       symbol:"7alt"},
   "6":      {intervals:[0,4,7,9],    degs:[0,2,4,5],     label:"Mayor 6ª",      symbol:"6"},
   "m6":     {intervals:[0,3,7,9],    degs:[0,2,4,5],     label:"Menor 6ª",      symbol:"m6"},
   "mMaj7":  {intervals:[0,3,7,11],   degs:[0,2,4,6],     label:"Menor 7ª mayor",symbol:"m△7"},
@@ -240,6 +240,7 @@ const MODES={
   "Jónico #5": [0,2,4,5,8,9,11],
   "Locrio bb7": [0,1,3,5,6,8,9],
   "Blues":      [0,3,5,6,7,10],
+  "Mixo-blues": [0,2,3,4,5,7,9,10],
 };
 
 const T_SEMI={"9":2,"b9":1,"#9":3,"11":5,"#11":6,"13":9,"b13":8,"6":9,"b6":8,"b7":10,"7":11};
@@ -247,12 +248,12 @@ const T_DEG={"9":1,"b9":1,"#9":1,"11":3,"#11":3,"13":5,"b13":5,"6":5,"b6":5,"b7"
 const tNote=(root,t)=>{const s=T_SEMI[t];return s!==undefined?fromRoot(root,s,T_DEG[t]):null;};
 
 const MODE_BY_DEGREE=[
-  {name:"Jónico",   ivs:MODES["Jónico"],   q:"△7", tensions:["9","#11","13"],avoid:["11"]},
+  {name:"Jónico",   ivs:MODES["Jónico"],   q:"△7", tensions:["9","13"],      avoid:["11"]},
   {name:"Dórico",   ivs:MODES["Dórico"],   q:"m7", tensions:["9","11"],      avoid:["b9"]},
-  {name:"Frigio",   ivs:MODES["Frigio"],   q:"m7", tensions:["11"],          avoid:["9","13"]},
+  {name:"Frigio",   ivs:MODES["Frigio"],   q:"m7", tensions:["11"],          avoid:["b9","b13"]},
   {name:"Lidio",    ivs:MODES["Lidio"],    q:"△7", tensions:["9","#11","13"],avoid:["11"]},
   {name:"Mixolidio",ivs:MODES["Mixolidio"],q:"7",  tensions:["9","13"],      avoid:["11"]},
-  {name:"Eólico",   ivs:MODES["Eólico"],   q:"m7", tensions:["9","11"],      avoid:[]},
+  {name:"Eólico",   ivs:MODES["Eólico"],   q:"m7", tensions:["9","11"],      avoid:["b13"]},
   {name:"Locrio",   ivs:MODES["Locrio"],   q:"ø7", tensions:["11","b13"],    avoid:["b9"]},
 ];
 
@@ -262,7 +263,7 @@ const HF={
     {fn:"V7/IV (hacia menor)",degree:"V",key:"Resuelve a acorde menor",mode:"Alterada",modeIvs:MODES["Alterada"],tensions:["b9","#9","b13"],avoid:["9","13"],resolutions:["I m7","I m"],why:"Tensiones alteradas crean color oscuro. Idiomático del tango en cadencias menores."},
     {fn:"SubV7 (tritonal)",degree:"bII",key:"Reemplaza V7 — bajo por semitono",mode:"Lidio b7",modeIvs:MODES["Lidio b7"],tensions:["9","#11","13"],avoid:[],resolutions:["I△7","I"],why:"Comparte el tritono con V7. El bajo baja un semitono en vez del salto de 5ª."},
     {fn:"Dominante de paso",degree:"?",key:"Conecta cromáticamente",mode:"Mixolidio",modeIvs:MODES["Mixolidio"],tensions:["9","13"],avoid:[],resolutions:["siguiente"],why:"No establece tonalidad. Genera movimiento cromático sin perturbar el centro."},
-    {fn:"I7 Blues / tango",degree:"I",key:"Tónica con color blue-tango",mode:"Blues",modeIvs:MODES["Blues"],tensions:["b9","#9"],avoid:[],resolutions:["IV7","V7"],why:"La 7ª menor es constitutiva del sonido, no tensión a resolver."},
+    {fn:"I7 Blues / tango",degree:"I",key:"Tónica con color blue-tango",mode:"Mixo-blues",modeIvs:MODES["Mixo-blues"],tensions:["9","#9","13"],avoid:[],resolutions:["IV7","V7"],why:"La 7ª menor es constitutiva del sonido, no tensión a resolver."},
   ],
   "maj7":[
     {fn:"I△7 — Tónica mayor",degree:"I",key:"Centro tonal luminoso",mode:"Lidio",modeIvs:MODES["Lidio"],tensions:["9","#11","13"],avoid:["11"],resolutions:["estático"],why:"#11 (Lidio) evita conflicto con la 4ª justa. Color más sofisticado de la función."},
@@ -271,7 +272,7 @@ const HF={
   ],
   "min7":[
     {fn:"II m7 — Pre-dominante",degree:"II",key:"Pre-dominante en II–V–I",mode:"Dórico",modeIvs:MODES["Dórico"],tensions:["9","11"],avoid:["b9"],resolutions:["V7","V7sus4"],why:"Dórico (6ª mayor) da brillo típico del jazz. Evitar b9 — suena Frigio."},
-    {fn:"III m7 — Mediante",degree:"III",key:"Sustituto de tónica, más oscuro",mode:"Frigio",modeIvs:MODES["Frigio"],tensions:["11"],avoid:["9","13"],resolutions:["IV△7","II m7"],why:"Tiene b9 (Frigio). Crea tensión suave que impulsa hacia el IV."},
+    {fn:"III m7 — Mediante",degree:"III",key:"Sustituto de tónica, más oscuro",mode:"Frigio",modeIvs:MODES["Frigio"],tensions:["11"],avoid:["b9","b13"],resolutions:["IV△7","II m7"],why:"Tiene b9 (Frigio). Crea tensión suave que impulsa hacia el IV."},
     {fn:"VI m7 — Relativa menor",degree:"VI",key:"Tónica relativa estable",mode:"Eólico",modeIvs:MODES["Eólico"],tensions:["9","11"],avoid:[],resolutions:["estático"],why:"Comparte 3 notas con I△7. Reemplaza la tónica mayor con color oscuro."},
     {fn:"IV m7 — Subdominante menor",degree:"IV",key:"Borrowed del modo menor",mode:"Eólico",modeIvs:MODES["Eólico"],tensions:["9","11","b6"],avoid:[],resolutions:["I△7","V7","bVII△7"],why:"La b6 delata que viene del modo menor. Oscuridad expresiva. Muy usado en tango."},
   ],
@@ -332,7 +333,7 @@ Object.assign(HF,{
   ],
   "9":[
     mkF("V9 → I","V","Dominante con novena","Mixolidio",["9","13"],["11"],["I△7","I"],"La 9ª suaviza el V7 y lo vuelve más jazzístico sin perder la resolución."),
-    mkF("I9 — Blues y tango","I","Dominante como tónica","Blues",["9","13"],[],["IV9","V9"],"En blues los acordes dominantes funcionan en I, IV y V."),
+    mkF("I9 — Blues y tango","I","Dominante como tónica","Mixo-blues",["9","#9","13"],[],["IV9","V9"],"En blues los acordes dominantes funcionan en I, IV y V."),
   ],
   "13":[
     mkF("V13 → I","V","Dominante con 13ª","Mixolidio",["9","13"],["11"],["I△7","I△9"],"La 13ª aporta el color de la 6ª mayor del Mixolidio."),
@@ -344,7 +345,7 @@ Object.assign(HF,{
   ],
   "7#9":[
     mkF("V7#9 → I","V","Dominante con novena aumentada","Alterada",["#9","b13"],["9"],["I","I m"],"El acorde 'hendrixiano': 3ª mayor y #9 conviven. Muy usado en blues, funk y jazz."),
-    mkF("I7#9 — Blues","I","Acorde de blues sobre la tónica","Blues",["#9"],[],["IV7","V7"],"La #9 equivale a la ♭3 del blues: choque típico entre 3ª mayor y menor."),
+    mkF("I7#9 — Blues","I","Acorde de blues sobre la tónica","Mixo-blues",["#9","13"],[],["IV7","V7"],"La #9 equivale a la ♭3 del blues: choque típico entre 3ª mayor y menor."),
   ],
   "7alt":[
     mkF("V7alt → I","V","Dominante con máxima tensión","Alterada",["b9","#9","#11","b13"],[],["I","I m"],"La escala alterada (7º modo de la menor melódica) concentra todas las tensiones alteradas."),
@@ -387,7 +388,11 @@ Object.assign(HF,{
     mkF("I m△7 — Cliché descendente","I","m△7 → m7 → m6","Menor melódica",["9","11"],[],["I m7","I m6"],"La nota superior (o el bajo) desciende por semitonos: 7ª mayor, 7ª menor, 6ª."),
   ],
 });
-HF.maj9=HF.maj7; HF.min9=HF.min7; HF.min11=HF.min7; HF.add9=HF.maj;
+HF.add9=HF.maj;
+// Funciones derivadas: mismo papel que el acorde de 7ª, con el nombre del acorde real. El III m9/m11 no existe en tonalidad mayor (su 9ª queda fuera de la escala).
+HF.min9 = HF.min7.filter(f=>f.degree!=="III").map(f=>({...f,fn:f.fn.replace("m7","m9")}));
+HF.min11= HF.min7.filter(f=>f.degree!=="III").map(f=>({...f,fn:f.fn.replace("m7","m11")}));
+HF.maj9 = HF.maj7.map(f=>({...f,fn:f.fn.replace("△7","△9")}));
 HF.m7b5=[HF.m7b5[0],
   mkF("VIIø7 — Sensible (mayor)","VII","Séptimo grado de la escala mayor","Locrio",["11","b13"],["b9"],["I△7","III m7"],"Equivale a un V9 sin fundamental (Sol9 sin Sol = Siø7). Tiene las mismas notas que un Re m6."),
   HF.m7b5[1]];
@@ -446,6 +451,119 @@ const getMSD=(root)=>{
   return{notes,diatonic:notes.map((n,i)=>({note:n,degree:DN[i],quality:DQ[i],label:DL[i],full:`${n}${DQ[i]}`}))};
 };
 
+
+// ═══ ARMONÍA DIATÓNICA CON ESCRITURA CORRECTA (cada grado usa una letra distinta) ═══
+const TONICAS_MAYOR=["C","Db","D","Eb","E","F","F#","G","Ab","A","Bb","B"];
+const TONICAS_MENOR=["C","C#","D","Eb","E","F","F#","G","G#","A","Bb","B"];
+const FAMILIAS=[
+  {id:"mayor",   nombre:"mayor",          ivs:[0,2,4,5,7,9,11], menor:false},
+  {id:"menor",   nombre:"menor",          ivs:[0,2,3,5,7,8,10], menor:true},
+  {id:"armonica",nombre:"menor armónica", ivs:[0,2,3,5,7,8,11], menor:true},
+  {id:"melodica",nombre:"menor melódica", ivs:[0,2,3,5,7,9,11], menor:true},
+];
+const ES_MENORQ=q=>q==="min"||q==="min7"||q==="dim"||q==="m7b5"||q==="dim7"||q==="mMaj7";
+const SUF_ES={maj:"mayor",min:"menor",dim:"disminuido",aug:"aumentado",maj7:"△7","7":"7",min7:"m7",m7b5:"ø7",dim7:"°7",mMaj7:"m△7","maj7#5":"△7♯5","7#5":"7♯5"};
+const SUF_CORTO={maj:"",min:"m",dim:"°",aug:"+",maj7:"△7","7":"7",min7:"m7",m7b5:"ø7",dim7:"°7",mMaj7:"m△7","maj7#5":"△7♯5","7#5":"7♯5"};
+const nombreAcordeEs=(raiz,q)=>nombreLat(raiz)+" "+(SUF_ES[q]||q);
+const SUF_ROM7={maj7:"△7","7":"7",min7:"7",m7b5:"ø7",dim7:"°7",mMaj7:"△7","maj7#5":"△7♯5","7#5":"7♯5"};
+const romCaso=(i,q)=>ES_MENORQ(q)?DN[i].toLowerCase():DN[i];
+const romTri=(i,tq)=>romCaso(i,tq)+(tq==="dim"?"°":tq==="aug"?"+":"");
+const romSept=(i,sq)=>romCaso(i,sq)+(SUF_ROM7[sq]||"");
+const calTri=(t,f)=>t===4&&f===7?"maj":t===3&&f===7?"min":t===3&&f===6?"dim":t===4&&f===8?"aug":"?";
+const calSept=(tq,s)=>tq==="maj"?(s===11?"maj7":s===10?"7":"?"):tq==="min"?(s===10?"min7":s===11?"mMaj7":"?"):tq==="dim"?(s===9?"dim7":s===10?"m7b5":"?"):tq==="aug"?(s===11?"maj7#5":s===10?"7#5":"?"):"?";
+// Acordes por terceras sobre cada nota de una escala de 7 notas ya bien escrita
+function acordesDeNotas(notas){
+  return notas.map((n,i)=>{
+    const nn=[0,2,4,6].map(k=>notas[(i+k)%7]), pcs=nn.map(noteIdx), r=pcs[0];
+    const t=(pcs[1]-r+12)%12, f=(pcs[2]-r+12)%12, s=(pcs[3]-r+12)%12, tq=calTri(t,f), sq=calSept(tq,s);
+    return {i,raiz:n,pc:r,tq,sq,tri:nn.slice(0,3),sept:nn,pcs};
+  });
+}
+const acordesDiatonicos=(tonica,famId)=>acordesDeNotas(buildScale(tonica,FAMILIAS.find(f=>f.id===famId).ivs));
+const tonicaCanonica=(nombre,menor)=>{ const pc=noteIdx(nombre); return pc<0?nombre:(menor?TONICAS_MENOR:TONICAS_MAYOR)[pc]; };
+const QBASE={maj:"maj",min:"min",dim:"dim",aug:"aug",maj7:"maj7","7":"7",min7:"min7",m7b5:"m7b5",dim7:"dim7",mMaj7:"mMaj7","maj7#5":"maj7#5","7#5":"7#5",
+  "9":"7","13":"7","7b9":"7","7#9":"7","7alt":"7","7b13":"7","7#11":"7","7b5":"7","7sus4":"7",maj9:"maj7","maj7#11":"maj7",min9:"min7",min11:"min7",add9:"maj","6":"maj",m6:"min"};
+const ES_SEPT=q=>["maj7","7","min7","m7b5","dim7","mMaj7","maj7#5","7#5"].includes(q);
+const tieneDobles=(notas)=>notas.some(n=>/##|bb|x/.test(n));
+// ¿En qué tonalidades vive este acorde? Grado, tonalidad bien escrita y qué sería ese grado en la tonalidad paralela.
+function dondeVive(rootPc,quality,chordPcs){
+  const bq=QBASE[quality]; if(!bq) return null;
+  const sept=ES_SEPT(bq), ext=quality!==bq, grupos={};
+  FAMILIAS.forEach(fam=>{
+    (fam.menor?TONICAS_MENOR:TONICAS_MAYOR).forEach(tn=>{
+      const notas=buildScale(tn,fam.ivs), set=new Set(notas.map(noteIdx));
+      acordesDeNotas(notas).forEach(d=>{
+        if(d.pc!==rootPc||(sept?d.sq:d.tq)!==bq) return;
+        if(ext&&!chordPcs.every(p=>set.has(p))) return;
+        const k=(fam.menor?"m":"M")+tn+d.i;
+        if(!grupos[k]){
+          let contraste=null;
+          if(fam.id==="mayor"||fam.id==="menor"){
+            const par=buildScale(tn,(fam.menor?FAMILIAS[0]:FAMILIAS[1]).ivs);
+            if(!tieneDobles(par)){ const dp=acordesDeNotas(par)[d.i], qp=sept?dp.sq:dp.tq;
+              if(qp!==bq&&qp!=="?") contraste={tonica:tn,menor:!fam.menor,acorde:nombreAcordeEs(dp.raiz,qp)}; }
+          }
+          grupos[k]={menor:fam.menor,tonica:tn,grado:d.i,rom:sept?romSept(d.i,d.sq):romTri(d.i,d.tq),nombre:nombreAcordeEs(d.raiz,bq),notas:sept?d.sept:d.tri,fams:[],contraste};
+        }
+        grupos[k].fams.push(fam.id);
+      });
+    });
+  });
+  return Object.values(grupos);
+}
+// Escritura de la raíz de un acorde cuando no hay tonalidad: menores con sostenidos (Do♯m, Sol♯m), mayores con bemoles (Re♭, La♭)
+const raizDefecto=(pc,menor)=>(menor?TONICAS_MENOR:TONICAS_MAYOR)[((pc%12)+12)%12];
+// Grado romano de una raíz respecto a una tonalidad (con alteraciones): ♭II, ♯IV, ♭VII…
+const REL_MAYOR=["I","♭II","II","♭III","III","IV","♯IV","V","♭VI","VI","♭VII","VII"];
+const REL_MENOR=["I","♭II","II","III","♯III","IV","♯IV","V","VI","♯VI","VII","♯VII"];
+const ROM_IDX={"I":0,"II":1,"III":2,"IV":3,"V":4,"VI":5,"VII":6};
+function romanoRelativo(semi,menorClave,q){
+  const base=(menorClave?REL_MENOR:REL_MAYOR)[((semi%12)+12)%12], acc=/^[♭♯]/.test(base)?base[0]:"", num=base.replace(/^[♭♯]/,"");
+  const mn=ES_MENORQ(q), n=mn?num.toLowerCase():num;
+  const suf=ES_SEPT(q)?(SUF_ROM7[q]||""):(q==="dim"?"°":q==="aug"?"+":"");
+  return acc+n+suf;
+}
+// Análisis de una progresión: tonalidad (mayor o menor) por coincidencia con los acordes diatónicos, grado de cada acorde y dominantes secundarios.
+function analizarProgresion(chords){
+  const cands=[];
+  [false,true].forEach(menor=>(menor?TONICAS_MENOR:TONICAS_MAYOR).forEach(tn=>{
+    const fams=menor?["menor","armonica","melodica"]:["mayor"];
+    const dia=fams.flatMap(f=>acordesDiatonicos(tn,f).map(d=>({...d,fam:f})));
+    const rel=menor?[0,2,3,5,7,8,9,10,11]:[0,2,4,5,7,9,11], tpc=noteIdx(tn), escPcs=new Set(rel.map(x=>(tpc+x)%12));
+    let sc=0;
+    chords.forEach(({root,quality},ix)=>{
+      const rp=noteIdx(root), bq=QBASE[quality]||"maj", sept=ES_SEPT(bq);
+      const m=dia.find(d=>d.pc===rp&&(sept?d.sq:d.tq)===bq);
+      if(m){ sc+=3; if(m.i===0){ if(ix===0) sc+=1; if(ix===chords.length-1) sc+=1.5; } if(m.i===4&&bq==="7") sc+=1.5; }
+      else if(escPcs.has(rp)) sc+=1;
+      else if(bq==="7"&&escPcs.has((rp+5)%12)) sc+=0.5;
+    });
+    cands.push({tn,menor,sc,dia});
+  }));
+  cands.sort((a,b)=>b.sc-a.sc||(a.menor?1:0)-(b.menor?1:0));
+  const best=cands[0], alt=cands.find(c=>c.menor!==best.menor&&c.sc>=best.sc-3.5&&c.sc>0);
+  const keyTxt=(c)=>nombreLat(c.tn)+(c.menor?" menor":" mayor");
+  const out=chords.map(ch=>{
+    const rp=noteIdx(ch.root), bq=QBASE[ch.quality]||"maj", sept=ES_SEPT(bq), tpc=noteIdx(best.tn);
+    const m=best.dia.find(d=>d.pc===rp&&(sept?d.sq:d.tq)===bq);
+    let degree;
+    if(m) degree=sept?romSept(m.i,m.sq):romTri(m.i,m.tq);
+    else {
+      let sec=null;
+      if(bq==="7"||ES_SEPT(bq)&&bq==="7"){
+        const tgt=(rp+5)%12, k=best.dia.find(d=>d.i!==0&&d.pc===tgt&&d.fam!=="melodica");
+        if(k){ const tq=(best.menor&&k.i===4)?"maj":(best.dia.find(d=>d.i===k.i&&(d.fam==="mayor"||d.fam==="menor"))||k).tq; sec="V7/"+romTri(k.i,tq); }
+      }
+      degree=sec||romanoRelativo((rp-tpc+12)%12,best.menor,bq);
+    }
+    const base=degree.replace(/^[♭♯]/,"").replace(/[°+ø△♯♭\d/].*$/,"").toUpperCase();
+    const fns=getFns(ch.quality); const fn=fns.find(f=>f.degree.replace(/^[♭♯]/,"")===base)||fns[0];
+    return {raw:ch.raw,root:ch.root,quality:ch.quality,notes:ch.notes,degree,key:keyTxt(best),fn};
+  });
+  out.alternativa=alt?keyTxt(alt):null;
+  return out;
+}
+
 const CHORD_RULES=[
   [/^m7b5/,"m7b5"],[/^dim7|^o7/,"dim7"],[/^dim|^o(?![a-z])/,"dim"],
   [/^mmaj7|^mmaj/,"mMaj7"],
@@ -475,21 +593,7 @@ const parseChord=(input)=>{
 };
 
 
-const computeProg=(chords)=>{
-  const scores={};
-  COF.forEach(({note})=>{
-    const ri=noteIdx(note);if(ri===-1)return;
-    let sc=0;const scalePcs=MSI.map(i=>(ri+i)%12);
-    chords.forEach(({root})=>{ if(scalePcs.includes(noteIdx(root))) sc+=4; });
-    scores[note]=sc;
-  });
-  const key=Object.entries(scores).sort((a,b)=>b[1]-a[1])[0][0];
-  const ki=noteIdx(key);const snPcs=MSI.map(i=>(ki+i)%12);
-  return chords.map(({root,quality,raw,notes})=>{
-    const ri=snPcs.indexOf(noteIdx(root));
-    return{raw,root,quality,notes,degree:ri>=0?DN[ri]:"?",key,fn:getFns(quality)[0]};
-  });
-};
+const computeProg=(chords)=>analizarProgresion(chords);
 
 // ─── BIBLIOTECA DE PROGRESIONES ───────────────────────────────────────────────
 const BIBLIOTECA=[
@@ -724,10 +828,13 @@ const Piano=({leftVoice=[],rightVoice=[]})=>{
 };
 
 // Card de función armónica desplegable
-const FnCard=({fn,root,isOpen,onToggle})=>{
+const FnCard=({fn,root,isOpen,onToggle,intervalos})=>{
   const scale=useMemo(()=>fn.modeIvs?buildScale(root,fn.modeIvs):[],[root,fn.modeIvs]);
   const twn=useMemo(()=>(fn.tensions||[]).map(t=>({label:t,note:tNote(root,t)})),[root,fn.tensions]);
   const awn=useMemo(()=>(fn.avoid||[]).map(t=>({label:t,note:tNote(root,t)})),[root,fn.avoid]);
+  // notas del acorde que no pertenecen al modo (p. ej. la 5ª justa del V7 en la escala alterada)
+  const fuera=useMemo(()=>{ const m=(fn.modeIvs||[]).map(x=>x%12), DX={0:0,1:1,2:1,3:2,4:2,5:3,6:4,7:4,8:5,9:5,10:6,11:6};
+    return (intervalos||[]).map(x=>x%12).filter(x=>fn.modeIvs&&!m.includes(x)).map(x=>`${GRADO_LABEL[x]} (${nombreLat(spell(root,x,DX[x]))})`); },[root,fn.modeIvs,intervalos]);
   return(
     <div className="rounded-xl border overflow-hidden" style={{borderColor:isOpen?"#e6e6e6":"#1a1a1a"}}>
       <button className="w-full text-left px-4 py-3 flex items-center justify-between gap-2"
@@ -759,6 +866,7 @@ const FnCard=({fn,root,isOpen,onToggle})=>{
               ))}
             </div>
             <p className="text-xs text-gray-600 font-mono">{scale.join(" — ")}</p>
+            {fuera.length>0&&<p style={{fontSize:11,color:"#c9a25a",margin:"8px 0 0",lineHeight:1.45}}>De este acorde no pertenece al modo: {fuera.join(", ")}. Se omite o se altera.</p>}
           </div>
           {/* Tensiones y evitar */}
           <div className="grid grid-cols-2 gap-2">
@@ -2310,15 +2418,19 @@ function analizarAcorde(pcs,bajoPc,opt={}){
   const est=cifEstilo(), propios=cifPropios();
   if(set.length===2){
     const d=((set[1]-set[0])+12)%12, r=set[0];
-    if(d===7) return {nombre:nombreLat(RAIZ_NOM[r])+" 5",suf:"5",key:"0,7",rootPc:r,grados:{0:"1",7:"5"},alts:[],custom:false,defaultSuf:"5",intervalo:false};
+    if(d===7) return {nombre:nombreLat(RAIZ_NOM[r])+" 5",suf:"5",key:"0,7",rootPc:r,grados:{0:"1",7:"5"},alts:[],custom:false,defaultSuf:"5",nombres:{[r]:nombreLat(RAIZ_NOM[r]),[set[1]]:nombreLat(spell(RAIZ_NOM[r],7,4))},intervalo:false};
     return {nombre:"Intervalo de "+INTERVALOS_NOM[Math.min(d,12-d)===d?d:d]+" ("+nombreLat(RAIZ_NOM[r])+"–"+nombreLat(RAIZ_NOM[set[1]])+")",suf:"",key:"",rootPc:r,grados:{},alts:[],custom:false,defaultSuf:"",intervalo:true};
   }
   const ev=(r)=>{
     const S=new Set(set.filter(p=>p!==r).map(p=>(p-r+12)%12)), key=[0,...[...S].sort((x,y)=>x-y)].join(",");
     const c=cifSufijo(S,est), custom=propios[key]!==undefined, suf=custom?propios[key]:c.suf;
-    const raiz=nombreLat(RAIZ_NOM[r]), cuerpo=suf===""?"mayor":suf==="m"?"menor":suf==="°"?"disminuido":suf==="+"?"aumentado":suf;
-    const barra=r!==bajoPc?" / "+nombreLat(RAIZ_NOM[bajoPc]):"";
-    return {nombre:raiz+" "+cuerpo+barra,suf,key,rootPc:r,grados:c.g,custom,defaultSuf:c.suf,score:(custom?-10:c.score)+(r===bajoPc?0:3),intervalo:false};
+    const menorLike=S.has(3)&&!S.has(4), rootEng=raizDefecto(r,menorLike), raiz=nombreLat(rootEng);
+    const cuerpo=suf===""?"mayor":suf==="m"?"menor":suf==="°"?"disminuido":suf==="+"?"aumentado":suf;
+    // cada nota se escribe según su función en el acorde (3ª, 5ª, 7ª, 9ª…), no según una tabla fija
+    const GD={1:0,2:1,3:2,4:3,5:4,6:5,7:6,9:1,11:3,13:5}, nombres={};
+    set.forEach(pc=>{ const iv=(pc-r+12)%12, lab=c.g[iv]||"", num=parseInt((lab.match(/\d+/)||["0"])[0]); nombres[pc]=pc===r?raiz:(GD[num]!==undefined?nombreLat(spell(rootEng,iv,GD[num])):nombreLat(RAIZ_NOM[pc])); });
+    const barra=r!==bajoPc?" / "+(nombres[bajoPc]||nombreLat(RAIZ_NOM[bajoPc])):"";
+    return {nombre:raiz+" "+cuerpo+barra,suf,key,rootPc:r,grados:c.g,custom,defaultSuf:c.suf,nombres,score:(custom?-10:c.score)+(r===bajoPc?0:3),intervalo:false};
   };
   const todos=set.map(ev).sort((x,y)=>x.score-y.score);
   const elegido=(opt.raiz!=null&&todos.find(x=>x.rootPc===opt.raiz))||todos[0];
@@ -2357,9 +2469,10 @@ function micEstimar(mag,sr,N,cands,maxN){
 }
 function PanelMarcadas({marcadas,marcar,onRemove,onClear}){
   const orden=[...marcadas].sort((a,b)=>a.midi-b.midi||a.orden-b.orden);
-  const nombre=(m)=>nombreLat(RAIZ_NOM[m.pc]);
   const prim=[...marcadas].sort((x,y)=>x.orden-y.orden)[0];
-  const acorde=orden.length>=2?nombreAcordePcs(orden.map(m=>m.pc),orden[0].pc,prim?prim.pc:null):null;
+  const an=orden.length>=2?analizarAcorde(orden.map(m=>m.pc),orden[0].pc,{raiz:prim?prim.pc:null}):null;
+  const acorde=an?an.nombre:null;
+  const nombre=(m)=>(an&&an.nombres&&an.nombres[m.pc])||nombreLat(RAIZ_NOM[m.pc]);
   const tocar=(arp)=>orden.forEach((m,i)=>playBandDur(CHROMATIC[m.pc],m.oct,arp?0.38:1.8,arp?i*0.32:i*0.012));
   return(
     <div style={{background:"#121214",border:"1px solid #26262a",borderRadius:12,padding:"12px 14px"}}>
@@ -2594,8 +2707,9 @@ function BandoneonTab() {
   };
   const heardIdsL=useMemo(()=>micMano==="der"?[]:heardIdsDe(leftBtns),[heardMidis,micExacta,micMano,bellows,leftBtns,getOct]);
   const heardIdsR=useMemo(()=>micMano==="izq"?[]:heardIdsDe(rightBtns),[heardMidis,micExacta,micMano,bellows,rightBtns,getOct]);
-  const heardNotas=heardMidis.map(m=>({m,txt:nombreLat(RAIZ_NOM[((m%12)+12)%12])+(Math.floor(m/12)-1),pc:((m%12)+12)%12}));
-  const heardAcorde=(micModo==="acorde"&&heardPcs.size>=2)?nombreAcordePcs([...heardPcs],heardMidis[0]%12):null;
+  const heardAn=(micModo==="acorde"&&heardPcs.size>=2)?analizarAcorde([...heardPcs],((heardMidis[0]%12)+12)%12,{}):null;
+  const heardNotas=heardMidis.map(m=>{ const pc=((m%12)+12)%12; return {m,txt:((heardAn&&heardAn.nombres&&heardAn.nombres[pc])||nombreLat(RAIZ_NOM[pc]))+(Math.floor(m/12)-1),pc}; });
+  const heardAcorde=heardAn?heardAn.nombre:null;
   const heardTxt=heardNotas.map(n=>n.txt).join(" · ");
 
   // ─── MARCAR: elegir notas sobre el teclado para armar un acorde ───────────
@@ -4412,7 +4526,7 @@ function EntrenadorTab({preset}={}){
   const conStateOf=(btn)=>{
     const it=itemDe(btn), nt=CHROMATIC[it.pc], col=nc(nt), k=conIds.indexOf(btn.id);
     if(k<0) return {bg:col+"30",border:`2px solid ${col}70`,glow:"none",content:<span style={{fontSize:8.5,fontWeight:700,color:"#ffffffa0",textShadow:"0 1px 2px #000"}}>{CROM_SIMPLE[nt]}</span>};
-    const gr=conAn&&conAn.grados[(it.pc-conAn.rootPc+12)%12], nom=nombreLat(RAIZ_NOM[it.pc]);
+    const gr=conAn&&conAn.grados[(it.pc-conAn.rootPc+12)%12], nom=(conAn&&conAn.nombres&&conAn.nombres[it.pc])||nombreLat(RAIZ_NOM[it.pc]);
     return {bg:col,border:"3px solid #fff",glow:`0 0 0 3px #ffffff55, 0 0 14px ${col}`,
       content:<span style={{display:"flex",flexDirection:"column",alignItems:"center",lineHeight:1.05,color:"#fff",textShadow:"0 1px 3px rgba(0,0,0,.95)"}}>
         <b style={{fontSize:nom.length>3?10.5:13}}>{nom}</b><span style={{fontSize:9.5,fontWeight:800,fontFamily:"monospace"}}>{gr||k+1}</span></span>};
@@ -4428,14 +4542,17 @@ function EntrenadorTab({preset}={}){
   const [misAcordes,setMisAcordes]=useState(()=>{ try{ const v=JSON.parse(localStorage.getItem("harmonia_mis_acordes")||"[]"); return Array.isArray(v)?v:[]; }catch(e){ return []; } });
   useEffect(()=>{ try{ localStorage.setItem("harmonia_mis_acordes",JSON.stringify(misAcordes)); }catch(e){} },[misAcordes]);
   const escTipo7 = ESC_ENT.slice(0,4).some(e=>e.id===escTipo) ? escTipo : "mayor";
-  const armRoot = noteIdx(escRoot);
-  const armPcs = ESC_ENT.find(e=>e.id===escTipo7).ivs.map(iv=>(armRoot+iv)%12);
-  const armAcordes = useMemo(()=>armPcs.map((pc,i)=>{
-    const tri=[armPcs[i],armPcs[(i+2)%7],armPcs[(i+4)%7]], pcs=armCuat?[...tri,armPcs[(i+6)%7]]:tri;
-    const an=analizarAcorde(pcs,pcs[0],{raiz:pcs[0]}), t=(tri[1]-tri[0]+12)%12, q=(tri[2]-tri[0]+12)%12;
-    const num=(t===3?ROM_N[i].toLowerCase():ROM_N[i])+(q===6?"°":q===8?"+":"");
-    return {i,pc,pcs,nombre:an?an.nombre:"",num};
-  }),[escRoot,escTipo7,armCuat,conVer]);
+  const famArm = {mayor:"mayor",menor:"menor",menorA:"armonica",menorM:"melodica"}[escTipo7];
+  const armMenor = escTipo7!=="mayor";
+  const tonicasArm = armMenor ? TONICAS_MENOR : TONICAS_MAYOR;
+  const armTonica = tonicasArm.includes(escRoot) ? escRoot : tonicasArm[((noteIdx(escRoot)%12)+12)%12];   // tonalidades usuales: La mayor, Do♯ menor…
+  const armNotas = buildScale(armTonica, FAMILIAS.find(f=>f.id===famArm).ivs);
+  const armPcs = armNotas.map(noteIdx);
+  const armNombres = Object.fromEntries(armNotas.map(n=>[noteIdx(n),nombreLat(n)]));   // pc → nombre escrito según la tonalidad
+  const armAcordes = useMemo(()=>acordesDeNotas(buildScale(armTonica, FAMILIAS.find(f=>f.id===famArm).ivs)).map(d=>{
+    const q=armCuat?d.sq:d.tq, pcs=armCuat?d.pcs:d.pcs.slice(0,3), notas=armCuat?d.sept:d.tri;
+    return {i:d.i,pc:d.pc,pcs,notas,q,nombre:nombreAcordeEs(d.raiz,q),num:armCuat?romSept(d.i,d.sq):romTri(d.i,d.tq)};
+  }),[armTonica,famArm,armCuat]);
   const armSel = armAcordes[Math.min(armGrado,6)];
   const armVoz = (pcs)=>{   // posición cerrada desde el bajo: raíz en la mano izquierda y las demás notas lo más cerca posible por encima
     const L=itemsMano(leftBtns,bellows), R=itemsMano(rightBtns,bellows), all=[...L,...R];
@@ -4451,12 +4568,12 @@ function EntrenadorTab({preset}={}){
     const it=itemDe(btn), nt=CHROMATIC[it.pc], col=nc(nt), k=armSel.pcs.indexOf(it.pc), enEsc=armPcs.includes(it.pc);
     if(k>=0) return {bg:col,border:"3px solid #fff",glow:`0 0 0 3px #ffffff55, 0 0 14px ${col}`,
       content:<span style={{display:"flex",flexDirection:"column",alignItems:"center",lineHeight:1.05,color:"#fff",textShadow:"0 1px 3px rgba(0,0,0,.95)"}}>
-        <b style={{fontSize:12}}>{CROM_SIMPLE[nt]}</b><span style={{fontSize:9,fontWeight:800,fontFamily:"monospace"}}>{GRADO_LABEL[(it.pc-armSel.pc+12)%12]}</span></span>};
-    if(enEsc) return {bg:col+"55",border:`2px solid ${col}aa`,glow:"none",content:<span style={{fontSize:9,fontWeight:700,color:"#ffffffc0",textShadow:"0 1px 2px #000"}}>{CROM_SIMPLE[nt]}</span>};
+        <b style={{fontSize:12}}>{armNombres[it.pc]}</b><span style={{fontSize:9,fontWeight:800,fontFamily:"monospace"}}>{GRADO_LABEL[(it.pc-armSel.pc+12)%12]}</span></span>};
+    if(enEsc) return {bg:col+"55",border:`2px solid ${col}aa`,glow:"none",content:<span style={{fontSize:9,fontWeight:700,color:"#ffffffc0",textShadow:"0 1px 2px #000"}}>{armNombres[it.pc]}</span>};
     return {bg:"#17171a",border:"2px solid #26262a",glow:"none",content:null};
   };
   const armTap=(btn)=>{ const it=itemDe(btn); tocarItem(it); const i=armPcs.indexOf(it.pc); if(i>=0) setArmGrado(i); };
-  const cardGuardar=(nombre,nota,ids,bel)=>{ if(!ids||!ids.length) return; setMisAcordes(l=>[{id:Date.now().toString(36),nombre,nota:(nota||"").trim(),bellows:bel,ids:[...ids]},...l]); };
+  const cardGuardar=(nombre,nota,ids,bel,nm)=>{ if(!ids||!ids.length) return; setMisAcordes(l=>[{id:Date.now().toString(36),nombre,nota:(nota||"").trim(),bellows:bel,ids:[...ids],nm:nm||null},...l]); };
   const cardItems=(c)=>c.ids.map(id=>conBy[id]).filter(Boolean).map(b=>itemsMano([b],c.bellows)[0]);
   const cardTocar=(c)=>{ cardItems(c).sort((a,b)=>a.midi-b.midi).forEach((it,i)=>playBandDur(CHROMATIC[it.pc],it.oct,1.8,i*0.012)); };
   const cardAbrir=(c)=>{ setBellows(c.bellows); setConSel(m=>({...m,[c.bellows]:c.ids.filter(id=>conBy[id])})); setConRaiz(null); setModo("construir"); cardTocar(c); };
@@ -4777,7 +4894,7 @@ function EntrenadorTab({preset}={}){
               <div key={c.id} style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",padding:"6px 0",borderTop:"1px solid #1c1c1f"}}>
                 <div style={{flex:"1 1 220px",minWidth:0}}>
                   <div style={{fontSize:13,fontWeight:700,color:"#ececec",fontFamily:"'Libre Baskerville',serif"}}>{c.nombre} <span style={{fontFamily:UI_FONT,fontSize:10,fontWeight:600,color:"#7c7c82"}}>· {c.bellows==="abre"?"abre":"cierra"}</span></div>
-                  <div style={{fontSize:11,color:"#9a9aa2"}}>{cardItems(c).sort((a,b)=>a.midi-b.midi).map(it=>nombreLat(RAIZ_NOM[it.pc])+it.oct).join(" · ")}</div>
+                  <div style={{fontSize:11,color:"#9a9aa2"}}>{cardItems(c).sort((a,b)=>a.midi-b.midi).map(it=>((c.nm&&c.nm[it.pc])||nombreLat(RAIZ_NOM[it.pc]))+it.oct).join(" · ")}</div>
                   {c.nota ? <div style={{fontSize:11,color:"#c9a25a",fontStyle:"italic"}}>{c.nota}</div> : null}
                 </div>
                 <button style={uiPlay(false,{padding:"4px 12px",fontSize:11.5})} onClick={()=>cardTocar(c)}>▶</button>
@@ -4792,7 +4909,7 @@ function EntrenadorTab({preset}={}){
       {acoVistas}
       <div style={{display:"flex",flexWrap:"wrap",gap:"8px 20px",alignItems:"flex-end",marginBottom:10}}>
         <GrupoMini t="Escala">
-          <Desplegable ancho={80} etiqueta="Tónica" valor={escRoot} opciones={ACORDE_RAICES.map(x=>[x,nombreLat(x)])} onChange={v=>{setEscRoot(v);}}/>
+          <Desplegable ancho={80} etiqueta="Tónica" valor={armTonica} opciones={tonicasArm.map(x=>[x,nombreLat(x)])} onChange={v=>{setEscRoot(v);}}/>
           <Desplegable ancho={140} etiqueta="Escala" valor={escTipo7} opciones={ESC_ENT.slice(0,4).map(e=>[e.id,e.nombre])} onChange={v=>{setEscTipo(v);}}/>
         </GrupoMini>
         <GrupoMini t="Acordes de">
@@ -4810,12 +4927,12 @@ function EntrenadorTab({preset}={}){
           </button>); })}
       </div>
       <div style={{display:"flex",flexWrap:"wrap",gap:6,alignItems:"center"}}>
-        <span style={{fontSize:12,color:"#cfcfd4",marginRight:4}}><b style={{fontFamily:"'Libre Baskerville',serif"}}>{armSel.nombre}</b> · {armSel.pcs.map(pc=>CROM_SIMPLE[CHROMATIC[pc]]).join(" · ")}</span>
+        <span style={{fontSize:12,color:"#cfcfd4",marginRight:4}}><b style={{fontFamily:"'Libre Baskerville',serif"}}>{armSel.nombre}</b> · {armSel.notas.map(nombreLat).join(" · ")}</span>
         <button style={uiPlay(false,{padding:"5px 14px"})} onClick={()=>armTocar(false)}>▶ Escuchar acorde</button>
         <button style={uiPlay(false,{padding:"5px 14px"})} onClick={()=>armTocar(true)}>▶ Arpegio</button>
         <button style={uiPlay(false,{padding:"5px 14px"})} onClick={armRecorrer}>▶ Recorrer los siete</button>
         <button style={uiTool(false,{marginLeft:"auto"})} onClick={()=>{ const ids=armVoz(armSel.pcs); setConSel(m=>({...m,[bellows]:ids})); setConRaiz(null); setModo("construir"); }}>→ Llevar a Construir</button>
-        <button style={uiTool(false)} onClick={()=>cardGuardar(armSel.nombre,"",armVoz(armSel.pcs),bellows)}>★ Guardar en mis acordes</button>
+        <button style={uiTool(false)} onClick={()=>cardGuardar(armSel.nombre,"",armVoz(armSel.pcs),bellows,Object.fromEntries(armSel.pcs.map((pc,k)=>[pc,nombreLat(armSel.notas[k])])))}>★ Guardar en mis acordes</button>
       </div>
       <p style={{fontSize:10.5,color:"#6a6a70",margin:"8px 0 0"}}>Tocá una nota resaltada del teclado para ver el acorde de ese grado. El acorde se arma en posición cerrada desde la raíz grave; en Construir lo podés modificar.</p>
     </div>
@@ -5002,7 +5119,7 @@ function EntrenadorTab({preset}={}){
               {orden.map(it=>{ const col=nc(CHROMATIC[it.pc]), gr=conAn&&conAn.grados[(it.pc-conAn.rootPc+12)%12]; return (
                 <button key={it.b.id} onClick={()=>conQuitar(it.b.id)} title="Sacar esta nota" style={{display:"inline-flex",alignItems:"center",gap:6,padding:"4px 8px 4px 5px",borderRadius:999,cursor:"pointer",background:"#0e0e10",border:"1px solid #2c2c30",color:"#ececec"}}>
                   <span style={{minWidth:24,height:24,padding:"0 4px",borderRadius:12,background:col,color:txtSobre(col),display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,fontFamily:"monospace"}}>{gr||it.orden}</span>
-                  <span style={{fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:13}}>{nombreLat(RAIZ_NOM[it.pc])}{it.oct}</span>
+                  <span style={{fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:13}}>{(conAn&&conAn.nombres&&conAn.nombres[it.pc])||nombreLat(RAIZ_NOM[it.pc])}{it.oct}</span>
                   <span style={{fontSize:9.5,color:"#7c7c82"}}>{it.mano}</span><span style={{fontSize:12,color:"#8a8a90"}}>✕</span>
                 </button>); })}
             </div>)}
@@ -5014,7 +5131,7 @@ function EntrenadorTab({preset}={}){
           </div>
           <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center",marginTop:10}}>
             <input value={conNota} onChange={e=>setConNota(e.target.value)} placeholder="Anotación opcional (ej.: marcato, mano izquierda)" style={{...inpS,flex:"1 1 220px",fontSize:12,padding:"6px 8px"}}/>
-            <button disabled={orden.length<2} style={uiTool(false,{padding:"6px 12px",opacity:orden.length<2?0.45:1})} onClick={()=>{ cardGuardar(conAn?conAn.nombre:"Acorde",conNota,conIds,bellows); setConNota(""); }}>★ Guardar en mis acordes</button>
+            <button disabled={orden.length<2} style={uiTool(false,{padding:"6px 12px",opacity:orden.length<2?0.45:1})} onClick={()=>{ cardGuardar(conAn?conAn.nombre:"Acorde",conNota,conIds,bellows,conAn&&conAn.nombres); setConNota(""); }}>★ Guardar en mis acordes</button>
           </div>
           <details style={{marginTop:12,borderTop:"1px solid #232326",paddingTop:10}}>
             <summary style={{cursor:"pointer",fontFamily:UI_FONT,fontSize:12,fontWeight:600,color:"#cfcfd4"}}>Nombres: cómo se escribe y nombres propios</summary>
@@ -5161,7 +5278,7 @@ function EntrenadorTab({preset}={}){
           </>
         ) : modo==="armonizar" ? (
           <>
-            <span style={{color:"#8a8a8a"}}>Escala: <b style={{color:"#e6e6e6"}}>{nombreLat(escRoot)} {ESC_ENT.find(e=>e.id===escTipo7).nombre.toLowerCase()}</b></span>
+            <span style={{color:"#8a8a8a"}}>Escala: <b style={{color:"#e6e6e6"}}>{nombreLat(armTonica)} {ESC_ENT.find(e=>e.id===escTipo7).nombre.toLowerCase()}</b></span>
             <span style={{color:"#8a8a8a"}}>Acorde: <b style={{color:"#e6e6e6"}}>{armSel.num} · {armSel.nombre}</b></span>
             <span style={{color:"#8a8a8a"}}>Fuelle: <b style={{color:"#e6e6e6"}}>{bellows==="abre"?"abriendo":"cerrando"}</b></span>
           </>
@@ -6152,6 +6269,42 @@ function ModosTab(){
   );
 }
 
+// ¿Dónde vive este acorde? Grados en los que aparece, con cada tonalidad bien escrita
+function DondeVive({chord}){
+  const res=useMemo(()=>dondeVive(noteIdx(chord.root),chord.quality,chord.notes.map(noteIdx)),[chord.root,chord.quality]);
+  const base=QBASE[chord.quality];
+  const orden=(l)=>[...l].sort((a,b)=>a.grado-b.grado||(TONICAS_MAYOR.indexOf(a.tonica)-TONICAS_MAYOR.indexOf(b.tonica)));
+  const fila=(x)=>{
+    const famTxt=x.menor?(x.fams.includes("menor")?"menor":x.fams.map(f=>FAMILIAS.find(g=>g.id===f).nombre).join(" y ")):"mayor";
+    return (
+      <div key={(x.menor?"m":"M")+x.tonica+x.grado} style={{display:"flex",gap:10,alignItems:"flex-start",padding:"7px 0",borderTop:"1px solid #1c1c1f"}}>
+        <span style={{fontFamily:"monospace",fontWeight:800,fontSize:12,minWidth:46,textAlign:"center",padding:"3px 6px",borderRadius:7,background:"#1a1a1a",border:"1px solid #2a2a2e",color:"#ececec"}}>{x.rom}</span>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:13,color:"#ececec"}}>de <b style={{fontFamily:"'Libre Baskerville',serif"}}>{nombreLat(x.tonica)} {famTxt}</b>
+            {x.menor&&x.fams.length>1&&x.fams.includes("menor")&&<span style={{fontSize:10.5,color:"#7c7c82"}}> · también en la armónica/melódica</span>}</div>
+          <div style={{fontSize:11,color:"#9a9aa2"}}>{x.nombre} · {x.notas.map(nombreLat).join(" · ")}</div>
+          {x.contraste&&<div style={{fontSize:10.5,color:"#7c7c82",fontStyle:"italic"}}>En {nombreLat(x.contraste.tonica)} {x.contraste.menor?"menor":"mayor"} ese grado es {x.contraste.acorde}.</div>}
+        </div>
+      </div>);
+  };
+  const may=res?orden(res.filter(x=>!x.menor)):[], men=res?orden(res.filter(x=>x.menor)):[];
+  return (
+    <div style={{background:"#121214",border:"1px solid #26262a",borderRadius:14,padding:"12px 14px"}}>
+      <p style={{...uiLabel,marginBottom:4}}>¿Dónde vive este acorde?</p>
+      {res===null
+        ? <p style={{fontSize:12,color:"#8a8a90",margin:"6px 0 0"}}>Este acorde es de color o de paso y no es diatónico en una escala de siete notas. Mirá sus funciones abajo.</p>
+        : (<>
+            <p style={{fontSize:11,color:"#7c7c82",margin:"0 0 6px"}}>Grados en los que aparece{chord.quality!==base?`, leído como ${SUF_ES[base]||base}`:""}, con cada tonalidad escrita como corresponde.</p>
+            {res.length===0 && <p style={{fontSize:12,color:"#8a8a90",margin:0}}>No aparece sin alterar en ninguna tonalidad: es un acorde de paso o de color.</p>}
+            {may.length>0 && <p style={{...uiLabel,fontSize:9.5,margin:"8px 0 2px"}}>Tonalidades mayores</p>}
+            {may.map(fila)}
+            {men.length>0 && <p style={{...uiLabel,fontSize:9.5,margin:"12px 0 2px"}}>Tonalidades menores</p>}
+            {men.map(fila)}
+          </>)}
+    </div>
+  );
+}
+
 // ── Tres formas de ver una escala ──
 function VistaLineal({root,esc,romano}){
   const r=noteIdx(root), escritas=buildScale(root,esc.ivs), nom={}; escritas.forEach(n=>{ nom[noteIdx(n)]=nombreLat(n); });
@@ -6290,7 +6443,40 @@ function ColoresTab(){
 }
 
 // ─── APP PRINCIPAL ────────────────────────────────────────────────────────────
+// ─── Aviso inicial: alcance de la plataforma y papel del profesor ───
+const AVISO_VISTAS_SIN_OPCION = 3;   // las primeras veces no se puede ocultar; después aparece "No mostrar más"
+function AvisoInicial({n,manual,onClose,onNunca}){
+  const puedeOcultar = !manual && n>AVISO_VISTAS_SIN_OPCION;
+  return (
+    <div style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(4,4,5,.78)",backdropFilter:"blur(3px)",display:"flex",alignItems:"center",justifyContent:"center",padding:16}} role="dialog" aria-modal="true" aria-label="Importante">
+      <div style={{width:"100%",maxWidth:580,maxHeight:"88vh",display:"flex",flexDirection:"column",background:"#121214",border:"1px solid #2f2f35",borderRadius:16,boxShadow:"0 20px 60px rgba(0,0,0,.6)",overflow:"hidden"}}>
+        <div style={{padding:"18px 22px 12px",borderBottom:"1px solid #232326"}}>
+          <p style={{margin:0,fontFamily:UI_FONT,fontSize:10,fontWeight:800,letterSpacing:"0.28em",color:"#f2c14e"}}>IMPORTANTE</p>
+          <h2 style={{margin:"6px 0 0",fontFamily:"'Libre Baskerville',serif",fontSize:21,fontWeight:700,color:"#ececec"}}>Antes de empezar</h2>
+        </div>
+        <div style={{padding:"16px 22px",overflowY:"auto",fontFamily:"'Crimson Text',Georgia,serif",fontSize:16,lineHeight:1.6,color:"#cfcfd4"}}>
+          <p style={{margin:"0 0 14px",padding:"10px 14px",borderLeft:"3px solid #f2c14e",background:"#1b1810",color:"#f3e3b5",fontFamily:UI_FONT,fontSize:13.5,lineHeight:1.5}}>BandoMaps entrena la mecánica del instrumento. La música, el fraseo y el aire los guía tu profesor.</p>
+          <p style={{margin:"0 0 12px"}}>Bienvenido a BandoMaps, una plataforma concebida de manera integral para acompañar y sistematizar la práctica del bandoneón desde su dimensión puramente técnica y estructural.</p>
+          <p style={{margin:"0 0 12px"}}>El propósito fundamental de esta herramienta es ofrecer un método de ejercitación enfocado en la asimilación mecánica, la memoria topográfica de los teclados y la intuición gráfica del instrumento. A través de este entorno, el estudiante podrá abordar de manera clara y progresiva el mapa del bandoneón, la soltura de ambas manos, la digitación y la coordinación motriz.</p>
+          <p style={{margin:"0 0 12px"}}>Es indispensable señalar los límites de este recurso: BandoMaps no abarca los aspectos expresivos, el fraseo, los acentos, el manejo del aire ni las sutilezas melódicas y estilísticas propias de cada género. Todo el desarrollo interpretativo, la musicalidad y el criterio artístico quedan bajo la tutela, guía y supervisión directa de un profesor.</p>
+          <p style={{margin:0}}>Te invitamos a utilizar esta plataforma como una herramienta práctica y un soporte visual diario para dominar la mecánica del instrumento, complementando siempre tu estudio con la enseñanza de tu docente.</p>
+        </div>
+        <div style={{padding:"12px 22px 16px",borderTop:"1px solid #232326",display:"flex",gap:10,alignItems:"center",justifyContent:"flex-end",flexWrap:"wrap"}}>
+          {puedeOcultar && <button onClick={onNunca} style={uiGhost}>No mostrar más</button>}
+          <button onClick={onClose} style={uiPill(true,{padding:"9px 24px",fontSize:13})} autoFocus>{manual?"Cerrar":"Entendido"}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function HarmoniaApp(){
+  // Aviso inicial (solo en la versión de alumnos): se cuenta cada ingreso; desde el cuarto se puede ocultar
+  const avisoN = useRef((()=>{ try{ const n=parseInt(localStorage.getItem("bandomaps_aviso_vistas")||"0",10)||0; return n+1; }catch(e){ return 1; } })());
+  const [aviso,setAviso]=useState(()=>{ if(!window.__ALUMNO) return false; try{ if(localStorage.getItem("bandomaps_aviso_no")==="1") return false; }catch(e){} return true; });
+  const [avisoManual,setAvisoManual]=useState(false);
+  useEffect(()=>{ if(aviso&&!avisoManual){ try{ localStorage.setItem("bandomaps_aviso_vistas",String(avisoN.current)); }catch(e){} } },[]);
+
   const[tab,setTab]=useState("codigo");
   const[navOpen,setNavOpen]=useState(false);
   const[chordInput,setChordInput]=useState("Dm7");
@@ -6484,6 +6670,8 @@ export default function HarmoniaApp(){
                     </button>
                   </div>
 
+                  <DondeVive chord={chord}/>
+
                   <div className="flex items-center gap-3">
                     <p className="text-xs text-gray-500 uppercase tracking-widest">
                       Funciones armónicas <span className="text-gray-700">({fns.length})</span>
@@ -6505,7 +6693,7 @@ export default function HarmoniaApp(){
                     ?<TablaComparativa fns={fns} root={chord.root}/>
                     :<div className="space-y-2">
                         {fns.map((f,i)=>(
-                          <FnCard key={i} fn={f} root={chord.root}
+                          <FnCard key={i} fn={f} root={chord.root} intervalos={chord.formula.intervals}
                             isOpen={openFns.includes(i)} onToggle={()=>toggleFn(i)}/>
                         ))}
                       </div>
@@ -6550,21 +6738,21 @@ export default function HarmoniaApp(){
                   <div className="space-y-4">
                     <p className="text-sm text-gray-500 uppercase tracking-widest">
                       Tonalidad probable:
-                      <span className="ml-2 text-[#d4d4d4] font-bold text-base">{progression[0]?.key} Mayor</span>
+                      <span className="ml-2 text-[#d4d4d4] font-bold text-base">{progression[0]?.key}</span>
+                      {progression.alternativa&&<span className="ml-3 text-xs normal-case tracking-normal text-gray-500">también se puede leer en {progression.alternativa}</span>}
                     </p>
                     {progression.map((ch,i)=>{
                       const f=ch.fn;
                       const scale=f?.modeIvs?buildScale(ch.root,f.modeIvs):[];
                       const twn=(f?.tensions||[]).map(t=>({label:t,note:tNote(ch.root,t)}));
                       const v=buildVoicing(ch.root,ch.quality);
-                      // Acordes diatónicos de la escala modal
-                      const dia=scale.length>=7?scale.map((sn,si)=>{
-                        const md=MODE_BY_DEGREE[si];if(!md)return null;
-                        const chNotes=[0,2,4,6].map(ci=>scale[(si+ci)%7]);
-                        const tens=(md.tensions||[]).map(t=>({label:t,note:tNote(sn,t)}));
-                        const avd=(md.avoid||[]).map(t=>({label:t,note:tNote(sn,t)}));
-                        return{root:sn,degree:DN[si],quality:DQ[si],mode:md.name,chNotes,tens,avd};
-                      }).filter(Boolean):[];
+                      // Acordes diatónicos de la escala del modo (calidad calculada con las notas reales)
+                      const padre=["Jónico","Dórico","Frigio","Lidio","Mixolidio","Eólico","Locrio"].indexOf(f?.mode);
+                      const dia=scale.length===7?acordesDeNotas(scale).map((d,si)=>{
+                        const md=padre>=0?MODE_BY_DEGREE[(padre+si)%7]:null;
+                        return{root:d.raiz,degree:romSept(si,d.sq),qid:d.sq,quality:SUF_CORTO[d.sq]??"",mode:md?md.name:"",chNotes:d.sept,
+                          tens:md?md.tensions.map(t=>({label:t,note:tNote(d.raiz,t)})):[],avd:md?md.avoid.map(t=>({label:t,note:tNote(d.raiz,t)})):[]};
+                      }):[];
 
                       return(
                         <div key={i} className="rounded-2xl border border-gray-700 overflow-hidden" style={{background:"#121212"}}>
@@ -6632,8 +6820,8 @@ export default function HarmoniaApp(){
                                           </td>
                                           <td className="py-1.5 pr-2">
                                             <button className="font-bold hover:opacity-75" style={{color:"#ececec",fontSize:13}}
-                                              onClick={()=>{const c=parseChord(`${dc.root}${dc.quality}`);if(c)playChord(c.notes);}}>
-                                              {fmtNota(dc.root)}{dc.quality} ▶
+                                              onClick={()=>{const c=parseChord(`${dc.root}${QUAL_TXT[dc.qid]||""}`);if(c)playChord(c.notes);}}>
+                                              {fmtNota(dc.root)}{dc.quality||(dc.qid==="?"?"":"")} ▶
                                             </button>
                                           </td>
                                           <td className="py-1.5 pr-2">
@@ -6802,10 +6990,13 @@ export default function HarmoniaApp(){
         </div>
       </div>
 
+      {aviso && <AvisoInicial n={avisoN.current} manual={avisoManual} onClose={()=>{setAviso(false);setAvisoManual(false);}} onNunca={()=>{ try{localStorage.setItem("bandomaps_aviso_no","1");}catch(e){} setAviso(false); }}/>}
+
       {/* Footer */}
       <div className="border-t border-gray-800 px-4 py-2 text-center flex-shrink-0">
         <p className="text-xs text-gray-700 italic">
-          BandoMaps · Sistema de color tonal
+          BandoMaps · Sistema de color tonal ·{" "}
+          <button onClick={()=>{setAvisoManual(true);setAviso(true);}} style={{background:"none",border:"none",padding:0,color:"#8a8a90",textDecoration:"underline",cursor:"pointer",fontStyle:"italic",fontSize:"inherit",fontFamily:"inherit"}}>Importante: antes de empezar</button>
         </p>
       </div>
     </div>
