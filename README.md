@@ -1,47 +1,246 @@
-# Bandoneón · Editor de Posiciones
+# Harmonía 🎵
 
-Editor drag & drop para ajustar la disposición de los botones del bandoneón y exportar las coordenadas exactas.
+**Diccionario armónico · Improvisación contextual · Sistema de color tonal**
 
-## Cómo correrlo localmente
+Aplicación web musical interactiva construida en React + Vite + Tailwind CSS.
+
+## Funcionalidades
+
+- **Acorde** — Analiza cualquier acorde, muestra sus notas con color tonal, funciones armónicas y escala sugerida
+- **Progresión** — Detecta la tonalidad probable de una progresión y asigna grados romanos
+- **Quintas** — Círculo de quintas interactivo con todas las tonalidades
+- **Colores** — Sistema cromático tonal: cada nota tiene un color único
+- **Gestos** — Instrumento que se toca con las manos frente a la cámara.
+  Página aparte: [`/gestos.html`](public/gestos.html) ·
+  documentación en [`GESTOS.md`](GESTOS.md)
+- **El Código** — El sistema de colores con la física revisada y todos los
+  números calculados en pantalla. Desarrollo **paralelo**: no toca la app
+  compilada. Página aparte: [`/codigo.html`](public/codigo.html) ·
+  documentación en [`EL-CODIGO.md`](EL-CODIGO.md)
+- **Práctica** — Los tres ejercicios del capítulo 0 del manual, más el nivel 2
+  del capítulo 9: los doce colores hasta que salgan sin pensar, con sonido y
+  con repetición de lo que cuesta. Página aparte:
+  [`/practica.html`](public/practica.html)
+
+## Sistema de colores tonales
+
+Los doce semitonos, cada uno con su color. La fuente es la constante `NC` de
+`src/App.jsx`; esta tabla es una copia y por lo tanto es la que puede mentir.
+**Ante una diferencia, manda el archivo** — ya pasó: hasta el 15-sep-2026 acá
+figuraban siete hexes que no eran los del código, ninguno de los siete.
+
+| Nota | Color     | Hex     |     | Nota | Color        | Hex     |
+|------|-----------|---------|-----|------|--------------|---------|
+| C    | Azul      | #002e93 |     | F#   | Beige        | #ecd9a3 |
+| C#   | Celeste   | #23879f |     | G    | Amarillo     | #f1b302 |
+| D    | Verde     | #357a25 |     | G#   | Naranja      | #dc7212 |
+| D#   | Oliva     | #91a51e |     | A    | Rojo         | #cd2821 |
+| E    | Marrón    | #845523 |     | A#   | Rosa         | #da4571 |
+| F    | Dorado    | #b8823c |     | B    | Violeta      | #672e87 |
+
+## Instalación local
 
 ```bash
-# 1. Instalar dependencias (solo la primera vez)
 npm install
-
-# 2. Correr en modo desarrollo
 npm run dev
-
-# 3. Abrir en el navegador
-# → http://localhost:5173
 ```
 
-## Cómo publicarlo en GitHub Pages
+## Pruebas
 
 ```bash
-# 1. Build
-npm run build
-
-# 2. Subir la carpeta /dist a GitHub Pages
-# En GitHub → Settings → Pages → Source: "GitHub Actions" o subir /dist manualmente
+npm run prueba
 ```
 
-## Estructura
+Sin dependencias y sin navegador. Encadena los dos bancos:
 
-```
-bandoneon/
-├── index.html          ← entry point
-├── package.json
-├── vite.config.js
-└── src/
-    ├── main.jsx        ← monta React
-    └── App.jsx         ← toda la lógica
-```
+| Banco | Qué cubre | Casos |
+|---|---|---|
+| `pruebas/gestos.mjs` | la teoría musical del instrumento de gestos | 8 |
+| `pruebas/codigo.mjs` | el motor de color, la teoría y los ejercicios de «El Código», más los módulos que viven adentro de los `.html` | 60 |
 
-## Uso
+El segundo compara contra **valores publicados** —los cents de la serie de
+armónicos, la curva de sRGB, el rango del espectro visible— y no contra lo que
+devuelve el propio código: lo que ahí se explica es teoría musical para alguien
+que no la sabe, y un número mal puesto enseña algo falso sin que se note.
 
-- **Arrastrá** cada botón a su posición real
-- **Flechas del teclado** para ajuste fino (Shift = doble paso)
-- **En mobile**: tocá el botón → usá los botones ← → ↑ ↓
-- **↓ JS** → exporta código listo para pegar en el visualizador
-- **↓ CSV** → tabla con coordenadas `id, row, x, y, abre, cierra`
-- **Reset** → vuelve a las posiciones originales del CSV
+## Deploy en Vercel
+
+Este proyecto está configurado para deploy automático desde GitHub en Vercel.
+**Qué cuenta de Vercel lo publica, cómo averiguarlo y cómo dejarlo anotado
+está en [`DESPLIEGUE.md`](DESPLIEGUE.md)** — el repositorio no lo dice, y no
+puede decirlo: Vercel no escribe nada acá.
+
+El despliegue tiene dos partes:
+
+| Qué | Dónde | Cómo llega al aire |
+|---|---|---|
+| La aplicación de armonía | `src/` | compilada por Vite |
+| El instrumento de gestos | `public/gestos.html`, `public/gestos/` | copiado tal cual, sin compilar |
+| El Código | `public/codigo.html`, `public/codigo/` | copiado tal cual, sin compilar |
+| La práctica | `public/practica.html` | copiado tal cual, sin compilar |
+
+**No hay variables de entorno que cargar.** Las hubo, para el puente a Tuya
+que el instrumento tenía hasta el 2026-09-09; se retiraron con él, junto con
+`api/tuya.js` y el `.env.example`. Hoy no hay función de servidor que las lea,
+así que no hay nada que cargar en la consola de Vercel ni nada que redesplegar
+por ese motivo.
+
+
+# Functional Harmony Lab
+
+Aplicación educativa avanzada de armonía, piano y bandoneón desarrollada con React/Vite.
+
+## Objetivo
+
+Crear un laboratorio armónico interactivo capaz de enseñar:
+
+- armonía funcional
+- relaciones acorde/escala
+- tensiones
+- modos
+- conducción de voces
+- voicings
+- color modal
+- improvisación
+- análisis funcional
+
+La app está orientada especialmente a:
+- tango
+- jazz
+- música moderna
+- piano
+- bandoneón
+
+---
+
+# Filosofía del Proyecto
+
+Este proyecto NO funciona como un simple diccionario de acordes.
+
+La prioridad es:
+- comprensión musical real
+- lógica tonal
+- voice leading
+- resolución de tensiones
+- pensamiento armónico funcional
+
+Toda estructura musical debe derivarse desde:
+- intervalos
+- grados
+- contexto tonal
+- función armónica
+
+---
+
+# Características Principales
+
+## Armonía
+- análisis funcional
+- modos griegos
+- tensiones disponibles
+- avoid notes
+- dominantes secundarios
+- intercambio modal
+- sustituciones
+
+## Escalas
+- mayor
+- menor natural
+- menor armónica
+- menor melódica
+- modos
+- alteradas
+- disminuidas
+
+## Instrumentos
+- piano interactivo
+- sistema visual de bandoneón
+- digitaciones
+- visualización armónica
+
+## Audio
+- síntesis estilo bandoneón
+- microdesafinación
+- chorus leve
+- audio interactivo
+
+---
+
+# Roadmap
+
+## Próximas funciones
+
+- voicings automáticos
+- conducción de voces inteligente
+- rootless voicings
+- drop 2
+- voicings tango
+- voicings jazz
+- digitación automática
+- reconocimiento por micrófono
+- MIDI
+- exportación MusicXML
+- generación de progresiones
+- análisis armónico avanzado
+
+---
+
+# Arquitectura
+
+src/
+components/
+theory/
+audio/
+data/
+hooks/
+utils/
+
+Separación estricta entre:
+- UI
+- teoría musical
+- parser armónico
+- audio
+- lógica funcional
+
+---
+
+# Reglas Armónicas
+
+## Nomenclatura
+- C = triada mayor
+- Cmaj7 o C△7 = séptima mayor
+
+NO usar:
+C△
+
+para triadas mayores simples.
+
+## Jónico
+Tensiones:
+9, 13
+
+Avoid:
+11
+
+La #11 pertenece al Lidio.
+
+---
+
+# Objetivo a Largo Plazo
+
+Construir una plataforma profesional de exploración armónica para:
+- estudiantes
+- arregladores
+- improvisadores
+- compositores
+- pianistas
+- bandoneonistas
+
+Combinando:
+- teoría
+- visualización
+- audio
+- interacción
+- análisis funcional
+
+*Versión MVP · Mayo 2026*

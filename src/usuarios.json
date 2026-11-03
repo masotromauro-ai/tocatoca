@@ -1,0 +1,28 @@
+{
+ "users": [
+  {
+   "u": "Patto",
+   "salt": "7r4rr5rzugmzgbpn",
+   "hash": "f7ff653c42171946201da268b7699dd398ba936b0bf19d3e0803dd8d8229589f",
+   "blocked": false
+  },
+  {
+   "u": "odette",
+   "salt": "2cvzz5w26ajcmtab",
+   "hash": "00e89231b6a9372b5382fb2afc14e637efbf947fffb566f2e604bb5c392dfa7b",
+   "blocked": false
+  },
+  {
+   "u": "Esteban",
+   "salt": "srwfcbqgw4g9dbsx",
+   "hash": "d3ccd0ecca5c7178f432c468acdf14ab7afb43822707888bf60d04cd560f612a",
+   "blocked": false
+  },
+  {
+   "u": "maurock",
+   "salt": "xtjs6m5smfd72g8j",
+   "hash": "cfa542b56430e870669e0748d56de61b6d08518b98dae15d7b1d84fffc34852a",
+   "blocked": false
+  }
+ ]
+}
