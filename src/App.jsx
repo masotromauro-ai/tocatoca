@@ -4371,6 +4371,53 @@ function lineasDe(h,btns,tipo,bellows){
   return Object.keys(g).map(Number).sort((a,b)=>a-b).map(k=>({nombre:tipo==="octavas"?"Octava "+k:nombreLat(CHROMATIC[k]),ids:g[k]}));
 }
 
+// ─── Voicings sugeridos: patrones definidos por la función de cada nota (raíz, 3ª, 5ª, 7ª) y aplicados a los botones reales ───
+const PATRONES_VOZ=[
+  {id:"marcato",nombre:"Marcato",uso:"mano izquierda, firme y rápido"},
+  {id:"cerrado",nombre:"Cerrado",uso:"todas las notas juntas, compacto"},
+  {id:"abierto",nombre:"Abierto",uso:"bajo y 5ª a la izquierda; 3ª y 7ª a la derecha"},
+];
+const ROL_TXT=["R","3","5","7"];
+function dispFisica(sel){ let t=0; ["L","R"].forEach(h=>{ const p=sel.filter(i=>i.hand===h); if(p.length>1){ const xs=p.map(i=>i.x), ys=p.map(i=>i.y); t+=Math.hypot(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys)); } }); return t; }
+// items: [{id,hand,pc,midi,oct,x,y}]; pcs: [raíz, 3ª, 5ª, (7ª)]
+function elegirVoicing(patron,pcs,items){
+  const n=pcs.length, bajos=items.filter(i=>i.hand==="L"&&i.pc===pcs[0]); if(!bajos.length) return null;
+  const roles=patron==="marcato"?(n>=4?[0,1,3]:[0,1,2]):[...Array(n).keys()];
+  let mejor=null; const bajoMin=Math.min(...bajos.map(b=>b.midi));
+  bajos.forEach(bajo=>{
+    const listas=roles.slice(1).map(r=>items.filter(i=>{
+      if(i.pc!==pcs[r]||i.id===bajo.id||i.midi<=bajo.midi) return false;
+      if(patron==="marcato") return i.hand==="L"&&i.midi<=bajo.midi+19;
+      if(patron==="cerrado") return i.midi<=bajo.midi+14;
+      // abierto: raíz y 5ª a la izquierda; 3ª y 7ª a la derecha, por encima de la octava del bajo
+      return (r===2)?(i.hand==="L"&&i.midi<=bajo.midi+12):(i.hand==="R"&&i.midi>=bajo.midi+12&&i.midi<=bajo.midi+31);
+    }));
+    if(listas.some(l=>!l.length)) return;
+    const comb=(k,acc)=>{ if(k===listas.length){ evaluar(acc); return; } listas[k].forEach(it=>{ if(!acc.some(a=>a.id===it.id)) comb(k+1,[...acc,it]); }); };
+    const evaluar=(acc)=>{
+      const sel=[bajo,...acc], tope=Math.max(...sel.map(i=>i.midi))-bajo.midi, disp=dispFisica(sel), nR=sel.filter(i=>i.hand==="R").length;
+      const costo=(patron==="abierto"?(bajo.midi-bajoMin)*4:Math.abs(bajo.midi-50)*2)+(patron==="marcato"?disp+0.8*tope:patron==="cerrado"?6*tope+0.05*disp+25*nR:0.05*disp+1.5*tope);   // abierto: bajo lo más grave posible; marcato y cerrado: bajo en el registro medio-grave (cerca de Re3)
+      if(!mejor||costo<mejor.costo) mejor={costo,sel:sel.map((it,k)=>({it,rol:roles[k]}))};
+    };
+    comb(0,[]);
+  });
+  if(!mejor) return null;
+  const ord=[...mejor.sel].sort((a,b)=>a.it.midi-b.it.midi);
+  return {sel:ord,ids:ord.map(x=>x.it.id),manos:{L:ord.filter(x=>x.it.hand==="L").length,R:ord.filter(x=>x.it.hand==="R").length}};
+}
+function voicingsDe(pcs,nombres,leftBtns,rightBtns,fuellePref){
+  const mk=(btns,bel,h)=>itemsMano(btns,bel).map(i=>({id:i.b.id,hand:h,pc:i.pc,midi:i.midi,oct:i.oct,x:i.b.x,y:i.b.y}));
+  const cache={};
+  const items=(bel)=>cache[bel]||(cache[bel]=[...mk(leftBtns,bel,"L"),...mk(rightBtns,bel,"R")]);
+  return PATRONES_VOZ.map(p=>{
+    for(const bel of [fuellePref,fuellePref==="abre"?"cierra":"abre"]){
+      const r=elegirVoicing(p.id,pcs,items(bel));
+      if(r) return {...p,fuelle:bel,...r,notas:r.sel.map(x=>({id:x.it.id,pc:x.it.pc,oct:x.it.oct,hand:x.it.hand,rol:x.rol,nombre:nombres[x.rol]}))};
+    }
+    return {...p,fuelle:null,vacio:true};
+  });
+}
+
 function EntrenadorTab({preset}={}){
   const [leftBtns, setLeftBtns]   = useState([]);
   const [rightBtns, setRightBtns] = useState([]);
@@ -4539,6 +4586,7 @@ function EntrenadorTab({preset}={}){
   const [flechasModo,setFlechasModo]=useState("recta");
   // Armonizar una escala + Mis acordes (tarjetas guardadas en este dispositivo)
   const [armGrado,setArmGrado]=useState(0), [armCuat,setArmCuat]=useState(false), [conNota,setConNota]=useState("");
+  const [vozSel,setVozSel]=useState(null), [armPatron,setArmPatron]=useState("cerrado"), [armMatriz,setArmMatriz]=useState(false);
   const [misAcordes,setMisAcordes]=useState(()=>{ try{ const v=JSON.parse(localStorage.getItem("harmonia_mis_acordes")||"[]"); return Array.isArray(v)?v:[]; }catch(e){ return []; } });
   useEffect(()=>{ try{ localStorage.setItem("harmonia_mis_acordes",JSON.stringify(misAcordes)); }catch(e){} },[misAcordes]);
   const escTipo7 = ESC_ENT.slice(0,4).some(e=>e.id===escTipo) ? escTipo : "mayor";
@@ -4554,6 +4602,20 @@ function EntrenadorTab({preset}={}){
     return {i:d.i,pc:d.pc,pcs,notas,q,nombre:nombreAcordeEs(d.raiz,q),num:armCuat?romSept(d.i,d.sq):romTri(d.i,d.tq)};
   }),[armTonica,famArm,armCuat]);
   const armSel = armAcordes[Math.min(armGrado,6)];
+  const nombresRol = armSel.notas.map(nombreLat);
+  const armVoicings = useMemo(()=>voicingsDe(armSel.pcs,nombresRol,leftBtns,rightBtns,bellows),[armSel,leftBtns,rightBtns,bellows]);
+  const matrizFilas = useMemo(()=>{
+    if(!armMatriz||!FORMULAS[armSel.q]) return [];
+    const f=FORMULAS[armSel.q], menorQ=ES_MENORQ(armSel.q), pi=PATRONES_VOZ.findIndex(p=>p.id===armPatron);
+    return TONICAS_MAYOR.map((_,pc)=>{
+      const rootEng=raizDefecto(pc,menorQ), pcs=f.intervals.map(iv=>(pc+iv)%12), nombres=f.intervals.map((iv,k)=>nombreLat(spell(rootEng,iv,f.degs[k])));
+      return {pc,nombre:nombreAcordeEs(rootEng,armSel.q),nombres,pcs,v:voicingsDe(pcs,nombres,leftBtns,rightBtns,bellows)[pi]};
+    });
+  },[armMatriz,armSel.q,armPatron,leftBtns,rightBtns,bellows]);
+  const verVoicing=(v,titulo,nombres)=>{ if(!v||v.vacio) return; setBellows(v.fuelle); setVozSel({ids:v.ids,fuelle:v.fuelle,titulo,nom:Object.fromEntries(v.notas.map(n=>[n.id,n.nombre])),rol:Object.fromEntries(v.notas.map(n=>[n.id,n.rol]))}); };
+  const vozItems=(v)=>v.notas.map(n=>conBy[n.id]).filter(Boolean).map(b=>itemsMano([b],v.fuelle)[0]);
+  const tocarVoicing=(v,arp)=>{ const o=vozItems(v).sort((a,b)=>a.midi-b.midi); o.forEach((it,i)=>playBandDur(CHROMATIC[it.pc],it.oct,arp?0.38:1.8,arp?i*0.32:i*0.012)); };
+  const guardarVoicing=(v,titulo)=>cardGuardar(titulo,"",v.ids,v.fuelle,Object.fromEntries(v.notas.map(n=>[n.pc,n.nombre])));
   const armVoz = (pcs)=>{   // posición cerrada desde el bajo: raíz en la mano izquierda y las demás notas lo más cerca posible por encima
     const L=itemsMano(leftBtns,bellows), R=itemsMano(rightBtns,bellows), all=[...L,...R];
     const bajo=(L.filter(i=>i.pc===pcs[0]).sort((a,b)=>a.midi-b.midi)[0])||(all.filter(i=>i.pc===pcs[0]).sort((a,b)=>a.midi-b.midi)[0]); if(!bajo) return [];
@@ -4562,17 +4624,22 @@ function EntrenadorTab({preset}={}){
     return ids;
   };
   const armItems = (pcs)=>armVoz(pcs).map(id=>conBy[id]).filter(Boolean).map(b=>itemsMano([b],bellows)[0]);
-  const armTocar = (arp)=>{ const o=armItems(armSel.pcs).sort((a,b)=>a.midi-b.midi); o.forEach((it,i)=>playBandDur(CHROMATIC[it.pc],it.oct,arp?0.38:1.8,arp?i*0.32:i*0.012)); };
+  const armTocar = (arp)=>{ const o=(vozSel?vozItems({fuelle:vozSel.fuelle,notas:vozSel.ids.map(id=>({id}))}):armItems(armSel.pcs)).sort((a,b)=>a.midi-b.midi); o.forEach((it,i)=>playBandDur(CHROMATIC[it.pc],it.oct,arp?0.38:1.8,arp?i*0.32:i*0.012)); };
   const armRecorrer = ()=>{ armAcordes.forEach((a,k)=>{ armItems(a.pcs).sort((x,y)=>x.midi-y.midi).forEach(it=>playBandDur(CHROMATIC[it.pc],it.oct,1.1,k*1.25)); }); };
   const armStateOf=(btn)=>{
     const it=itemDe(btn), nt=CHROMATIC[it.pc], col=nc(nt), k=armSel.pcs.indexOf(it.pc), enEsc=armPcs.includes(it.pc);
+    if(vozSel){
+      if(vozSel.ids.includes(btn.id)) return {bg:col,border:"3px solid #fff",glow:`0 0 0 3px #ffffff66, 0 0 16px ${col}`,
+        content:<span style={{display:"flex",flexDirection:"column",alignItems:"center",lineHeight:1.05,color:"#fff",textShadow:"0 1px 3px rgba(0,0,0,.95)"}}><b style={{fontSize:12}}>{vozSel.nom[btn.id]}</b><span style={{fontSize:9,fontWeight:800,fontFamily:"monospace"}}>{ROL_TXT[vozSel.rol[btn.id]]}</span></span>};
+      return {bg:k>=0?col+"26":"#141416",border:`2px solid ${k>=0?col+"55":"#232326"}`,glow:"none",content:null};
+    }
     if(k>=0) return {bg:col,border:"3px solid #fff",glow:`0 0 0 3px #ffffff55, 0 0 14px ${col}`,
       content:<span style={{display:"flex",flexDirection:"column",alignItems:"center",lineHeight:1.05,color:"#fff",textShadow:"0 1px 3px rgba(0,0,0,.95)"}}>
         <b style={{fontSize:12}}>{armNombres[it.pc]}</b><span style={{fontSize:9,fontWeight:800,fontFamily:"monospace"}}>{GRADO_LABEL[(it.pc-armSel.pc+12)%12]}</span></span>};
     if(enEsc) return {bg:col+"55",border:`2px solid ${col}aa`,glow:"none",content:<span style={{fontSize:9,fontWeight:700,color:"#ffffffc0",textShadow:"0 1px 2px #000"}}>{armNombres[it.pc]}</span>};
     return {bg:"#17171a",border:"2px solid #26262a",glow:"none",content:null};
   };
-  const armTap=(btn)=>{ const it=itemDe(btn); tocarItem(it); const i=armPcs.indexOf(it.pc); if(i>=0) setArmGrado(i); };
+  const armTap=(btn)=>{ const it=itemDe(btn); tocarItem(it); const i=armPcs.indexOf(it.pc); if(i>=0){ setArmGrado(i); setVozSel(null); } };
   const cardGuardar=(nombre,nota,ids,bel,nm)=>{ if(!ids||!ids.length) return; setMisAcordes(l=>[{id:Date.now().toString(36),nombre,nota:(nota||"").trim(),bellows:bel,ids:[...ids],nm:nm||null},...l]); };
   const cardItems=(c)=>c.ids.map(id=>conBy[id]).filter(Boolean).map(b=>itemsMano([b],c.bellows)[0]);
   const cardTocar=(c)=>{ cardItems(c).sort((a,b)=>a.midi-b.midi).forEach((it,i)=>playBandDur(CHROMATIC[it.pc],it.oct,1.8,i*0.012)); };
@@ -4920,7 +4987,7 @@ function EntrenadorTab({preset}={}){
       </div>
       <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
         {armAcordes.map(a=>{ const col=nc(CHROMATIC[a.pc]), on=a.i===armSel.i; return (
-          <button key={a.i} onClick={()=>{setArmGrado(a.i);}} style={{minWidth:86,padding:"5px 10px 6px",borderRadius:10,cursor:"pointer",textAlign:"center",
+          <button key={a.i} onClick={()=>{setArmGrado(a.i);setVozSel(null);}} style={{minWidth:86,padding:"5px 10px 6px",borderRadius:10,cursor:"pointer",textAlign:"center",
             background:on?"#26262b":"#0e0e10",border:`1px solid ${on?"#cfcfd4":"#2c2c30"}`,borderTop:`4px solid ${col}`,color:"#ececec"}}>
             <div style={{fontSize:10,fontFamily:"monospace",color:"#9a9aa2",fontWeight:700}}>{a.num}</div>
             <div style={{fontSize:12.5,fontWeight:700,fontFamily:"'Libre Baskerville',serif"}}>{a.nombre}</div>
@@ -4931,8 +4998,56 @@ function EntrenadorTab({preset}={}){
         <button style={uiPlay(false,{padding:"5px 14px"})} onClick={()=>armTocar(false)}>▶ Escuchar acorde</button>
         <button style={uiPlay(false,{padding:"5px 14px"})} onClick={()=>armTocar(true)}>▶ Arpegio</button>
         <button style={uiPlay(false,{padding:"5px 14px"})} onClick={armRecorrer}>▶ Recorrer los siete</button>
-        <button style={uiTool(false,{marginLeft:"auto"})} onClick={()=>{ const ids=armVoz(armSel.pcs); setConSel(m=>({...m,[bellows]:ids})); setConRaiz(null); setModo("construir"); }}>→ Llevar a Construir</button>
-        <button style={uiTool(false)} onClick={()=>cardGuardar(armSel.nombre,"",armVoz(armSel.pcs),bellows,Object.fromEntries(armSel.pcs.map((pc,k)=>[pc,nombreLat(armSel.notas[k])])))}>★ Guardar en mis acordes</button>
+        <button style={uiTool(false,{marginLeft:"auto"})} onClick={()=>{ const ids=vozSel?vozSel.ids:armVoz(armSel.pcs); setConSel(m=>({...m,[bellows]:ids})); setConRaiz(null); setModo("construir"); }}>→ Llevar a Construir</button>
+        <button style={uiTool(false)} onClick={()=>cardGuardar(armSel.nombre+(vozSel?" · "+vozSel.titulo:""),"",vozSel?vozSel.ids:armVoz(armSel.pcs),bellows,Object.fromEntries(armSel.pcs.map((pc,k)=>[pc,nombreLat(armSel.notas[k])])))}>★ Guardar en mis acordes</button>
+      </div>
+      <div style={{marginTop:12,paddingTop:10,borderTop:"1px solid #232326"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",flexWrap:"wrap",gap:6,marginBottom:6}}>
+          <p style={{...uiLabel,margin:0}}>Formas sugeridas · {armSel.nombre}</p>
+          {vozSel && <button style={uiGhost} onClick={()=>setVozSel(null)}>↺ Ver todas las notas</button>}
+        </div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+          {armVoicings.map(v=>{
+            const on=vozSel&&v.ids&&vozSel.ids.join()===v.ids.join();
+            return (
+              <div key={v.id} style={{flex:"1 1 220px",maxWidth:340,padding:"9px 11px",borderRadius:12,background:on?"#1b1b20":"#0e0e10",border:`1px solid ${on?"#cfcfd4":"#2c2c30"}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",gap:6,alignItems:"baseline"}}>
+                  <b style={{fontFamily:"'Libre Baskerville',serif",fontSize:14,color:"#ececec"}}>{v.nombre}</b>
+                  {v.fuelle&&<span style={{fontSize:10,color:"#7c7c82"}}>{v.fuelle==="abre"?"abriendo":"cerrando"}{v.fuelle!==bellows?" (cambia el fuelle)":""}</span>}
+                </div>
+                <div style={{fontSize:10.5,color:"#8a8a90",margin:"2px 0 6px"}}>{v.uso}</div>
+                {v.vacio ? <div style={{fontSize:11.5,color:"#c9a25a"}}>No hay botones para armarlo así en este teclado.</div> : (<>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:4}}>
+                    {v.notas.map(n=>{ const col=nc(CHROMATIC[n.pc]); return (<span key={n.id} style={{display:"inline-flex",alignItems:"center",gap:4,padding:"1px 7px 1px 3px",borderRadius:999,background:"#16161a",border:"1px solid #2c2c30",fontSize:11.5,color:"#ececec"}}>
+                      <span style={{width:16,height:16,borderRadius:"50%",background:col,color:txtSobre(col),fontSize:8.5,fontWeight:800,fontFamily:"monospace",display:"inline-flex",alignItems:"center",justifyContent:"center"}}>{ROL_TXT[n.rol]}</span>
+                      <span style={{fontFamily:"'Libre Baskerville',serif",fontWeight:700}}>{n.nombre}{n.oct}</span><span style={{fontSize:9,color:"#6a6a70"}}>{n.hand==="L"?"izq":"der"}</span></span>); })}
+                  </div>
+                  <div style={{fontSize:10,color:"#6a6a70",marginBottom:6}}>{v.manos.L?`${v.manos.L} en la izquierda`:""}{v.manos.L&&v.manos.R?" · ":""}{v.manos.R?`${v.manos.R} en la derecha`:""}</div>
+                  <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                    <button style={uiPlay(false,{padding:"3px 11px",fontSize:11.5})} onClick={()=>tocarVoicing(v,false)}>▶</button>
+                    <button style={uiTool(on)} onClick={()=>{ setArmPatron(v.id); verVoicing(v,v.nombre); }}>Ver en el teclado</button>
+                    <button style={uiTool(false)} onClick={()=>guardarVoicing(v,armSel.nombre+" · "+v.nombre)}>★</button>
+                  </div>
+                </>)}
+              </div>);
+          })}
+        </div>
+        <details style={{marginTop:10}} onToggle={e=>setArmMatriz(e.currentTarget.open)}>
+          <summary style={{cursor:"pointer",fontFamily:UI_FONT,fontSize:12,fontWeight:600,color:"#cfcfd4"}}>Esta misma forma en las doce tonalidades ({PATRONES_VOZ.find(p=>p.id===armPatron).nombre}, {SUF_ES[armSel.q]||armSel.q})</summary>
+          <div style={{display:"flex",gap:6,margin:"8px 0"}}>
+            {PATRONES_VOZ.map(p=>(<button key={p.id} style={uiVista(armPatron===p.id)} onClick={()=>setArmPatron(p.id)}>{p.nombre}</button>))}
+          </div>
+          {!FORMULAS[armSel.q] ? <div style={{fontSize:11.5,color:"#8a8a90"}}>Este tipo de acorde todavía no tiene tabla por tonalidades.</div> :
+            matrizFilas.map(r=>(
+              <div key={r.pc} style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",padding:"5px 0",borderTop:"1px solid #1c1c1f"}}>
+                <b style={{minWidth:92,fontSize:12.5,fontFamily:"'Libre Baskerville',serif",color:"#ececec"}}>{r.nombre}</b>
+                <span style={{flex:"1 1 200px",fontSize:11,color:"#9a9aa2"}}>{r.v.vacio?"sin forma posible en este teclado":r.v.notas.map(n=>n.nombre+n.oct+(n.hand==="L"?"":"ᴰ")).join(" · ")+(r.v.fuelle!==bellows?"  ("+(r.v.fuelle==="abre"?"abriendo":"cerrando")+")":"")}</span>
+                {!r.v.vacio&&<>
+                  <button style={uiPlay(false,{padding:"2px 10px",fontSize:11})} onClick={()=>tocarVoicing(r.v,false)}>▶</button>
+                  <button style={uiTool(false)} onClick={()=>verVoicing(r.v,r.nombre)}>Ver</button></>}
+              </div>))}
+          <div style={{fontSize:10,color:"#6a6a70",marginTop:6}}>ᴰ = nota de la mano derecha. El resto, de la izquierda.</div>
+        </details>
       </div>
       <p style={{fontSize:10.5,color:"#6a6a70",margin:"8px 0 0"}}>Tocá una nota resaltada del teclado para ver el acorde de ese grado. El acorde se arma en posición cerrada desde la raíz grave; en Construir lo podés modificar.</p>
     </div>
