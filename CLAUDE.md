@@ -1,4 +1,12 @@
-# Harmonía
+# BandoMaps
+
+> **El nombre es BandoMaps** (antes Harmonía; repositorio `masotromauro-ai/tocatoca`
+> desde el 3-nov-2026). Desde el 7-nov dice BandoMaps en todo lo que se ve: el título
+> de la página, `package.json`, las páginas de `public/` y el pie de `src/index.html`.
+> **Las claves de `localStorage` siguen empezando con `harmonia_`, a propósito**:
+> renombrarlas borraría los acordes, las tareas y los ajustes que cada alumno y el
+> docente ya tienen guardados en su teléfono. Las menciones de más abajo a
+> «Harmonía» y a `harmonia:H…` son historia y claves del panel.
 
 ## Qué es este proyecto
 

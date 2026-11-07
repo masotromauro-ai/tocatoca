@@ -1,4 +1,4 @@
-# Harmonía 🎵
+# BandoMaps 🎵
 
 **Diccionario armónico · Improvisación contextual · Sistema de color tonal**
 
