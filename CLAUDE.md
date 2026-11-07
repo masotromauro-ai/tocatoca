@@ -191,7 +191,7 @@ vuelve a la rama.
   función de servidor, vuelve a ser la frontera que importa: el navegador manda
   un alias, el servidor traduce y firma.
 - **Las reglas se prueban en el emulador antes de publicarlas:** `pruebas/reglas.mjs` (44 casos; cómo se corre, en su cabecera: necesita Java y no agrega nada a `package.json`). Una colección nueva entra con su regla y sus casos en la misma tanda.
-- **El registro (`public/registro.html`, 7-nov-2026)**: crear la cuenta con mail y contraseña, confirmar el mail, y la ficha se crea sola con el rol de la invitación. La lógica está en `public/cuenta/registro.js` y la prueba `pruebas/registro.mjs` (11 casos, node a secas); la ficha que arma tiene que ser exactamente la que dejan las reglas.
+- **El registro (`public/registro.html`, 7-nov-2026)**: crear la cuenta con mail y contraseña, confirmar el mail, y la ficha se crea sola con el rol de la invitación. La lógica está en `public/cuenta/registro.js` y la prueba `pruebas/registro.mjs` (12 casos, node a secas); la ficha que arma tiene que ser exactamente la que dejan las reglas.
 - **Se corren los bancos de pruebas antes de subir:** `npm run prueba`, que
   encadena los dos, sin dependencias ni navegador. `pruebas/gestos.mjs` (8
   casos) cubre la teoría musical del instrumento; `pruebas/codigo.mjs` (60)

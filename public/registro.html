@@ -23,6 +23,7 @@
   .msg.mal { color:var(--mal); } .msg.ok { color:var(--ok); }
   p { font-size:14px; line-height:1.55; color:#cfcfd4; }
   .oculto { display:none; }
+  .spam { margin-top:12px; padding:10px 12px; border-radius:10px; border:1px solid #c9a227; background:#2a2410; color:#f2d77a; font-size:13.5px; line-height:1.5; }
   .pie { margin-top:18px; font-size:11px; color:#55555b; text-align:center; }
 </style>
 </head>
@@ -52,7 +53,8 @@
 
   <!-- Verificar el mail -->
   <section id="sVerificar" class="oculto">
-    <p>Te mandamos un mail a <b id="vMail"></b> para confirmar que es tuyo. Abrilo, tocá el enlace y después volvé acá. Si no lo ves, mirá en Spam.</p>
+    <p>Te mandamos un mail a <b id="vMail"></b> para confirmar que es tuyo. Abrilo, tocá el enlace y después volvé acá.</p>
+    <div class="spam">⚠️ <b>Revisá el Spam.</b> <span id="vSpam"></span></div>
     <button id="bVerifique" type="button">Ya lo confirmé</button>
     <button id="bReenviar" class="sec" type="button">Mandármelo de nuevo</button>
   </section>
@@ -74,13 +76,14 @@
 
 <script type="module">
 import { cargarFirebase, auth, db, A, F, VERSION as VI } from "./cuenta/firebase.js";
-import { validar, paso, fichaNueva, causa, limpiarMail, VERSION as VR } from "./cuenta/registro.js";
+import { validar, paso, fichaNueva, causa, limpiarMail, AVISO_SPAM, VERSION as VR } from "./cuenta/registro.js";
 
 // El ojo 👁 de las contraseñas: la copia común del panel, diferida y con catch.
 import("https://maurogasta-crypto.github.io/datos/ojos.js").catch(() => {});
 
 const $ = (id) => document.getElementById(id);
 $("sellos").textContent = `${VR} · ${VI}`;
+$("vSpam").textContent = AVISO_SPAM;
 let nueva = true, ocupado = false;
 const ROLES = { admin: "administrador", docente: "docente", alumno: "alumno" };
 
@@ -148,14 +151,14 @@ $("bOlvide").onclick = () => conEspera($("bOlvide"), async () => {
   const m = limpiarMail($("mail").value);
   if (!m) return decir("Escribí tu mail arriba y volvé a tocar.", "mal");
   await A.sendPasswordResetEmail(auth, m);
-  decir("Te mandamos un mail para elegir una contraseña nueva.", "ok");
+  decir("Te mandamos un mail para elegir una contraseña nueva. " + AVISO_SPAM, "ok");
 });
 $("bVerifique").onclick = () => conEspera($("bVerifique"), async () => {
   await evaluar(auth.currentUser);
-  if (auth.currentUser && !auth.currentUser.emailVerified) decir("Todavía figura sin confirmar. Tocá el enlace del mail y probá de nuevo.", "mal");
+  if (auth.currentUser && !auth.currentUser.emailVerified) decir("Todavía figura sin confirmar. Tocá el enlace del mail y probá de nuevo. " + AVISO_SPAM, "mal");
 });
 $("bReenviar").onclick = () => conEspera($("bReenviar"), async () => {
-  await A.sendEmailVerification(auth.currentUser); decir("Listo, te lo mandamos de nuevo.", "ok");
+  await A.sendEmailVerification(auth.currentUser); decir("Listo, te lo mandamos de nuevo. " + AVISO_SPAM, "ok");
 });
 $("bSalir").onclick = () => A.signOut(auth).then(() => { modo(true); mostrar("fCuenta"); decir(""); });
 

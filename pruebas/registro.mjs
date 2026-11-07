@@ -1,6 +1,6 @@
 // pruebas/registro.mjs — la lógica del registro (public/cuenta/registro.js), con node a secas.
 import assert from "node:assert/strict";
-import { validar, paso, fichaNueva, causa, limpiarMail } from "../public/cuenta/registro.js";
+import { validar, paso, fichaNueva, causa, limpiarMail, AVISO_SPAM, REMITENTE } from "../public/cuenta/registro.js";
 let ok = 0, mal = 0;
 const t = (n, f) => { try { f(); ok++; } catch (e) { mal++; console.log("✖", n, e.message); } };
 const bien = { mail: "Ana@X.com ", clave: "12345678", clave2: "12345678", nombre: "Ana" };
@@ -29,4 +29,5 @@ t("los errores se dicen en castellano", () => {
   assert.match(causa({ code: "auth/email-already-in-use" }), /ya tiene cuenta/);
   assert.match(causa({ code: "algo/raro" }), /algo\/raro/);
 });
+t("el aviso de Spam nombra la carpeta y el remitente", () => { assert.match(AVISO_SPAM, /Spam/); assert.ok(AVISO_SPAM.includes(REMITENTE)); });
 console.log(`${ok} pasadas, ${mal} fallidas`); process.exit(mal ? 1 : 0);
