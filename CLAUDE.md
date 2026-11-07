@@ -1,17 +1,16 @@
 # BandoMaps
 
-> **El nombre es BandoMaps** (antes Harmonía; repositorio `masotromauro-ai/tocatoca`
-> desde el 3-nov-2026). Desde el 7-nov dice BandoMaps en todo lo que se ve: el título
-> de la página, `package.json`, las páginas de `public/` y el pie de `src/index.html`.
-> **Las claves de `localStorage` siguen empezando con `harmonia_`, a propósito**:
-> renombrarlas borraría los acordes, las tareas y los ajustes que cada alumno y el
-> docente ya tienen guardados en su teléfono. Las menciones de más abajo a
-> «Harmonía» y a `harmonia:H…` son historia y claves del panel.
+> **El nombre es BandoMaps**, en todo: el código, las páginas, las claves de
+> `localStorage` (`bandomaps_…`), los archivos y la documentación. Repositorio
+> `masotromauro-ai/tocatoca` desde el 3-nov-2026; el anterior era
+> `toromboto/BandoMaps`. El 7-nov se borró del repositorio todo rastro del nombre
+> viejo (Mauro: «empecemos desde cero absolutamente limpio»), cuando todavía
+> ningún alumno tenía nada guardado. **No se vuelve a usar.**
 
 ## Qué es este proyecto
 
 Diccionario armónico, entrenador de improvisación y sistema de colores tonales,
-orientado a tango, jazz, piano y bandoneón. Repositorio `toromboto/harmonia`.
+orientado a tango, jazz, piano y bandoneón. Repositorio `masotromauro-ai/tocatoca` (antes `toromboto/BandoMaps`).
 
 **Tiene build:** React + Vite + Tailwind, `npm install && npm run dev`.
 Despliegue automático en **Vercel** desde GitHub. Eso lo separa de los otros
@@ -24,7 +23,7 @@ teléfono y nada sale de él.
 
 Hubo un puente a la nube de **Tuya** (`api/tuya.js`) entre el 2026-09-09 y el
 2026-09-09: el instrumento de gestos encendía luces. Se retiró por decisión de
-Mauro (`harmonia:H3` en el panel), porque el control de luces quedó establecido
+Mauro (`H3` del panel), porque el control de luces quedó establecido
 en **remate**, con Firebase Auth — que es mejor que la «clave de la sala» que
 tenía acá. Dos puentes a Tuya haciendo lo mismo peor era superficie de más. El
 instrumento de gestos se queda: es música, y su lugar es éste.
@@ -86,7 +85,7 @@ entregable es el nombre exacto de la variable y el lugar donde pegarla. Y la
 tabla de arriba se completa **en la misma tanda** que la primera función.
 
 **Ojo con lo que quedó en el historial.** `TUYA_CLIENT_SECRET` y
-`HARMONIA_CLAVE` nunca tuvieron un valor real en este repositorio —sólo nombres,
+la clave de la sala nunca tuvieron un valor real en este repositorio —sólo nombres,
 en un `.env.example` que ya no está—, así que no hay nada que rotar. Pero si
 esas variables llegaron a cargarse en algún proyecto de Vercel, **ahí siguen**:
 sacarlas de la consola es aparte, y es de Mauro.
@@ -96,7 +95,7 @@ aplica: cargar un secreto ahí no serviría de nada porque nadie lo leería.
 
 **De quién son las cuentas** (titular de la de Vercel): **no se
 documenta acá.** Vive en las **fichas del panel**, en «Titularidad de
-las consolas · Harmonía» de `fichas/`.
+las consolas · BandoMaps» de `fichas/`.
 
 **Y al 2026-09-09 esa sección estaba vacía**, con la consecuencia concreta de que
 nadie sabía qué cuenta de Vercel publica este proyecto. El repositorio no puede
@@ -219,7 +218,7 @@ vuelve a la rama.
   desarrollo».** El `.gitignore` lo bloquea para que no vuelva a colarse en un
   `git add -A`. Qué se gana y qué se pierde con cada opción está desarrollado
   en `PROTOCOLO-DESARROLLO.md` § 12 del repo `datos`; la decisión sigue
-  abierta (`harmonia:H5`), y adoptarlo es borrar esa línea a propósito.
+  abierta (`H5` del panel), y adoptarlo es borrar esa línea a propósito.
 - **Las variables de entorno nuevas entran con su fila en la tabla de arriba y
   su línea en `.env.example`, en la misma tanda.**
 

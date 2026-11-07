@@ -1,6 +1,6 @@
 # El despliegue y la cuenta de Vercel
 
-Cómo averiguar **qué cuenta de Vercel** está publicando Harmonía, qué hacer si
+Cómo averiguar **qué cuenta de Vercel** está publicando BandoMaps, qué hacer si
 no se recupera, y cómo dejarlo anotado para no volver a preguntárselo.
 
 ---
@@ -28,7 +28,7 @@ contesta GitHub.
 
 ## 2. La respuesta de Mauro, que cambia el problema
 
-**2026-09-09, respondiendo `harmonia:H1` en el panel:**
+**2026-09-09, respondiendo `H1` del panel:**
 
 > «No tengo acceso a ese repositorio, soy colaborador. Debo desarrollar éste
 > tipo de apps en paralelo en encubadora dentro de repositorio en la cuenta de
@@ -38,7 +38,7 @@ Eso cierra la pregunta, aunque no con la respuesta que se buscaba. **Los dos
 caminos más seguros dependían de ser dueño del repositorio** —
 `Settings → Integrations → GitHub Apps` y
 `github.com/settings/installations` — y un colaborador no ve ninguno de los
-dos. La cuenta de Vercel de `toromboto/harmonia` no es averiguable desde acá, y
+dos. La cuenta de Vercel de `toromboto/BandoMaps` no es averiguable desde acá, y
 no porque falte mirar en el lugar correcto: no hay lugar donde mirar.
 
 Y explica por qué apareció: los 50 commits son del usuario `toromboto`, que es
@@ -57,7 +57,7 @@ un rodeo administrativo:
   `PROTOCOLO-SECRETOS.md` pide anotar de quién es cada consola. Acá la
   respuesta sería «de alguien más», que no es una respuesta operativa: no dice
   a qué dirección se pide una recuperación.
-- **Y ya costó algo concreto.** `harmonia:H1` existe por esto, y `harmonia:H2`
+- **Y ya costó algo concreto.** `H1` del panel existe por esto, y `H2` del panel
   —completar la titularidad— no se puede cerrar mientras siga así.
 
 Lo que sigue de esta sección quedaba escrito para el caso de ser dueño del
@@ -86,7 +86,7 @@ puede estar conectado a un proyecto de Vercel nuevo sin tocar el anterior.
 1. `vercel.com/signup` → **Continue with GitHub**, con la cuenta que de verdad
    vas a usar. Conviene que sea la misma que ya usás para el repositorio
    (`toromboto`): una cuenta menos que recordar, y la autorización ya existe.
-2. **Add New… → Project → Import** `toromboto/harmonia`.
+2. **Add New… → Project → Import** `toromboto/BandoMaps`.
 3. Vercel detecta Vite solo. No hay que tocar el *build command* ni el
    *output directory*: `npm run build` y `dist`, que es lo que el proyecto ya
    hace.
@@ -115,18 +115,18 @@ Desde el 2026-09-09 hay **dos** proyectos del ecosistema que necesitan Vercel:
 
 | Proyecto | Qué despliega | Dueño del repo |
 |---|---|---|
-| `toromboto/harmonia` | el sitio entero (build de Vite). Ya **no** despliega ninguna función: el puente a Tuya se retiró el 2026-09-09 (`harmonia:H3`) | `toromboto` — Mauro es colaborador |
+| `toromboto/BandoMaps` | el sitio entero (build de Vite). Ya **no** despliega ninguna función: el puente a Tuya se retiró el 2026-09-09 (`H3` del panel) | `toromboto` — Mauro es colaborador |
 | `rematetaller/remate` | **sólo** `api/tuya`, el puente a las luces del depósito. El sitio lo sigue publicando GitHub Pages | de Mauro |
 | la incubadora (§ 2) | lo que se desarrolle en paralelo, en la cuenta `maurogasta@gmail.com` | de Mauro |
 
-**El único que necesita una función de servidor hoy es `remate`.** Harmonía
+**El único que necesita una función de servidor hoy es `remate`.** BandoMaps
 volvió a ser un build estático, así que su despliegue puede seguir como está
 sin que nadie sepa en qué cuenta vive: no hay variables que cargar ahí.
 
 Y donde sí hay que decidir es en `remate` (`remate:L2`, sin responder). Conviene
 que la cuenta de Vercel sea **una sola** para todo lo que venga: dos cuentas de
 Vercel es el mismo problema que dos proyectos, un nivel más arriba. Con lo
-respondido en `harmonia:H1`, la candidata natural es una atada a
+respondido en `H1` del panel, la candidata natural es una atada a
 `maurogasta@gmail.com`, que es la cuenta de GitHub donde Mauro es dueño.
 
 ---
@@ -137,8 +137,8 @@ Esta pregunta ya se hizo una vez. Para que no se vuelva a hacer, la respuesta
 va al índice del ecosistema:
 
 **Las fichas del panel: `fichas/` → «Titularidad de las consolas ·
-Harmonía».** (La *bóveda* es `claves/` y es otra cosa: ahí va sólo lo que abre
-algo. Ver `PROTOCOLO-SECRETOS.md` § «Titularidad».) (Hasta el 2026-09-13 esto vivía en `secretos/harmonia.md` del repo
+BandoMaps».** (La *bóveda* es `claves/` y es otra cosa: ahí va sólo lo que abre
+algo. Ver `PROTOCOLO-SECRETOS.md` § «Titularidad».) (Hasta el 2026-09-13 esto vivía en `secretos/ del repo privado` del repo
 privado `casaverdecanas-blip/datos`, que se vació ese día y Mauro borró el
 2026-09-14.)
 
@@ -162,7 +162,7 @@ por el que existe esa sección es éste.
   tendría que recibir el valor en texto plano acá dentro, y ese momento ya es
   la exposición. El entregable de un chat es el nombre exacto de la variable y
   dónde pegarla.
-- **No agregues `vercel.json` a Harmonía sin necesidad.** La detección
+- **No agregues `vercel.json` a BandoMaps sin necesidad.** La detección
   automática de Vite anda; un archivo de configuración de más es una forma de
   que el día que Vercel cambie algo, el proyecto quede pegado a lo viejo.
   (En `remate` sí hay uno, y ahí sirve para algo concreto: que de Vercel salga

@@ -41,8 +41,8 @@ const mixLuzRaizDominante = (notes, rootWeight=0.8) => {
 };
 
 const CHROMATIC  = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-const ENHARMONIC = {"C#":"Db","D#":"Eb","F#":"Gb","G#":"Ab","A#":"Bb"};
-const enh = n => ENHARMONIC[n]||n;
+const ENARMONICO = {"C#":"Db","D#":"Eb","F#":"Gb","G#":"Ab","A#":"Bb"};
+const enh = n => ENARMONICO[n]||n;
 const NAT_PC = {C:0,D:2,E:4,F:5,G:7,A:9,B:11};
 const LETRAS = ["C","D","E","F","G","A","B"];
 const LAT_NOMBRE = {C:"Do",D:"Re",E:"Mi",F:"Fa",G:"Sol",A:"La",B:"Si"};
@@ -1630,8 +1630,8 @@ const aRomano = (lab)=>{
   return acc+(ROM_N[+m[2]-1]||m[2]);
 };
 function useRomanos(){
-  const [r,setR]=useState(()=>{ try{ const v=localStorage.getItem("harmonia_romanos"); return v===null?true:v==="1"; }catch(e){ return true; } });
-  const set=(v)=>{ setR(v); try{ localStorage.setItem("harmonia_romanos",v?"1":"0"); }catch(e){} };
+  const [r,setR]=useState(()=>{ try{ const v=localStorage.getItem("bandomaps_romanos"); return v===null?true:v==="1"; }catch(e){ return true; } });
+  const set=(v)=>{ setR(v); try{ localStorage.setItem("bandomaps_romanos",v?"1":"0"); }catch(e){} };
   return [r,set];
 }
 function calcAcorde(ac,romano){
@@ -1865,11 +1865,11 @@ function useAnchoMedido(){
 // ─── DISPOSICIÓN DE LOS TECLADOS: lado a lado (izquierda a la izquierda) o apilados ─────────
 const anchoMano = (btns)=> btns.length ? Math.max(...btns.map(b=>b.x))+BTN_SIZE+16 : 740;
 function useDisposicion(){
-  const [lado,setLadoS]=useState(()=>{ try{ return localStorage.getItem("harmonia_lado")!=="0"; }catch(e){ return true; } });
-  const setLado=(v)=>{ setLadoS(v); try{ localStorage.setItem("harmonia_lado",v?"1":"0"); }catch(e){} };
+  const [lado,setLadoS]=useState(()=>{ try{ return localStorage.getItem("bandomaps_lado")!=="0"; }catch(e){ return true; } });
+  const setLado=(v)=>{ setLadoS(v); try{ localStorage.setItem("bandomaps_lado",v?"1":"0"); }catch(e){} };
   const [full,setFull]=useState(false);
-  const [invertir,setInvertirS]=useState(()=>{ try{ return localStorage.getItem("harmonia_invertir")==="1"; }catch(e){ return false; } });
-  const setInvertir=(v)=>{ setInvertirS(v); try{ localStorage.setItem("harmonia_invertir",v?"1":"0"); }catch(e){} };
+  const [invertir,setInvertirS]=useState(()=>{ try{ return localStorage.getItem("bandomaps_invertir")==="1"; }catch(e){ return false; } });
+  const setInvertir=(v)=>{ setInvertirS(v); try{ localStorage.setItem("bandomaps_invertir",v?"1":"0"); }catch(e){} };
   useEffect(()=>{
     const f=()=>setFull(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange",f);
@@ -2368,9 +2368,9 @@ function BandEditor({ initialLeft, initialRight, onSave, onCancel }) {
 const RAIZ_NOM=["C","Db","D","Eb","E","F","F#","G","Ab","A","Bb","B"];
 // Nomenclatura general: nombra CUALQUIER conjunto de notas a partir de una raíz (3ª, 5ª, 7ª, tensiones, alteraciones, sus, add, 6).
 const CIF_ESTILOS={jazz:{M7:"△",dim:"°",hdim:"ø",aug:"+",mM:"m△"},amer:{M7:"maj",dim:"dim",hdim:"m7♭5",aug:"aug",mM:"mMaj"}};
-const cifEstilo=()=>{ try{ return localStorage.getItem("harmonia_estilo_cifrado")==="amer"?"amer":"jazz"; }catch(e){ return "jazz"; } };
-const cifPropios=()=>{ try{ return JSON.parse(localStorage.getItem("harmonia_nombres_acordes")||"{}")||{}; }catch(e){ return {}; } };
-const cifGuardarPropios=(o)=>{ try{ localStorage.setItem("harmonia_nombres_acordes",JSON.stringify(o)); }catch(e){} };
+const cifEstilo=()=>{ try{ return localStorage.getItem("bandomaps_estilo_cifrado")==="amer"?"amer":"jazz"; }catch(e){ return "jazz"; } };
+const cifPropios=()=>{ try{ return JSON.parse(localStorage.getItem("bandomaps_nombres_acordes")||"{}")||{}; }catch(e){ return {}; } };
+const cifGuardarPropios=(o)=>{ try{ localStorage.setItem("bandomaps_nombres_acordes",JSON.stringify(o)); }catch(e){} };
 const INTERVALOS_NOM=["unísono","segunda menor","segunda mayor","tercera menor","tercera mayor","cuarta justa","tritono","quinta justa","sexta menor","sexta mayor","séptima menor","séptima mayor"];
 function cifSufijo(S,est){
   const E=CIF_ESTILOS[est], has=i=>S.has(i);
@@ -4587,8 +4587,8 @@ function EntrenadorTab({preset}={}){
   // Armonizar una escala + Mis acordes (tarjetas guardadas en este dispositivo)
   const [armGrado,setArmGrado]=useState(0), [armCuat,setArmCuat]=useState(false), [conNota,setConNota]=useState("");
   const [vozSel,setVozSel]=useState(null), [armPatron,setArmPatron]=useState("cerrado"), [armMatriz,setArmMatriz]=useState(false);
-  const [misAcordes,setMisAcordes]=useState(()=>{ try{ const v=JSON.parse(localStorage.getItem("harmonia_mis_acordes")||"[]"); return Array.isArray(v)?v:[]; }catch(e){ return []; } });
-  useEffect(()=>{ try{ localStorage.setItem("harmonia_mis_acordes",JSON.stringify(misAcordes)); }catch(e){} },[misAcordes]);
+  const [misAcordes,setMisAcordes]=useState(()=>{ try{ const v=JSON.parse(localStorage.getItem("bandomaps_mis_acordes")||"[]"); return Array.isArray(v)?v:[]; }catch(e){ return []; } });
+  useEffect(()=>{ try{ localStorage.setItem("bandomaps_mis_acordes",JSON.stringify(misAcordes)); }catch(e){} },[misAcordes]);
   const escTipo7 = ESC_ENT.slice(0,4).some(e=>e.id===escTipo) ? escTipo : "mayor";
   const famArm = {mayor:"mayor",menor:"menor",menorA:"armonica",menorM:"melodica"}[escTipo7];
   const armMenor = escTipo7!=="mayor";
@@ -5253,7 +5253,7 @@ function EntrenadorTab({preset}={}){
             <div style={{marginTop:10}}>
               <p style={{fontSize:11.5,color:"#8a8a8a",margin:"0 0 10px",lineHeight:1.5}}>El nombre sale de las notas que armaste: tercera, quinta, séptima, tensiones y alteraciones. Si preferís otra forma de escribirlo para este acorde, cambiala acá y se guarda para esa estructura en todas las tonalidades.</p>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))",gap:12,marginBottom:10}}>
-                <Desplegable etiqueta="Estilo de cifrado" valor={cifEstilo()} opciones={[["jazz","△7 · m7 · ø7 · °7"],["amer","maj7 · m7 · m7♭5 · dim7"]]} onChange={v=>{ try{localStorage.setItem("harmonia_estilo_cifrado",v);}catch(e){} setConVer(n=>n+1); }}/>
+                <Desplegable etiqueta="Estilo de cifrado" valor={cifEstilo()} opciones={[["jazz","△7 · m7 · ø7 · °7"],["amer","maj7 · m7 · m7♭5 · dim7"]]} onChange={v=>{ try{localStorage.setItem("bandomaps_estilo_cifrado",v);}catch(e){} setConVer(n=>n+1); }}/>
               </div>
               {conAn&&!conAn.intervalo ? (
                 <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"flex-end",marginBottom:6}}>
@@ -5891,7 +5891,7 @@ function CirculoQuintas(){
 // Cada ejercicio de escala viaja COMPLETO: camino, octavas, frecuencias y digitación.
 // Los datos se publican en "clases.json" junto a index.html.
 // ═══════════════════════════════════════════════════════════════════════════
-const ORG_KEY = "harmonia_org";
+const ORG_KEY = "bandomaps_org";
 const idn = ()=>Math.random().toString(36).slice(2,8);
 const cargarOrg = ()=>{ try{ const j=JSON.parse(localStorage.getItem(ORG_KEY)||"null"); if(j&&Array.isArray(j.clases)) return {alumnos:j.alumnos||[],clases:j.clases,asign:j.asign||{},usuarios:j.usuarios||[],registroUrl:j.registroUrl||""}; }catch(e){} return {alumnos:[],clases:[],asign:{},usuarios:[],registroUrl:""}; };
 
@@ -5900,7 +5900,7 @@ const cargarOrg = ()=>{ try{ const j=JSON.parse(localStorage.getItem(ORG_KEY)||"
 // No se envía qué ejercicio ni cuánto tiempo. El aviso va firmado con la sesión verificada (window.__TOKEN),
 // así que el script de la planilla sabe quién es sin fiarse de lo que diga el navegador.
 const REG_URL_RE = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
-const REG_SES = "harmonia_reg_sesion";
+const REG_SES = "bandomaps_reg_sesion";
 function registrar(tipo){
   try{
     const url=window.__ACCESO_URL, tok=window.__TOKEN;
@@ -5908,7 +5908,7 @@ function registrar(tipo){
     fetch(url,{method:"POST",mode:"no-cors",keepalive:true,body:JSON.stringify({a:"reg",t:tipo,tok:tok})}).catch(()=>{});
   }catch(e){}
 }
-const REG_CLAVE_KEY = "harmonia_reg_clave";   // la clave de lectura queda solo en el navegador del profesor (nunca va en clases.json)
+const REG_CLAVE_KEY = "bandomaps_reg_clave";   // la clave de lectura queda solo en el navegador del profesor (nunca va en clases.json)
 const diaLocal = (ms)=>{ const d=new Date(ms); return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(); };
 function haceCuanto(ms, ahora){
   if(!ms) return "nunca";
@@ -6255,11 +6255,11 @@ function MisTareasTab({onPracticar}){
   const u = window.__USUARIO || "";
   const [romano]=useRomanos();
   const [datos,setDatos]=useState(null), [err,setErr]=useState(false);
-  const [hechas,setHechas]=useState(()=>{ try{ return JSON.parse(localStorage.getItem("harmonia_hechas_"+u)||"{}"); }catch(e){ return {}; } });
+  const [hechas,setHechas]=useState(()=>{ try{ return JSON.parse(localStorage.getItem("bandomaps_hechas_"+u)||"{}"); }catch(e){ return {}; } });
   useEffect(()=>{ let vivo=true;
     fetch("clases.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{ if(!vivo) return; if(j&&Array.isArray(j.clases)) setDatos(j); else setErr(true); }).catch(()=>{ if(vivo) setErr(true); });
     return ()=>{vivo=false;}; },[]);
-  const marcar=(id)=>{ const n={...hechas,[id]:!hechas[id]}; setHechas(n); try{ localStorage.setItem("harmonia_hechas_"+u,JSON.stringify(n)); }catch(e){} };
+  const marcar=(id)=>{ const n={...hechas,[id]:!hechas[id]}; setHechas(n); try{ localStorage.setItem("bandomaps_hechas_"+u,JSON.stringify(n)); }catch(e){} };
   const ids = (()=>{ if(!datos||!datos.asignaciones) return []; const out=[];
     Object.entries(datos.asignaciones).forEach(([k,l])=>{ if(k.trim().toLowerCase()===u.trim().toLowerCase()) (l||[]).forEach(id=>{ if(!out.includes(id)) out.push(id); }); });
     return out; })();
@@ -6585,7 +6585,7 @@ function AvisoInicial({n,manual,onClose,onNunca}){
   );
 }
 
-export default function HarmoniaApp(){
+export default function BandoMapsApp(){
   // Aviso inicial (solo en la versión de alumnos): se cuenta cada ingreso; desde el cuarto se puede ocultar
   const avisoN = useRef((()=>{ try{ const n=parseInt(localStorage.getItem("bandomaps_aviso_vistas")||"0",10)||0; return n+1; }catch(e){ return 1; } })());
   const [aviso,setAviso]=useState(()=>{ if(!window.__ALUMNO) return false; try{ if(localStorage.getItem("bandomaps_aviso_no")==="1") return false; }catch(e){} return true; });

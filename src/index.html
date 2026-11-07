@@ -76,8 +76,8 @@ const mixLuzRaizDominante = (notes, rootWeight = 0.8) => {
     return rgbToHex(r, g, b);
 };
 const CHROMATIC = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-const ENHARMONIC = { "C#": "Db", "D#": "Eb", "F#": "Gb", "G#": "Ab", "A#": "Bb" };
-const enh = n => ENHARMONIC[n] || n;
+const ENARMONICO = { "C#": "Db", "D#": "Eb", "F#": "Gb", "G#": "Ab", "A#": "Bb" };
+const enh = n => ENARMONICO[n] || n;
 const NAT_PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 const LETRAS = ["C", "D", "E", "F", "G", "A", "B"];
 const LAT_NOMBRE = { C: "Do", D: "Re", E: "Mi", F: "Fa", G: "Sol", A: "La", B: "Si" };
@@ -1337,14 +1337,14 @@ const aRomano = (lab) => {
 };
 function useRomanos() {
     const [r, setR] = useState(() => { try {
-        const v = localStorage.getItem("harmonia_romanos");
+        const v = localStorage.getItem("bandomaps_romanos");
         return v === null ? true : v === "1";
     }
     catch (e) {
         return true;
     } });
     const set = (v) => { setR(v); try {
-        localStorage.setItem("harmonia_romanos", v ? "1" : "0");
+        localStorage.setItem("bandomaps_romanos", v ? "1" : "0");
     }
     catch (e) { } };
     return [r, set];
@@ -1588,24 +1588,24 @@ function useAnchoMedido() {
 const anchoMano = (btns) => btns.length ? Math.max(...btns.map(b => b.x)) + BTN_SIZE + 16 : 740;
 function useDisposicion() {
     const [lado, setLadoS] = useState(() => { try {
-        return localStorage.getItem("harmonia_lado") !== "0";
+        return localStorage.getItem("bandomaps_lado") !== "0";
     }
     catch (e) {
         return true;
     } });
     const setLado = (v) => { setLadoS(v); try {
-        localStorage.setItem("harmonia_lado", v ? "1" : "0");
+        localStorage.setItem("bandomaps_lado", v ? "1" : "0");
     }
     catch (e) { } };
     const [full, setFull] = useState(false);
     const [invertir, setInvertirS] = useState(() => { try {
-        return localStorage.getItem("harmonia_invertir") === "1";
+        return localStorage.getItem("bandomaps_invertir") === "1";
     }
     catch (e) {
         return false;
     } });
     const setInvertir = (v) => { setInvertirS(v); try {
-        localStorage.setItem("harmonia_invertir", v ? "1" : "0");
+        localStorage.setItem("bandomaps_invertir", v ? "1" : "0");
     }
     catch (e) { } };
     useEffect(() => {
@@ -4901,7 +4901,7 @@ function CirculoQuintas() {
 // Cada ejercicio de escala viaja COMPLETO: camino, octavas, frecuencias y digitación.
 // Los datos se publican en "clases.json" junto a index.html.
 // ═══════════════════════════════════════════════════════════════════════════
-const ORG_KEY = "harmonia_org";
+const ORG_KEY = "bandomaps_org";
 const idn = () => Math.random().toString(36).slice(2, 8);
 const cargarOrg = () => { try {
     const j = JSON.parse(localStorage.getItem(ORG_KEY) || "null");
@@ -4914,7 +4914,7 @@ catch (e) { } return { alumnos: [], clases: [], asign: {}, usuarios: [], registr
 // No se envía qué ejercicio ni cuánto tiempo. El aviso va firmado con la sesión verificada (window.__TOKEN),
 // así que el script de la planilla sabe quién es sin fiarse de lo que diga el navegador.
 const REG_URL_RE = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
-const REG_SES = "harmonia_reg_sesion";
+const REG_SES = "bandomaps_reg_sesion";
 function registrar(tipo) {
     try {
         const url = window.__ACCESO_URL, tok = window.__TOKEN;
@@ -4924,7 +4924,7 @@ function registrar(tipo) {
     }
     catch (e) { }
 }
-const REG_CLAVE_KEY = "harmonia_reg_clave"; // la clave de lectura queda solo en el navegador del profesor (nunca va en clases.json)
+const REG_CLAVE_KEY = "bandomaps_reg_clave"; // la clave de lectura queda solo en el navegador del profesor (nunca va en clases.json)
 const diaLocal = (ms) => { const d = new Date(ms); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
 function haceCuanto(ms, ahora) {
     if (!ms)
@@ -5334,7 +5334,7 @@ function MisTareasTab({ onPracticar }) {
     const [romano] = useRomanos();
     const [datos, setDatos] = useState(null), [err, setErr] = useState(false);
     const [hechas, setHechas] = useState(() => { try {
-        return JSON.parse(localStorage.getItem("harmonia_hechas_" + u) || "{}");
+        return JSON.parse(localStorage.getItem("bandomaps_hechas_" + u) || "{}");
     }
     catch (e) {
         return {};
@@ -5350,7 +5350,7 @@ function MisTareasTab({ onPracticar }) {
         return () => { vivo = false; };
     }, []);
     const marcar = (id) => { const n = { ...hechas, [id]: !hechas[id] }; setHechas(n); try {
-        localStorage.setItem("harmonia_hechas_" + u, JSON.stringify(n));
+        localStorage.setItem("bandomaps_hechas_" + u, JSON.stringify(n));
     }
     catch (e) { } };
     const ids = (() => {
@@ -5582,7 +5582,7 @@ function ColoresTab() {
                 React.createElement("span", { style: { fontSize: 10.5, color: "#cfcfd4", fontFamily: "'Libre Baskerville',serif", fontWeight: 700 } }, NOMBRES_PC[pc].replace(" / ", "/")))))))));
 }
 // ─── APP PRINCIPAL ────────────────────────────────────────────────────────────
-function HarmoniaApp() {
+function BandoMapsApp() {
     var _a, _b, _c;
     const [tab, setTab] = useState("codigo");
     const [navOpen, setNavOpen] = useState(false);
@@ -5673,7 +5673,7 @@ function HarmoniaApp() {
                 React.createElement("span", { className: "block w-4 h-px", style: { background: "#a0a0a6" } }),
                 React.createElement("span", { className: "block w-4 h-px", style: { background: "#a0a0a6" } })),
             React.createElement("div", { style: { lineHeight: 1.15 } },
-                React.createElement("h1", { style: { fontFamily: "'Libre Baskerville',serif", fontSize: 19, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#ececec" } }, "Harmon\u00EDa"),
+                React.createElement("h1", { style: { fontFamily: "'Libre Baskerville',serif", fontSize: 19, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#ececec" } }, "BandoMaps"),
                 React.createElement("p", { style: { fontFamily: UI_FONT, fontSize: 9.5, letterSpacing: "0.24em", textTransform: "uppercase", color: "#707076", marginTop: 3 } }, "Bandone\u00F3n \u00B7 Tango \u00B7 Jazz")),
             React.createElement("div", { className: "ml-auto flex items-center gap-2", style: { fontFamily: UI_FONT, fontSize: 12, color: "#9a9aa0", letterSpacing: "0.04em" } },
                 React.createElement("span", { style: { opacity: .6 } }, (_a = TABS.find(t => t.id === tab)) === null || _a === void 0 ? void 0 : _a.icon),
@@ -5885,7 +5885,7 @@ function HarmoniaApp() {
    La dirección del script viaja en config.json ({"acceso": "https://script.google.com/macros/s/…/exec"}).
    Alta, baja y bloqueo de alumnos: se editan en la hoja "Alumnos". No hay lista de usuarios en el sitio. */
 const CFG_URL = "config.json";
-const SESS = "harmonia_sesion";
+const SESS = "bandomaps_sesion";
 const getSess = () => { try {
     return JSON.parse(localStorage.getItem(SESS) || "null");
 }
@@ -5938,7 +5938,7 @@ function Login({ url, aviso, onOk }) {
     };
     return (React.createElement("div", { style: { minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, background: G.bg } },
         React.createElement("form", { onSubmit: entrar, style: { width: "100%", maxWidth: 360, background: G.card, border: `1px solid ${G.line}`, borderRadius: 16, padding: "26px 22px" } },
-            React.createElement("h1", { style: { fontFamily: "'Libre Baskerville',serif", fontSize: 22, letterSpacing: "0.2em", textTransform: "uppercase", color: G.tx, margin: 0, textAlign: "center" } }, "Harmon\u00EDa"),
+            React.createElement("h1", { style: { fontFamily: "'Libre Baskerville',serif", fontSize: 22, letterSpacing: "0.2em", textTransform: "uppercase", color: G.tx, margin: 0, textAlign: "center" } }, "BandoMaps"),
             React.createElement("p", { style: { fontFamily: "Inter,sans-serif", fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase", color: G.mu, textAlign: "center", margin: "6px 0 22px" } }, "Bandone\u00F3n \u00B7 Tango \u00B7 Jazz"),
             React.createElement("label", { style: { fontFamily: "Inter,sans-serif", fontSize: 11, color: G.mu } }, "Usuario"),
             React.createElement("input", { style: { ...gi, margin: "4px 0 12px" }, value: u, onChange: e => setU(e.target.value), autoCapitalize: "none", autoCorrect: "off", autoComplete: "username" }),
@@ -6037,7 +6037,7 @@ function Acceso() {
     if (fase === "login")
         return React.createElement(Login, { url: url, aviso: aviso, onOk: entrar });
     return (React.createElement(React.Fragment, null,
-        React.createElement(HarmoniaApp, null),
+        React.createElement(BandoMapsApp, null),
         React.createElement("div", { style: { position: "fixed", right: 10, bottom: "calc(10px + env(safe-area-inset-bottom,0px))", zIndex: 60 } },
             React.createElement("button", { style: { ...gb(false), padding: "7px 12px", fontSize: 12, background: "#131315", boxShadow: "0 4px 16px rgba(0,0,0,.6)" }, onClick: () => salir() },
                 "Salir (",

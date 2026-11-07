@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { nc } from '../../theory/notes.js';
-import { getFns } from '../../theory/harmony.js';
+import { getFns } from '../../theory/armonia.js';
 import { buildVoicing } from '../../theory/voicings.js';
 import { parseChord } from '../../theory/parser.js';
 import { playChord, playTone } from '../../audio/engine.js';
-import Nota from '../harmony/Nota.jsx';
-import VoicingDisplay from '../harmony/VoicingDisplay.jsx';
-import FnCard from '../harmony/FnCard.jsx';
-import Circulo from '../harmony/Circulo.jsx';
-import TablaComparativa from '../harmony/TablaComparativa.jsx';
+import Nota from '../armonia/Nota.jsx';
+import VoicingDisplay from '../armonia/VoicingDisplay.jsx';
+import FnCard from '../armonia/FnCard.jsx';
+import Circulo from '../armonia/Circulo.jsx';
+import TablaComparativa from '../armonia/TablaComparativa.jsx';
 
 export default function ChordTab() {
   const [chordInput, setChordInput] = useState("Dm7");

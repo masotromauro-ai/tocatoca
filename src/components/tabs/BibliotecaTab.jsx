@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { nc } from '../../theory/notes.js';
-import { computeProg } from '../../theory/harmony.js';
+import { computeProg } from '../../theory/armonia.js';
 import { parseChord } from '../../theory/parser.js';
 import { playChord } from '../../audio/engine.js';
 import { BIBLIOTECA } from '../../data/biblioteca.js';

@@ -1,6 +1,6 @@
 # Gestos — el instrumento que se toca con las manos
 
-Una página de Harmonía que usa la cámara frontal para convertir el movimiento
+Una página de BandoMaps que usa la cámara frontal para convertir el movimiento
 de las manos en notas. Corre entero en el navegador: no le habla a ningún
 servidor.
 
@@ -20,7 +20,7 @@ izquierda acompaña con un acorde.
 **No es** parte de la aplicación React. `gestos.html` vive en `public/`, así
 que Vite **lo copia tal cual**, sin compilar. Se abre sola, sin `npm install`,
 y se puede editar desde el teléfono como cualquier archivo del repositorio.
-Esa fue la decisión de fondo: el resto de Harmonía es un monolito de 3268
+Esa fue la decisión de fondo: el resto de BandoMaps es un monolito de 3268
 líneas en `src/App.jsx`, y meter la cámara ahí adentro habría atado dos cosas
 que no tienen por qué moverse juntas.
 
@@ -125,7 +125,7 @@ publicada.
 **No necesita el build.** `gestos.html` y `public/gestos/*.js` son HTML y módulos
 ES servidos tal cual: no importan nada de `src/`, no usan JSX, no dependen de
 `npm`. Vite los copia, no los compila. Eso significa que **la página se puede
-publicar en cualquier hosting estático con https**, no sólo donde viva Harmonía.
+publicar en cualquier hosting estático con https**, no sólo donde viva BandoMaps.
 
 Requisitos reales, que son tres:
 
@@ -144,7 +144,7 @@ así que la página anda igual en la raíz de un dominio y en un GitHub Pages de
 proyecto (`usuario.github.io/repo/`). Con rutas absolutas, lo segundo daba 404 y
 la página quedaba muda.
 
-> Esto importa por `harmonia:H1`: no se sabe con qué cuenta de Vercel se
+> Esto importa por `H1` del panel: no se sabe con qué cuenta de Vercel se
 > despliega este repositorio, y Mauro es colaborador, no dueño, así que no puede
 > averiguarlo. **Para probar el instrumento no hace falta resolver eso**: alcanza
 > con publicar estos archivos en un repositorio propio con Pages — que es
@@ -168,7 +168,7 @@ escribe en «La bitácora».
 ## 5. Lo que todavía no está
 
 - **Ya no enciende luces.** Lo hizo un día. Se retiró el 2026-09-09
-  (`harmonia:H3`): el control de luces quedó en **remate**, con Firebase Auth,
+  (`H3` del panel): el control de luces quedó en **remate**, con Firebase Auth,
   y dos puentes a Tuya en el ecosistema era el mismo trabajo hecho dos veces,
   peor de este lado. Si vuelve, vuelve con autenticación de verdad.
 - **Pocos gestos.** El pellizco y la mano abierta. Cruzar una zona de la

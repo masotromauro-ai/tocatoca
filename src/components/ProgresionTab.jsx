@@ -2,12 +2,12 @@ import { useState, useCallback, useEffect } from "react";
 import { nc } from '../../theory/notes.js';
 import { buildScale } from '../../theory/notes.js';
 import { tNote, DN, DQ, MODE_BY_DEGREE } from '../../theory/formulas.js';
-import { computeProg } from '../../theory/harmony.js';
+import { computeProg } from '../../theory/armonia.js';
 import { buildVoicing } from '../../theory/voicings.js';
 import { parseChord } from '../../theory/parser.js';
 import { playChord } from '../../audio/engine.js';
-import Nota from '../harmony/Nota.jsx';
-import VoicingDisplay from '../harmony/VoicingDisplay.jsx';
+import Nota from '../armonia/Nota.jsx';
+import VoicingDisplay from '../armonia/VoicingDisplay.jsx';
 
 const EJEMPLOS = ["Dm7 – G7 – Cmaj7","Am7b5 – D7b9 – Gm","Cmaj7 – A7 – Dm7 – G7","Am – E7 – Am – Dm"];
 

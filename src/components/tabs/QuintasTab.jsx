@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { COF } from '../../theory/harmony.js';
-import Circulo from '../harmony/Circulo.jsx';
+import { COF } from '../../theory/armonia.js';
+import Circulo from '../armonia/Circulo.jsx';
 
 export default function QuintasTab() {
   const [selectedKey, setSelectedKey] = useState(null);

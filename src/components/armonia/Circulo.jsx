@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { nc, enh, noteIdx, CHROMATIC } from '../../theory/notes.js';
 import { buildScale } from '../../theory/notes.js';
 import { tNote, MSI, DN, DQ, MODE_BY_DEGREE } from '../../theory/formulas.js';
-import { COF } from '../../theory/harmony.js';
+import { COF } from '../../theory/armonia.js';
 import { playTone, playChord } from '../../audio/engine.js';
 import { parseChord } from '../../theory/parser.js';
 

@@ -8,7 +8,7 @@ export const NC_DEFAULT = {
   "A#":"#A5286E","Bb":"#A5286E",
 };
 
-export const PALETTE_KEY = "harmonia_palette_v1";
+export const PALETTE_KEY = "bandomaps_palette_v1";
 export const EDIT_HASH   = "murcielago";
 
 export function loadPalette() {
@@ -36,13 +36,13 @@ export const nc = (n) => {
 };
 
 export const CHROMATIC  = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-export const ENHARMONIC = {"C#":"Db","D#":"Eb","F#":"Gb","G#":"Ab","A#":"Bb"};
-export const enh = n => ENHARMONIC[n] || n;
+export const ENARMONICO = {"C#":"Db","D#":"Eb","F#":"Gb","G#":"Ab","A#":"Bb"};
+export const enh = n => ENARMONICO[n] || n;
 
 export const noteIdx = n => {
   const i = CHROMATIC.indexOf(n);
   if(i >= 0) return i;
-  const e = Object.entries(ENHARMONIC).find(([,v]) => v === n);
+  const e = Object.entries(ENARMONICO).find(([,v]) => v === n);
   return e ? CHROMATIC.indexOf(e[0]) : -1;
 };
 

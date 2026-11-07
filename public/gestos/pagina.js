@@ -10,10 +10,10 @@ import { crearRastreador } from "./manos.js";
 import { crearInstrumento } from "./instrumento.js";
 import { CROMATICA, ESCALAS, LATINO } from "./musica.js";
 
-export const VERSION = "gestos-pagina 2.0";
+export const VERSION = "gestos-pagina 2.1";
 
 const $ = (id) => document.getElementById(id);
-const AJUSTES_GUARDADOS = "harmonia_gestos_ajustes_v1";
+const AJUSTES_GUARDADOS = "bandomaps_gestos_ajustes_v1";
 
 const video = $("video");
 const lienzo = $("lienzo");

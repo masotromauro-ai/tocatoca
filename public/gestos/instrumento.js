@@ -7,12 +7,12 @@
 //
 // Hasta el 2026-09-09 esta línea decía «y de luces»: el instrumento también
 // hablaba con `iot.js`, el cliente del puente a Tuya. Ese puente se retiró
-// (`harmonia:H3`) y acá no quedó nada de él.
+// (H3 del panel) y acá no quedó nada de él.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { rejilla, zonaDe, colorDe, etiquetaDe, nombreDe, acordeDeGrado, ESCALAS } from "./musica.js";
 
-export const VERSION = "gestos-instrumento 2.1";
+export const VERSION = "gestos-instrumento 2.2";
 
 // Umbrales del pellizco, con histéresis. Dos números y no uno: con uno solo,
 // la nota parpadea justo en el borde, que es exactamente donde la mano se

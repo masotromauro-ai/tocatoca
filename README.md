@@ -86,7 +86,7 @@ así que no hay nada que cargar en la consola de Vercel ni nada que redesplegar
 por ese motivo.
 
 
-# Functional Harmony Lab
+# Laboratorio de armonía funcional
 
 Aplicación educativa avanzada de armonía, piano y bandoneón desarrollada con React/Vite.
 

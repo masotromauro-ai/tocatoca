@@ -1,4 +1,4 @@
-import { NC_DEFAULT, ENHARMONIC } from '../../theory/notes.js';
+import { NC_DEFAULT, ENARMONICO } from '../../theory/notes.js';
 import { playTone } from '../../audio/engine.js';
 
 export default function ColoresTab() {
@@ -38,7 +38,7 @@ export default function ColoresTab() {
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full" style={{ background:`linear-gradient(135deg,${hex},${hex}88)` }} />
                 <div>
-                  <p className="font-bold" style={{ color:hex }}>{note} / {ENHARMONIC[note]}</p>
+                  <p className="font-bold" style={{ color:hex }}>{note} / {ENARMONICO[note]}</p>
                   <p className="text-xs font-mono text-gray-600">{hex}</p>
                 </div>
               </div>
