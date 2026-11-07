@@ -6,14 +6,16 @@
 //   echo '{"emulators":{"firestore":{"port":8089}}}' > firebase.json
 //   REGLAS=<ruta a firestore.rules> npx firebase emulators:exec --only firestore \
 //     --project tocatoca-prueba "node <ruta a este archivo>"
-// Los marcadores de UID se cambian por «mauro» y «agente».
+// El marcador del UID del agente se cambia por «agente». «adm1» es un admin con ficha.
 import { initializeTestEnvironment, assertSucceeds, assertFails } from "@firebase/rules-unit-testing";
 import { doc, getDoc, setDoc, updateDoc, collection, getDocs, addDoc, deleteDoc } from "firebase/firestore";
 import fs from "fs";
 const reglas = fs.readFileSync(process.env.REGLAS || new URL("../firestore.rules", import.meta.url), "utf8")
-  .replace("TU-UID-ACA", "mauro").replace("UID-DEL-AGENTE", "agente");
+  .replace("UID-DEL-AGENTE", "agente");
 const env = await initializeTestEnvironment({ projectId: "tocatoca-prueba", firestore: { rules: reglas, host:"127.0.0.1", port:8089 } });
 await env.withSecurityRulesDisabled(async c => { const d=c.firestore();
+  await setDoc(doc(d,"usuarios/adm1"),{nombre:"Admin",rol:"admin",activo:true});
+  await setDoc(doc(d,"invitaciones/admin2@x.com"),{rol:"admin"});
   await setDoc(doc(d,"usuarios/doc1"),{nombre:"Mariano",rol:"docente",activo:true});
   await setDoc(doc(d,"usuarios/alu1"),{nombre:"Ana",rol:"alumno",activo:true,usuario:"ana"});
   await setDoc(doc(d,"usuarios/alu2"),{nombre:"Beto",rol:"alumno",activo:true,usuario:"beto"});
@@ -23,7 +25,7 @@ await env.withSecurityRulesDisabled(async c => { const d=c.firestore();
   await setDoc(doc(d,"historico/ana"),{ingresos:3});
   await setDoc(doc(d,"progreso/alu1"),{hechas:{}});
 });
-const db=(uid,email)=>env.authenticatedContext(uid,email?{email}:{}).firestore();
+const db=(uid,email,verif=true)=>env.authenticatedContext(uid,email?{email,email_verified:verif}:{}).firestore();
 const anon=env.unauthenticatedContext().firestore();
 let ok=0,mal=0; const t=async(n,p)=>{ try{ await p; ok++; }catch(e){ mal++; console.log("✖",n,e.message.slice(0,140)); } };
 await t("sin sesión no lee usuarios", assertFails(getDoc(doc(anon,"usuarios/alu1"))));
@@ -32,11 +34,14 @@ await t("alumno no lee la de otro", assertFails(getDoc(doc(db("alu1"),"usuarios/
 await t("alumno no se sube el rol", assertFails(updateDoc(doc(db("alu1"),"usuarios/alu1"),{rol:"admin"})));
 await t("alumno se cambia el nombre", assertSucceeds(updateDoc(doc(db("alu1"),"usuarios/alu1"),{nombre:"Ana M"})));
 await t("docente no cambia roles", assertFails(updateDoc(doc(db("doc1"),"usuarios/alu1"),{rol:"docente"})));
-await t("Mauro (sin ficha) cambia roles", assertSucceeds(updateDoc(doc(db("mauro"),"usuarios/alu2"),{rol:"docente"})));
-await t("Mauro no pone un rol inventado", assertFails(updateDoc(doc(db("mauro"),"usuarios/alu2"),{rol:"rey"})));
-await t("Mauro suspende", assertSucceeds(updateDoc(doc(db("mauro"),"usuarios/alu2"),{rol:"alumno",activo:false})));
+await t("admin cambia roles", assertSucceeds(updateDoc(doc(db("adm1"),"usuarios/alu2"),{rol:"docente"})));
+await t("admin no pone un rol inventado", assertFails(updateDoc(doc(db("adm1"),"usuarios/alu2"),{rol:"rey"})));
+await t("admin suspende", assertSucceeds(updateDoc(doc(db("adm1"),"usuarios/alu2"),{rol:"alumno",activo:false})));
 await t("invitado crea su ficha", assertSucceeds(setDoc(doc(db("n1","Nuevo@x.com"),"usuarios/n1"),{nombre:"N",mail:"nuevo@x.com",rol:"alumno",activo:true})));
 await t("invitado no se pone docente", assertFails(setDoc(doc(db("n2","nuevo@x.com"),"usuarios/n2"),{nombre:"N",mail:"nuevo@x.com",rol:"docente",activo:true})));
+await t("invitado con mail SIN verificar no crea ficha", assertFails(setDoc(doc(db("n4","admin2@x.com",false),"usuarios/n4"),{nombre:"X",mail:"admin2@x.com",rol:"admin",activo:true})));
+await t("invitado admin verificado crea su ficha de admin", assertSucceeds(setDoc(doc(db("n5","admin2@x.com"),"usuarios/n5"),{nombre:"Mariano",mail:"admin2@x.com",rol:"admin",activo:true})));
+await t("un uid sin ficha no es admin", assertFails(updateDoc(doc(db("mauro"),"usuarios/alu1"),{rol:"docente"})));
 await t("sin invitación no hay ficha", assertFails(setDoc(doc(db("n3","otro@x.com"),"usuarios/n3"),{nombre:"O",mail:"otro@x.com",rol:"alumno",activo:true})));
 await t("docente invita alumno", assertSucceeds(setDoc(doc(db("doc1"),"invitaciones/a@x.com"),{rol:"alumno"})));
 await t("docente no invita docentes", assertFails(setDoc(doc(db("doc1"),"invitaciones/b@x.com"),{rol:"docente"})));
@@ -63,8 +68,8 @@ await t("alumno no lista usuarios", assertFails(getDocs(collection(db("alu1"),"u
 await t("agente lista usuarios", assertSucceeds(getDocs(collection(db("agente"),"usuarios"))));
 await t("config: alumno lee", assertSucceeds(getDoc(doc(db("alu1"),"config/sitio"))));
 await t("config: docente no escribe", assertFails(setDoc(doc(db("doc1"),"config/sitio"),{a:1})));
-await t("config: Mauro escribe", assertSucceeds(setDoc(doc(db("mauro"),"config/sitio"),{esquema:1})));
+await t("config: admin escribe", assertSucceeds(setDoc(doc(db("adm1"),"config/sitio"),{esquema:1})));
 await t("historial: agente crea", assertSucceeds(setDoc(doc(db("agente"),"_historial/h1"),{a:1})));
-await t("historial: nadie borra", assertFails(deleteDoc(doc(db("mauro"),"_historial/h1"))));
-await t("colección inventada cerrada", assertFails(setDoc(doc(db("mauro"),"otra/x"),{a:1})));
+await t("historial: nadie borra", assertFails(deleteDoc(doc(db("adm1"),"_historial/h1"))));
+await t("colección inventada cerrada", assertFails(setDoc(doc(db("adm1"),"otra/x"),{a:1})));
 console.log(`${ok} pasadas, ${mal} fallidas`); await env.cleanup(); process.exit(mal?1:0);

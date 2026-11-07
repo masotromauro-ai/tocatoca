@@ -22,7 +22,7 @@ estáticos y publican por GitHub Pages: acá sí existe una etapa de compilació
 Spark. Hasta ese día no había ninguno y todo vivía en el `localStorage` del
 teléfono. La forma de los datos, quién escribe qué y cómo comparten la base el
 sitio estable y el de desarrollo están en **`BASE.md`**; las reglas, en
-`firestore.rules` (plantilla con los UID como marcadores). La app todavía no la
+`firestore.rules` (plantilla con el UID del agente como marcador). La app todavía no la
 usa: la integración va por partes (BASE.md, «La migración»).
 
 Hubo un puente a la nube de **Tuya** (`api/tuya.js`) entre el 2026-09-09 y el
@@ -189,7 +189,7 @@ vuelve a la rama.
   porque no hay ninguna credencial en todo el proyecto. Si vuelve a haber una
   función de servidor, vuelve a ser la frontera que importa: el navegador manda
   un alias, el servidor traduce y firma.
-- **Las reglas se prueban en el emulador antes de publicarlas:** `pruebas/reglas.mjs` (41 casos; cómo se corre, en su cabecera: necesita Java y no agrega nada a `package.json`). Una colección nueva entra con su regla y sus casos en la misma tanda.
+- **Las reglas se prueban en el emulador antes de publicarlas:** `pruebas/reglas.mjs` (44 casos; cómo se corre, en su cabecera: necesita Java y no agrega nada a `package.json`). Una colección nueva entra con su regla y sus casos en la misma tanda.
 - **Se corren los bancos de pruebas antes de subir:** `npm run prueba`, que
   encadena los dos, sin dependencias ni navegador. `pruebas/gestos.mjs` (8
   casos) cubre la teoría musical del instrumento; `pruebas/codigo.mjs` (60)

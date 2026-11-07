@@ -1,18 +1,21 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // firestore.rules — Reglas de la base de BandoMaps (proyecto tocatoca-621a5).
-// Versión v1 (7-nov-2026).
+// Versión v1 (7-nov-2026). Sin el UID de Mauro: los administradores entran
+// por invitación, como cualquiera (Mauro: «ambos como administradores»).
 //
 // ESTO ES LA PLANTILLA, NO LO PUBLICADO. La autoridad es lo que está en la
-// consola de Firebase → Firestore → Reglas. Los dos UID van como MARCADORES
+// consola de Firebase → Firestore → Reglas. El UID del agente va como MARCADOR
 // porque este repositorio es público: el panel de Mauro (Sitios → BandoMaps →
-// «Copiar para publicar») los reemplaza y arma el texto completo en pantalla.
+// «Copiar para publicar») lo reemplaza y arma el texto completo en pantalla.
 // Un UID real no entra nunca a este archivo.
 //
 // UNA base para el sitio estable y para el de desarrollo (ver BASE.md): por eso
 // las reglas validan la FORMA de lo que se escribe y no confían en la pantalla.
 //
 // Quién es quién:
-//   · Mauro: administrador fijo (su UID), aunque todavía no tenga ficha.
+//   · Nadie es administrador por su UID: lo es quien tiene ficha activa con
+//     rol «admin». La primera vez, el agente deja las invitaciones de admin
+//     (Mauro y Mariano) y cada uno crea su ficha al entrar con su mail VERIFICADO.
 //   · usuarios/{uid}: la ficha de cada persona — rol (admin | docente | alumno),
 //     activo, probador. El ROL no lo cambia nunca su dueño: sólo un admin.
 //   · El agente (Claude): lee todo, prepara invitaciones, clases e historico
@@ -24,12 +27,11 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function logueado()  { return request.auth != null; }
-    function esMauro()   { return logueado() && request.auth.uid == "TU-UID-ACA"; }
     function esAgente()  { return logueado() && request.auth.uid == "UID-DEL-AGENTE"; }
     function rutaFicha() { return /databases/$(database)/documents/usuarios/$(request.auth.uid); }
     function ficha()     { return get(rutaFicha()).data; }
     function activo()    { return logueado() && exists(rutaFicha()) && ficha().activo == true; }
-    function esAdmin()   { return esMauro() || (activo() && ficha().rol == "admin"); }
+    function esAdmin()   { return activo() && ficha().rol == "admin"; }
     function esDocente() { return esAdmin() || (activo() && ficha().rol == "docente"); }
     function miMail()    { return logueado() && request.auth.token.email != null
                              ? request.auth.token.email.lower() : ""; }
@@ -42,10 +44,12 @@ service cloud.firestore {
     match /usuarios/{uid} {
       allow get: if logueado() && (request.auth.uid == uid || esDocente() || esAgente());
       allow list: if esDocente() || esAgente();
-      // Alta: un admin, o la propia persona SI tiene una invitación a su mail,
-      // con el rol de la invitación y nada más.
+      // Alta: un admin, o la propia persona SI tiene una invitación a su mail
+      // VERIFICADO (si no, cualquiera que se registrara primero con un mail
+      // ajeno se quedaba con su invitación), con el rol de la invitación.
       allow create: if esAdmin()
         || (request.auth.uid == uid
+            && request.auth.token.email_verified == true
             && exists(/databases/$(database)/documents/invitaciones/$(miMail()))
             && request.resource.data.keys().hasOnly(["nombre", "mail", "rol", "activo", "usuario", "creado"])
             && request.resource.data.rol == get(/databases/$(database)/documents/invitaciones/$(miMail())).data.rol

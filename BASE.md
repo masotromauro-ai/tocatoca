@@ -2,8 +2,8 @@
 
 Firebase **`tocatoca-621a5`** (Firestore + Authentication por mail y contraseña),
 creada por Mauro el 7-nov-2026. Plan **Spark** (gratis): nada de lo de acá puede
-pedir facturación. Las reglas están en `firestore.rules` (v1, plantilla con los
-UID como marcadores) y se prueban con `pruebas/reglas.mjs` en el emulador.
+pedir facturación. Las reglas están en `firestore.rules` (v1, plantilla con el
+UID del agente como marcador) y se prueban con `pruebas/reglas.mjs` en el emulador.
 
 ## Qué guarda
 
@@ -18,10 +18,13 @@ UID como marcadores) y se prueban con `pruebas/reglas.mjs` en el emulador.
 | `ingresos/{id}` | cada ingreso o práctica (`uid`, `tipo`, `en`, `app`) — reemplaza la hoja «Ingresos» | el alumno, sólo los suyos, sin campos de más |
 | `reportes/`, `avisos/`, `_historial/` | lo común del ecosistema: fallas y pedidos, el buzón de la Pizarra, la copia antes de cada cambio del agente | — |
 
-**Mauro es administrador por su UID**, aunque no tenga ficha: es lo que permite
-arrancar una base vacía. Los roles se leen de `usuarios/` y no de *custom
-claims*: los claims sólo se ponen desde un servidor (Cloud Functions), que pide
-el plan pago.
+**Nadie es administrador por su UID.** Lo es quien tiene ficha activa con rol
+`admin`. La primera vez, el agente deja las invitaciones de administrador (Mauro y
+Mariano, 7-nov-2026) y cada uno crea su ficha al entrar con su mail
+**verificado**: sin esa condición, cualquiera que se registrara primero con un
+mail ajeno se quedaba con su invitación. Los roles se leen de `usuarios/` y no de
+*custom claims*: los claims sólo se ponen desde un servidor (Cloud Functions),
+que pide el plan pago.
 
 ## Un sitio estable y uno de desarrollo, con UNA sola base
 
