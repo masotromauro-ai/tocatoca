@@ -26,6 +26,13 @@ mail ajeno se quedaba con su invitación. Los roles se leen de `usuarios/` y no 
 *custom claims*: los claims sólo se ponen desde un servidor (Cloud Functions),
 que pide el plan pago.
 
+## El plan macro
+
+Los planes grandes se discuten con Mariano en una página aparte (ficha «Plan macro
+de BandoMaps» del panel): cada punto con su estado y avance, y debajo las
+opiniones de Mariano y las respuestas de Claude. Cuando algo de acá avanza, se
+pone al día ahí en la misma tanda.
+
 ## Un sitio estable y uno de desarrollo, con UNA sola base
 
 Mauro, 7-nov-2026: este repositorio es donde Claude desarrolla a partir de lo que
