@@ -67,6 +67,7 @@
   <!-- Listo -->
   <section id="sListo" class="oculto">
     <p id="lTexto"></p>
+    <p id="lUsuarios" class="oculto"><a href="./usuarios.html" style="color:var(--tx)">Ir a Usuarios</a>: invitar gente, cambiar roles y suspender.</p>
   </section>
 
   <button id="bSalir" class="link oculto" type="button">Salir</button>
@@ -127,7 +128,9 @@ async function evaluar(u) {
   }
   const f = await F.getDoc(F.doc(db, "usuarios", u.uid));
   const rol = f.exists() ? f.data().rol : "";
-  $("lTexto").textContent = `Listo: quedaste registrado en BandoMaps como ${ROLES[rol] || rol}, con ${mail}. Ya podés cerrar esta página.`;
+  $("lTexto").textContent = `Listo: quedaste registrado en BandoMaps como ${ROLES[rol] || rol}, con ${mail}.`
+    + (rol === "admin" || rol === "docente" ? "" : " Ya podés cerrar esta página.");
+  $("lUsuarios").classList.toggle("oculto", !(rol === "admin" || rol === "docente"));
   mostrar("sListo"); decir("");
 }
 

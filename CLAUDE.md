@@ -40,7 +40,7 @@ instrumento de gestos se queda: es música, y su lugar es éste.
 | El instrumento de gestos | `public/gestos.html` + `public/gestos/` | **copiado tal cual**, sin compilar |
 | El Código (desarrollo paralelo) | `public/codigo.html` + `public/codigo/` | **copiado tal cual**, sin compilar |
 | La práctica | `public/practica.html`, sobre `public/codigo/practica.js` | **copiado tal cual**, sin compilar |
-| La cuenta (registro) | `public/registro.html`, sobre `public/cuenta/` (`firebase.js`, el único contacto con el SDK de este lado; `registro.js`, la lógica) | **copiado tal cual**, sin compilar |
+| La cuenta (registro y usuarios) | `public/registro.html` y `public/usuarios.html`, sobre `public/cuenta/` (`firebase.js`, el único contacto con el SDK de este lado; `registro.js` y `usuarios.js`, la lógica) | **copiado tal cual**, sin compilar |
 
 `public/` no pasa por el build: se puede editar desde el teléfono, por la web
 de GitHub, como los otros tres proyectos. Es a propósito.
@@ -192,6 +192,7 @@ vuelve a la rama.
   un alias, el servidor traduce y firma.
 - **Las reglas se prueban en el emulador antes de publicarlas:** `pruebas/reglas.mjs` (44 casos; cómo se corre, en su cabecera: necesita Java y no agrega nada a `package.json`). Una colección nueva entra con su regla y sus casos en la misma tanda.
 - **El registro (`public/registro.html`, 7-nov-2026)**: crear la cuenta con mail y contraseña, confirmar el mail, y la ficha se crea sola con el rol de la invitación. La lógica está en `public/cuenta/registro.js` y la prueba `pruebas/registro.mjs` (12 casos, node a secas); la ficha que arma tiene que ser exactamente la que dejan las reglas.
+- **La pantalla de Usuarios (`public/usuarios.html`, 7-nov-2026)**: admin y docente entran; el admin invita con cualquier rol, cambia roles, suspende y marca «probador»; el docente invita sólo alumnos. Nadie se cambia a sí mismo y nunca queda la base sin un admin activo. La invitación no manda mails: «Copiar mensaje» y lo manda una persona. Lógica en `public/cuenta/usuarios.js` (`pruebas/usuarios.mjs`, 11 casos, node a secas) y de punta a punta contra los emuladores (`pruebas/usuarios-e2e.cjs`, 17 casos; cómo se corre, en su cabecera).
 - **Se corren los bancos de pruebas antes de subir:** `npm run prueba`, que
   encadena los dos, sin dependencias ni navegador. `pruebas/gestos.mjs` (8
   casos) cubre la teoría musical del instrumento; `pruebas/codigo.mjs` (60)

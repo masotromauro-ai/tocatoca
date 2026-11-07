@@ -69,6 +69,13 @@ contraseña que elige ella, confirma el mail con el enlace que manda Firebase, y
 al volver se crea su ficha con el rol de su invitación. Sin invitación, la cuenta
 queda creada pero sin ficha (y sin acceso a nada).
 
+## Usuarios
+
+`/usuarios.html` (7-nov-2026): administradores y docentes. El admin invita con
+cualquier rol, cambia roles, suspende y marca «probador»; el docente invita sólo
+alumnos. La invitación no manda mails: «Copiar mensaje» arma el texto con el link
+de registro y lo manda una persona.
+
 ## La migración, en partes
 
 1. **Reglas v1 publicadas** y la base en el respaldo diario.

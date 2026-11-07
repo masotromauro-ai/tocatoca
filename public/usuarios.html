@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>BandoMaps · Usuarios</title>
+<style>
+  :root { --bg:#0a0a0b; --card:#131315; --line:#2a2a2e; --tx:#ececec; --mu:#8a8a90; --ok:#2dd4bf; --mal:#e08a84; --am:#f2d77a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--tx); font-family:Inter,system-ui,sans-serif; padding:16px; }
+  main { max-width:640px; margin:0 auto; }
+  h1 { font-family:'Libre Baskerville',Georgia,serif; font-size:20px; letter-spacing:.2em; text-transform:uppercase; margin:6px 0 2px; }
+  .sub { font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--mu); margin-bottom:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
+  h2 { font-size:15px; margin:0 0 10px; }
+  label { display:block; font-size:12px; color:var(--mu); margin-top:10px; }
+  input, select { width:100%; padding:10px 12px; margin-top:4px; border-radius:10px; border:1px solid var(--line); background:#0e0e10; color:var(--tx); font-size:15px; }
+  button { padding:10px 14px; border-radius:10px; border:1px solid var(--tx); background:var(--tx); color:#0a0a0b; font-weight:700; font-size:14px; cursor:pointer; }
+  button.sec { background:transparent; color:var(--tx); border-color:var(--line); font-weight:600; }
+  button.peligro { background:transparent; color:var(--mal); border-color:#5a2f2c; font-weight:600; }
+  button:disabled { opacity:.45; cursor:default; }
+  .ancho { width:100%; margin-top:14px; }
+  .fila { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .persona { border-top:1px solid var(--line); padding:12px 0; }
+  .persona:first-of-type { border-top:none; }
+  .nombre { font-weight:600; }
+  .mail { color:var(--mu); font-size:13px; word-break:break-all; }
+  .chip { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--line); color:var(--mu); margin-left:6px; }
+  .chip.baja { color:var(--mal); border-color:#5a2f2c; }
+  .chip.yo { color:var(--ok); border-color:#1f5c55; }
+  .controles { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .controles select { width:auto; margin:0; padding:8px 10px; font-size:14px; }
+  .chk { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--mu); }
+  .chk input { width:auto; margin:0; }
+  .msg { font-size:14px; line-height:1.5; margin-top:10px; min-height:1em; }
+  .msg.mal { color:var(--mal); } .msg.ok { color:var(--ok); }
+  .nota { font-size:12.5px; color:var(--mu); line-height:1.5; margin:8px 0 0; }
+  .oculto { display:none !important; }
+  .pie { font-size:11px; color:#55555b; text-align:center; margin:18px 0; }
+</style>
+</head>
+<body>
+<main>
+  <div class="fila" style="justify-content:space-between">
+    <div><h1>BandoMaps</h1><div class="sub">Usuarios</div></div>
+    <button id="bSalir" class="sec oculto" type="button">Salir</button>
+  </div>
+
+  <!-- Entrar -->
+  <form id="fEntrar" class="card oculto">
+    <h2>Entrar</h2>
+    <label for="mail">Mail</label>
+    <input id="mail" type="email" autocomplete="email" autocapitalize="none" autocorrect="off">
+    <label for="clave">Contraseña</label>
+    <input id="clave" type="password" autocomplete="current-password">
+    <button id="bEntrar" class="ancho" type="submit">Entrar</button>
+    <p class="nota">¿Todavía no tenés cuenta? <a href="./registro.html" style="color:var(--tx)">Registrate acá</a> con el mail de tu invitación.</p>
+  </form>
+
+  <!-- Sin permiso -->
+  <div id="sSinPermiso" class="card oculto">
+    <p>Esta pantalla es para administradores y docentes. Tu cuenta no tiene ese rol (o está suspendida).</p>
+  </div>
+
+  <div id="sPanel" class="oculto">
+    <div class="card">
+      <div id="quienSoy" class="nota" style="margin:0"></div>
+    </div>
+
+    <!-- Invitar -->
+    <form id="fInvitar" class="card">
+      <h2>Invitar a alguien</h2>
+      <label for="iMail">Mail de la persona</label>
+      <input id="iMail" type="email" autocapitalize="none" autocorrect="off">
+      <label for="iRol">Rol</label>
+      <select id="iRol"></select>
+      <label for="iUsuario">Usuario de la planilla vieja (opcional)</label>
+      <input id="iUsuario" autocapitalize="none" autocorrect="off" placeholder="ej.: maria">
+      <p class="nota">Si ya era alumno, poné el usuario con el que entraba: así se le enlaza su historia.</p>
+      <button id="bInvitar" class="ancho" type="submit">Invitar</button>
+      <p class="nota">La invitación no manda ningún mail sola: después tocá «Copiar mensaje» y mandáselo vos (WhatsApp o mail).</p>
+    </form>
+
+    <!-- Pendientes -->
+    <div class="card">
+      <h2>Invitaciones sin usar <span id="nPend" class="chip"></span></h2>
+      <div id="lPend"></div>
+    </div>
+
+    <!-- Personas -->
+    <div class="card">
+      <h2>Personas <span id="nPers" class="chip"></span></h2>
+      <div id="lPers"></div>
+      <p class="nota">Cambiar el rol o suspender lo hace sólo un administrador. Nadie se puede cambiar a sí mismo, y siempre tiene que quedar al menos un administrador activo.</p>
+    </div>
+  </div>
+
+  <div id="msg" class="msg"></div>
+  <div class="pie" id="sellos"></div>
+</main>
+
+<script type="module">
+import { cargarFirebase, auth, db, A, F, VERSION as VI } from "./cuenta/firebase.js";
+import { causa, limpiarMail, VERSION as VR } from "./cuenta/registro.js";
+import { puedeVer, puedeEditar, rolesQueInvita, dejaSinAdmin, validarInvitacion, invitacionNueva,
+         pendientes, ordenar, mensajeInvitacion, NOMBRE_ROL, ROLES, VERSION as VU } from "./cuenta/usuarios.js";
+
+import("https://maurogasta-crypto.github.io/datos/ojos.js").catch(() => {});
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+$("sellos").textContent = `${VU} · ${VR} · ${VI}`;
+
+let yo = null, usuarios = [], invitaciones = [], ocupado = false;
+
+const decir = (t, tipo = "") => { $("msg").textContent = t; $("msg").className = "msg " + tipo; };
+const mostrar = (cual) => {
+  for (const id of ["fEntrar", "sSinPermiso", "sPanel"]) $(id).classList.toggle("oculto", id !== cual);
+  $("bSalir").classList.toggle("oculto", cual === "fEntrar");
+};
+const conEspera = async (f) => {
+  if (ocupado) return; ocupado = true; document.body.style.cursor = "progress";
+  try { await f(); } catch (e) { decir(causa(e), "mal"); } finally { ocupado = false; document.body.style.cursor = ""; }
+};
+
+async function cargar() {
+  const [su, si] = await Promise.all([
+    F.getDocs(F.collection(db, "usuarios")),
+    F.getDocs(F.collection(db, "invitaciones")),
+  ]);
+  usuarios = su.docs.map((d) => ({ id: d.id, ...d.data() }));
+  invitaciones = si.docs.map((d) => ({ id: d.id, ...d.data() }));
+  yo = usuarios.find((u) => u.id === auth.currentUser.uid) || yo;
+  pintar();
+}
+
+function pintar() {
+  $("quienSoy").innerHTML = `Entraste como <b>${esc(yo.nombre || yo.mail)}</b> · ${esc(NOMBRE_ROL[yo.rol] || yo.rol)}`;
+  $("iRol").innerHTML = rolesQueInvita(yo).map((r) => `<option value="${r}"${r === "alumno" ? " selected" : ""}>${NOMBRE_ROL[r]}</option>`).join("");
+
+  const pend = pendientes(invitaciones, usuarios);
+  $("nPend").textContent = pend.length;
+  $("lPend").innerHTML = pend.length ? pend.map((i) => `
+    <div class="persona">
+      <div class="mail" style="color:var(--tx)">${esc(i.id)}<span class="chip">${esc(NOMBRE_ROL[i.rol] || i.rol)}</span>${i.usuario ? `<span class="chip">usuario viejo: ${esc(i.usuario)}</span>` : ""}</div>
+      <div class="controles">
+        <button class="sec" data-copiar="${esc(i.id)}" type="button">Copiar mensaje</button>
+        <button class="peligro" data-quitar="${esc(i.id)}" type="button">Quitar</button>
+      </div>
+    </div>`).join("") : `<p class="nota">No hay invitaciones esperando.</p>`;
+
+  const lista = ordenar(usuarios);
+  $("nPers").textContent = lista.length;
+  $("lPers").innerHTML = lista.map((u) => {
+    const edita = puedeEditar(yo, u);
+    return `
+    <div class="persona">
+      <div><span class="nombre">${esc(u.nombre || "(sin nombre)")}</span>
+        ${u.id === yo.id ? `<span class="chip yo">vos</span>` : ""}
+        ${u.activo === true ? "" : `<span class="chip baja">suspendido</span>`}
+        ${u.probador ? `<span class="chip">probador</span>` : ""}</div>
+      <div class="mail">${esc(u.mail)}${u.usuario ? ` · usuario viejo: ${esc(u.usuario)}` : ""}</div>
+      <div class="controles">
+        <select data-rol="${esc(u.id)}" ${edita ? "" : "disabled"}>
+          ${ROLES.map((r) => `<option value="${r}"${u.rol === r ? " selected" : ""}>${NOMBRE_ROL[r]}</option>`).join("")}
+        </select>
+        ${edita ? `<button class="${u.activo === true ? "peligro" : "sec"}" data-activo="${esc(u.id)}" type="button">${u.activo === true ? "Suspender" : "Reactivar"}</button>
+        <label class="chk"><input type="checkbox" data-probador="${esc(u.id)}" ${u.probador ? "checked" : ""}> probador</label>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function cambiar(id, cambio, texto) {
+  const u = usuarios.find((x) => x.id === id);
+  if (!puedeEditar(yo, u)) return decir("No podés cambiar esa cuenta.", "mal");
+  if (dejaSinAdmin(usuarios, id, cambio)) { pintar(); return decir("Así no quedaría ningún administrador activo: no se hizo.", "mal"); }
+  await F.updateDoc(F.doc(db, "usuarios", id), { ...cambio, actualizado: Date.now() });
+  await cargar(); decir(texto, "ok");
+}
+
+// ── Eventos ──
+$("lPers").addEventListener("change", (e) => conEspera(async () => {
+  const r = e.target.dataset.rol, p = e.target.dataset.probador;
+  if (r) await cambiar(r, { rol: e.target.value }, `Listo: ahora es ${NOMBRE_ROL[e.target.value]}.`);
+  if (p) await cambiar(p, { probador: e.target.checked }, e.target.checked ? "Marcado como probador." : "Ya no es probador.");
+}));
+$("lPers").addEventListener("click", (e) => {
+  const id = e.target.dataset.activo; if (!id) return;
+  const u = usuarios.find((x) => x.id === id);
+  const susp = u.activo === true;
+  if (susp && !confirm(`¿Suspender a ${u.nombre || u.mail}? No va a poder entrar hasta que lo reactives. No se borra nada.`)) return;
+  conEspera(() => cambiar(id, { activo: !susp }, susp ? "Suspendido." : "Reactivado."));
+});
+$("lPend").addEventListener("click", (e) => {
+  const c = e.target.dataset.copiar, q = e.target.dataset.quitar;
+  if (c) {
+    const i = invitaciones.find((x) => x.id === c);
+    const texto = mensajeInvitacion(c, i.rol);
+    (navigator.clipboard ? navigator.clipboard.writeText(texto) : Promise.reject())
+      .then(() => decir("Mensaje copiado: pegalo en WhatsApp o en un mail.", "ok"))
+      .catch(() => { prompt("Copiá este mensaje:", texto); });
+  }
+  if (q) {
+    if (!confirm(`¿Quitar la invitación de ${q}? Si todavía no se registró, ya no va a poder.`)) return;
+    conEspera(async () => { await F.deleteDoc(F.doc(db, "invitaciones", q)); await cargar(); decir("Invitación quitada.", "ok"); });
+  }
+});
+$("fInvitar").onsubmit = (e) => { e.preventDefault(); conEspera(async () => {
+  const datos = { mail: $("iMail").value, rol: $("iRol").value, usuario: $("iUsuario").value };
+  const falta = validarInvitacion(datos, yo, usuarios, invitaciones);
+  if (falta) return decir(falta, "mal");
+  const m = limpiarMail(datos.mail);
+  await F.setDoc(F.doc(db, "invitaciones", m), invitacionNueva(datos, yo));
+  $("iMail").value = ""; $("iUsuario").value = "";
+  await cargar();
+  decir(`Invitación creada para ${m}. Tocá «Copiar mensaje» en la lista y mandáselo.`, "ok");
+}); };
+$("fEntrar").onsubmit = (e) => { e.preventDefault(); conEspera(async () => {
+  const m = limpiarMail($("mail").value), c = $("clave").value;
+  if (!m || !c) return decir("Escribí tu mail y tu contraseña.", "mal");
+  await A.signInWithEmailAndPassword(auth, m, c); $("clave").value = "";
+}); };
+$("bSalir").onclick = () => A.signOut(auth);
+
+async function evaluar(u) {
+  decir("");
+  if (!u) { yo = null; mostrar("fEntrar"); return; }
+  const f = await F.getDoc(F.doc(db, "usuarios", u.uid));
+  yo = f.exists() ? { id: u.uid, ...f.data() } : null;
+  if (!puedeVer(yo)) { mostrar("sSinPermiso"); return; }
+  mostrar("sPanel");
+  await cargar();
+}
+
+if (!(await cargarFirebase())) {
+  decir("No se pudo cargar lo necesario. Revisá la conexión y recargá la página.", "mal");
+} else {
+  // Directo y no por conEspera: el aviso llega MIENTRAS «Entrar» está en curso, y se perdía.
+  A.onAuthStateChanged(auth, (u) => evaluar(u).catch((e) => decir(causa(e), "mal")));
+}
+</script>
+</body>
+</html>
