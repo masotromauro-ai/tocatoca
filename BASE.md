@@ -62,6 +62,13 @@ restauración a un punto en el tiempo (PITR): la copia diaria es la que hay.
 Lo que NO conviene: dos bases (una de prueba y una real) obligan a copiar datos
 cada vez que algo pasa a estable, que es justo lo que se quiere evitar.
 
+## El registro
+
+`/registro.html` (7-nov-2026): la persona crea su cuenta con su mail y una
+contraseña que elige ella, confirma el mail con el enlace que manda Firebase, y
+al volver se crea su ficha con el rol de su invitación. Sin invitación, la cuenta
+queda creada pero sin ficha (y sin acceso a nada).
+
 ## La migración, en partes
 
 1. **Reglas v1 publicadas** y la base en el respaldo diario.

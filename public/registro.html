@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>BandoMaps · Tu cuenta</title>
+<style>
+  :root { --bg:#0a0a0b; --card:#131315; --line:#2a2a2e; --tx:#ececec; --mu:#8a8a90; --ok:#2dd4bf; --mal:#e08a84; }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+         padding:20px 16px; background:var(--bg); color:var(--tx); font-family:Inter,system-ui,sans-serif; }
+  main { width:100%; max-width:380px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:26px 22px; }
+  h1 { font-family:'Libre Baskerville',Georgia,serif; font-size:22px; letter-spacing:.2em; text-transform:uppercase; text-align:center; margin:0; }
+  .sub { font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--mu); text-align:center; margin:6px 0 22px; }
+  label { display:block; font-size:12px; color:var(--mu); margin-top:12px; }
+  input { width:100%; padding:11px 12px; margin-top:4px; border-radius:10px; border:1px solid var(--line); background:#0e0e10; color:var(--tx); font-size:15px; }
+  button { width:100%; margin-top:18px; padding:12px; border-radius:10px; border:1px solid var(--tx); background:var(--tx); color:#0a0a0b; font-weight:700; font-size:15px; cursor:pointer; }
+  button.sec { background:transparent; color:var(--tx); border-color:var(--line); font-weight:600; margin-top:10px; }
+  button:disabled { opacity:.5; }
+  .link { background:none; border:none; color:var(--mu); text-decoration:underline; font-weight:400; font-size:13px; padding:4px; margin-top:12px; width:auto; }
+  .msg { margin-top:14px; font-size:14px; line-height:1.5; min-height:1em; }
+  .msg.mal { color:var(--mal); } .msg.ok { color:var(--ok); }
+  p { font-size:14px; line-height:1.55; color:#cfcfd4; }
+  .oculto { display:none; }
+  .pie { margin-top:18px; font-size:11px; color:#55555b; text-align:center; }
+</style>
+</head>
+<body>
+<main>
+  <h1>BandoMaps</h1>
+  <div class="sub">Tu cuenta</div>
+
+  <!-- Crear la cuenta / entrar -->
+  <form id="fCuenta">
+    <div id="soloNueva">
+      <label for="nombre">Tu nombre</label>
+      <input id="nombre" autocomplete="name" maxlength="60">
+    </div>
+    <label for="mail">Mail</label>
+    <input id="mail" type="email" autocomplete="email" autocapitalize="none" autocorrect="off">
+    <label for="clave">Contraseña</label>
+    <input id="clave" type="password" autocomplete="new-password">
+    <div id="soloNueva2">
+      <label for="clave2">Repetí la contraseña</label>
+      <input id="clave2" type="password" autocomplete="new-password">
+    </div>
+    <button id="bCuenta" type="submit">Crear mi cuenta</button>
+    <button id="bModo" class="link" type="button">Ya tengo cuenta</button>
+    <button id="bOlvide" class="link oculto" type="button">Olvidé mi contraseña</button>
+  </form>
+
+  <!-- Verificar el mail -->
+  <section id="sVerificar" class="oculto">
+    <p>Te mandamos un mail a <b id="vMail"></b> para confirmar que es tuyo. Abrilo, tocá el enlace y después volvé acá. Si no lo ves, mirá en Spam.</p>
+    <button id="bVerifique" type="button">Ya lo confirmé</button>
+    <button id="bReenviar" class="sec" type="button">Mandármelo de nuevo</button>
+  </section>
+
+  <!-- Sin invitación -->
+  <section id="sSinInv" class="oculto">
+    <p>Tu cuenta está creada, pero tu mail todavía no tiene una invitación a BandoMaps. Pedísela a tu profesor; cuando la tengas, volvé a esta página.</p>
+  </section>
+
+  <!-- Listo -->
+  <section id="sListo" class="oculto">
+    <p id="lTexto"></p>
+  </section>
+
+  <button id="bSalir" class="link oculto" type="button">Salir</button>
+  <div id="msg" class="msg"></div>
+  <div class="pie" id="sellos"></div>
+</main>
+
+<script type="module">
+import { cargarFirebase, auth, db, A, F, VERSION as VI } from "./cuenta/firebase.js";
+import { validar, paso, fichaNueva, causa, limpiarMail, VERSION as VR } from "./cuenta/registro.js";
+
+// El ojo 👁 de las contraseñas: la copia común del panel, diferida y con catch.
+import("https://maurogasta-crypto.github.io/datos/ojos.js").catch(() => {});
+
+const $ = (id) => document.getElementById(id);
+$("sellos").textContent = `${VR} · ${VI}`;
+let nueva = true, ocupado = false;
+const ROLES = { admin: "administrador", docente: "docente", alumno: "alumno" };
+
+const decir = (t, tipo = "") => { $("msg").textContent = t; $("msg").className = "msg " + tipo; };
+const mostrar = (cual) => {
+  for (const id of ["fCuenta", "sVerificar", "sSinInv", "sListo"]) $(id).classList.toggle("oculto", id !== cual);
+  $("bSalir").classList.toggle("oculto", cual === "fCuenta");
+};
+const modo = (n) => {
+  nueva = n;
+  $("soloNueva").classList.toggle("oculto", !n);
+  $("soloNueva2").classList.toggle("oculto", !n);
+  $("bCuenta").textContent = n ? "Crear mi cuenta" : "Entrar";
+  $("bModo").textContent = n ? "Ya tengo cuenta" : "Todavía no tengo cuenta";
+  $("bOlvide").classList.toggle("oculto", n);
+  $("clave").autocomplete = n ? "new-password" : "current-password";
+  decir("");
+};
+const conEspera = async (boton, f) => {
+  if (ocupado) return; ocupado = true; boton.disabled = true;
+  try { await f(); } catch (e) { decir(causa(e), "mal"); } finally { ocupado = false; boton.disabled = false; }
+};
+
+async function evaluar(u) {
+  if (!u) { mostrar("fCuenta"); return; }
+  await u.reload();
+  const mail = limpiarMail(u.email);
+  const tieneFicha = (await F.getDoc(F.doc(db, "usuarios", u.uid)).catch(() => null))?.exists?.() || false;
+  let invitacion = null;
+  if (!tieneFicha && u.emailVerified) {
+    await u.getIdToken(true);                 // que el token ya diga «verificado»
+    const s = await F.getDoc(F.doc(db, "invitaciones", mail)).catch(() => null);
+    invitacion = s && s.exists() ? s.data() : null;
+  }
+  const p = paso({ usuario: u, verificado: u.emailVerified, tieneFicha, invitacion });
+  if (p === "verificar") { $("vMail").textContent = mail; mostrar("sVerificar"); return; }
+  if (p === "sin-invitacion") { mostrar("sSinInv"); return; }
+  if (p === "crear-ficha") {
+    const nombre = u.displayName || sessionStorage.getItem("bm_nombre") || "";
+    await F.setDoc(F.doc(db, "usuarios", u.uid), fichaNueva(mail, nombre, invitacion));
+  }
+  const f = await F.getDoc(F.doc(db, "usuarios", u.uid));
+  const rol = f.exists() ? f.data().rol : "";
+  $("lTexto").textContent = `Listo: quedaste registrado en BandoMaps como ${ROLES[rol] || rol}, con ${mail}. Ya podés cerrar esta página.`;
+  mostrar("sListo"); decir("");
+}
+
+$("bModo").onclick = () => modo(!nueva);
+$("fCuenta").onsubmit = (e) => { e.preventDefault(); conEspera($("bCuenta"), async () => {
+  const datos = { mail: $("mail").value, clave: $("clave").value, clave2: $("clave2").value, nombre: $("nombre").value };
+  const falta = validar(datos, nueva); if (falta) return decir(falta, "mal");
+  decir("Un momento…");
+  if (nueva) {
+    sessionStorage.setItem("bm_nombre", datos.nombre.trim());
+    const c = await A.createUserWithEmailAndPassword(auth, limpiarMail(datos.mail), datos.clave);
+    await A.updateProfile(c.user, { displayName: datos.nombre.trim() }).catch(() => {});
+    await A.sendEmailVerification(c.user);
+  } else {
+    await A.signInWithEmailAndPassword(auth, limpiarMail(datos.mail), datos.clave);
+  }
+  $("clave").value = ""; $("clave2").value = "";
+  await evaluar(auth.currentUser);
+}); };
+$("bOlvide").onclick = () => conEspera($("bOlvide"), async () => {
+  const m = limpiarMail($("mail").value);
+  if (!m) return decir("Escribí tu mail arriba y volvé a tocar.", "mal");
+  await A.sendPasswordResetEmail(auth, m);
+  decir("Te mandamos un mail para elegir una contraseña nueva.", "ok");
+});
+$("bVerifique").onclick = () => conEspera($("bVerifique"), async () => {
+  await evaluar(auth.currentUser);
+  if (auth.currentUser && !auth.currentUser.emailVerified) decir("Todavía figura sin confirmar. Tocá el enlace del mail y probá de nuevo.", "mal");
+});
+$("bReenviar").onclick = () => conEspera($("bReenviar"), async () => {
+  await A.sendEmailVerification(auth.currentUser); decir("Listo, te lo mandamos de nuevo.", "ok");
+});
+$("bSalir").onclick = () => A.signOut(auth).then(() => { modo(true); mostrar("fCuenta"); decir(""); });
+
+modo(true);
+if (!(await cargarFirebase())) {
+  decir("No se pudo cargar lo necesario para crear la cuenta. Revisá la conexión y recargá la página.", "mal");
+} else {
+  A.onAuthStateChanged(auth, (u) => evaluar(u).catch((e) => decir(causa(e), "mal")));
+}
+</script>
+</body>
+</html>
