@@ -1,0 +1,133 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// firestore.rules — Reglas de la base de BandoMaps (proyecto tocatoca-621a5).
+// Versión v1 (7-nov-2026).
+//
+// ESTO ES LA PLANTILLA, NO LO PUBLICADO. La autoridad es lo que está en la
+// consola de Firebase → Firestore → Reglas. Los dos UID van como MARCADORES
+// porque este repositorio es público: el panel de Mauro (Sitios → BandoMaps →
+// «Copiar para publicar») los reemplaza y arma el texto completo en pantalla.
+// Un UID real no entra nunca a este archivo.
+//
+// UNA base para el sitio estable y para el de desarrollo (ver BASE.md): por eso
+// las reglas validan la FORMA de lo que se escribe y no confían en la pantalla.
+//
+// Quién es quién:
+//   · Mauro: administrador fijo (su UID), aunque todavía no tenga ficha.
+//   · usuarios/{uid}: la ficha de cada persona — rol (admin | docente | alumno),
+//     activo, probador. El ROL no lo cambia nunca su dueño: sólo un admin.
+//   · El agente (Claude): lee todo, prepara invitaciones, clases e historico
+//     para la migración, y deja copia en _historial antes de cada cambio.
+//   · Todo lo que no está acá: cerrado (deny por defecto, sin comodín).
+// ─────────────────────────────────────────────────────────────────────────────
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function logueado()  { return request.auth != null; }
+    function esMauro()   { return logueado() && request.auth.uid == "TU-UID-ACA"; }
+    function esAgente()  { return logueado() && request.auth.uid == "UID-DEL-AGENTE"; }
+    function rutaFicha() { return /databases/$(database)/documents/usuarios/$(request.auth.uid); }
+    function ficha()     { return get(rutaFicha()).data; }
+    function activo()    { return logueado() && exists(rutaFicha()) && ficha().activo == true; }
+    function esAdmin()   { return esMauro() || (activo() && ficha().rol == "admin"); }
+    function esDocente() { return esAdmin() || (activo() && ficha().rol == "docente"); }
+    function miMail()    { return logueado() && request.auth.token.email != null
+                             ? request.auth.token.email.lower() : ""; }
+    function soloCambia(campos) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(campos);
+    }
+    function rolValido(r) { return r in ["admin", "docente", "alumno"]; }
+
+    // ── Personas ────────────────────────────────────────────────────────────
+    match /usuarios/{uid} {
+      allow get: if logueado() && (request.auth.uid == uid || esDocente() || esAgente());
+      allow list: if esDocente() || esAgente();
+      // Alta: un admin, o la propia persona SI tiene una invitación a su mail,
+      // con el rol de la invitación y nada más.
+      allow create: if esAdmin()
+        || (request.auth.uid == uid
+            && exists(/databases/$(database)/documents/invitaciones/$(miMail()))
+            && request.resource.data.keys().hasOnly(["nombre", "mail", "rol", "activo", "usuario", "creado"])
+            && request.resource.data.rol == get(/databases/$(database)/documents/invitaciones/$(miMail())).data.rol
+            && request.resource.data.activo == true
+            && request.resource.data.mail == miMail());
+      // Cada uno cambia sólo su nombre y sus preferencias. Rol, activo,
+      // permisos y probador: sólo un admin.
+      allow update: if (esAdmin() && rolValido(request.resource.data.rol))
+        || (request.auth.uid == uid && activo() && soloCambia(["nombre", "prefs", "actualizado"]));
+      allow delete: if esAdmin();
+    }
+
+    match /invitaciones/{mail} {
+      allow get: if logueado() && (miMail() == mail || esDocente() || esAgente());
+      allow list: if esDocente() || esAgente();
+      // Un docente invita sólo alumnos; un admin (o el agente, en la migración), a cualquiera.
+      allow create, update: if (esAdmin() || esAgente()) && rolValido(request.resource.data.rol)
+        || (esDocente() && request.resource.data.rol == "alumno");
+      allow delete: if esDocente();
+    }
+
+    // ── Configuración del sitio ─────────────────────────────────────────────
+    match /config/{doc} {
+      allow read: if logueado();
+      allow write: if esAdmin();
+    }
+
+    // ── Cursos ──────────────────────────────────────────────────────────────
+    match /clases/{id} {
+      allow read: if esDocente() || esAgente()
+        || (activo() && request.auth.uid in resource.data.get("alumnos", []));
+      allow create: if (esDocente() && request.resource.data.docente == request.auth.uid) || esAgente();
+      allow update: if esAdmin() || esAgente()
+        || (esDocente() && resource.data.docente == request.auth.uid
+            && request.resource.data.docente == request.auth.uid);
+      allow delete: if esAdmin() || (esDocente() && resource.data.docente == request.auth.uid);
+    }
+
+    // Lo de cada alumno: acordes, tareas hechas, resultados. Lo escribe él.
+    match /progreso/{uid} {
+      allow read: if logueado() && (request.auth.uid == uid || esDocente() || esAgente());
+      allow create, update: if (request.auth.uid == uid && activo()) || esAgente();
+      allow delete: if esAdmin();
+    }
+
+    // Lo que trae la migración de la planilla vieja, por USUARIO viejo (no por
+    // uid): el alumno lo ve cuando su ficha dice ese usuario.
+    match /historico/{usuario} {
+      allow read: if esDocente() || esAgente()
+        || (activo() && ficha().get("usuario", "") == usuario);
+      allow write: if esAdmin() || esAgente();
+    }
+
+    // Cada ingreso y cada práctica (reemplaza la hoja «Ingresos»).
+    match /ingresos/{id} {
+      allow create: if activo()
+        && request.resource.data.keys().hasOnly(["uid", "tipo", "en", "app"])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.tipo in ["ingreso", "tarea"];
+      allow read: if esDocente() || esAgente()
+        || (logueado() && resource.data.uid == request.auth.uid);
+      allow update: if false;
+      allow delete: if esAdmin();
+    }
+
+    // ── Lo común del ecosistema ─────────────────────────────────────────────
+    match /reportes/{id} {
+      allow create: if activo() && request.resource.data.uid == request.auth.uid;
+      allow read: if esAdmin() || esAgente() || (logueado() && resource.data.uid == request.auth.uid);
+      allow update, delete: if esAdmin();
+    }
+
+    match /avisos/{id} {
+      allow create: if esAgente();
+      allow read, delete: if logueado() && resource.data.uid == request.auth.uid;
+      allow update: if logueado() && resource.data.uid == request.auth.uid && soloCambia(["leido"]);
+    }
+
+    match /_historial/{id} {
+      allow create: if esAgente() || esAdmin();
+      allow read: if esAgente() || esAdmin();
+      allow update, delete: if false;
+    }
+  }
+}

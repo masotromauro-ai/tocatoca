@@ -17,9 +17,13 @@ Despliegue automático en **Vercel** desde GitHub. Eso lo separa de los otros
 tres sitios del ecosistema (`casaverdecanas`, `CasaYourte`, `remate`), que son
 estáticos y publican por GitHub Pages: acá sí existe una etapa de compilación.
 
-**Servicios de terceros: ninguno.** No hay Firebase, ni Cloudinary, ni base de
-datos, ni funciones de servidor: todo el estado vive en el `localStorage` del
-teléfono y nada sale de él.
+**Servicios de terceros: Firebase, desde el 7-nov-2026** — proyecto
+**`tocatoca-621a5`** (Firestore + Authentication por mail y contraseña), plan
+Spark. Hasta ese día no había ninguno y todo vivía en el `localStorage` del
+teléfono. La forma de los datos, quién escribe qué y cómo comparten la base el
+sitio estable y el de desarrollo están en **`BASE.md`**; las reglas, en
+`firestore.rules` (plantilla con los UID como marcadores). La app todavía no la
+usa: la integración va por partes (BASE.md, «La migración»).
 
 Hubo un puente a la nube de **Tuya** (`api/tuya.js`) entre el 2026-09-09 y el
 2026-09-09: el instrumento de gestos encendía luces. Se retiró por decisión de
@@ -60,6 +64,7 @@ la app compilada, porque no comparte con ella ni una línea de código.
 | `README.md` | funcionalidades, paleta tonal, instalación |
 | `GESTOS.md` | el instrumento de gestos completo: cómo se toca, las piezas, la puesta en marcha, y qué falta |
 | `EL-CODIGO.md` | el desarrollo paralelo del sistema de colores: qué del manual se ratificó, qué se corrigió, con qué se comprobó |
+| `BASE.md` | la base de Firebase: colecciones, roles, el sitio estable y el de desarrollo sobre la misma base, y la migración por partes |
 | `DESPLIEGUE.md` | qué cuenta de Vercel publica el proyecto, cómo averiguarlo desde GitHub, y por qué el repositorio no puede contestarlo solo |
 
 ## Secretos
@@ -76,6 +81,9 @@ que no hay dónde cargarlas ni quién las lea.
 
 | Variable | Qué hace | Tipo | Dónde vive el valor real | Consumida por | Verificado |
 |---|---|---|---|---|---|
+| `firebaseConfig` de `tocatoca-621a5` (`apiKey`, `projectId`…) | identifica la base ante la API web; **no da permisos**: eso lo hacen las reglas | público por diseño | el código, cuando entre `firebase-init.js` | la app | 2026-11-07 |
+| Contraseña de cada persona | entrar | dato en runtime | Firebase Authentication de `tocatoca-621a5`; nadie maneja contraseñas ajenas | la app | — |
+| Usuario del agente de Claude Code | que un chat lea la base y prepare la migración | dato en runtime | Firebase Authentication de `tocatoca-621a5`, con la contraseña de las otras bases (variables de entorno de Claude Code); su UID va como marcador en `firestore.rules` | `datos/herramientas/firestore.mjs`, proyecto `harmonia` | entra desde el 2026-11-07 |
 | Login de la consola de Vercel · de GitHub | Desplegar | credencial de cuenta | Gestor de contraseñas personal de Mauro | Nadie — uso manual | ausencia confirmada en todo el repo, 2026-09-09 |
 
 **Si algún día vuelve a hacer falta una variable**, el valor lo carga Mauro a
@@ -181,6 +189,7 @@ vuelve a la rama.
   porque no hay ninguna credencial en todo el proyecto. Si vuelve a haber una
   función de servidor, vuelve a ser la frontera que importa: el navegador manda
   un alias, el servidor traduce y firma.
+- **Las reglas se prueban en el emulador antes de publicarlas:** `pruebas/reglas.mjs` (41 casos; cómo se corre, en su cabecera: necesita Java y no agrega nada a `package.json`). Una colección nueva entra con su regla y sus casos en la misma tanda.
 - **Se corren los bancos de pruebas antes de subir:** `npm run prueba`, que
   encadena los dos, sin dependencias ni navegador. `pruebas/gestos.mjs` (8
   casos) cubre la teoría musical del instrumento; `pruebas/codigo.mjs` (60)
