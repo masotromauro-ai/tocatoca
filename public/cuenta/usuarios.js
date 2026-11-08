@@ -9,7 +9,7 @@
    va a rechazar, y para que nadie se quede afuera por un toque.
    ═══════════════════════════════════════════════════════════ */
 import { limpiarMail } from "./registro.js";
-export const VERSION = "usuarios-1";
+export const VERSION = "usuarios-2";
 
 export const ROLES = ["admin", "docente", "alumno"];
 export const NOMBRE_ROL = { admin: "Administrador", docente: "Docente", alumno: "Alumno" };
@@ -66,4 +66,23 @@ export function mensajeInvitacion(mail, rol) {
   const r = (NOMBRE_ROL[rol] || rol).toLowerCase();
   return `Hola! Te invitamos a BandoMaps como ${r}. Registrate en ${LINK_REGISTRO} con este mail: ${limpiarMail(mail)}. `
     + `Elegí una contraseña y confirmá el mail con el enlace que te llega (si no lo ves, buscalo en Spam).`;
+}
+
+/** «Invitar varios» (usuarios-2, 8-nov-2026): una persona por renglón,
+    «mail» o «mail, usuario viejo» (también separado por ; o tabulador, como
+    sale de una planilla). Devuelve las que sirven y, aparte, cada renglón que
+    no sirve con su motivo: nada se invita a medias sin decirlo. */
+export function leerLista(texto, rol, yo, usuarios = [], invitaciones = []) {
+  const ok = [], mal = [], vistos = new Set();
+  for (const crudo of String(texto || "").split(/\r?\n/)) {
+    const linea = crudo.trim();
+    if (!linea) continue;
+    const [mail, usuario = ""] = linea.split(/[,;\t]/).map((x) => x.trim());
+    const m = limpiarMail(mail);
+    if (vistos.has(m)) { mal.push({ linea, motivo: "Repetido en la lista." }); continue; }
+    const falta = validarInvitacion({ mail: m, rol, usuario }, yo, usuarios, invitaciones);
+    if (falta) { mal.push({ linea, motivo: falta }); continue; }
+    vistos.add(m); ok.push({ mail: m, rol, usuario });
+  }
+  return { ok, mal };
 }

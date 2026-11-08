@@ -6,7 +6,7 @@
    sigue, qué dice un error, qué ficha se crea) vive acá y lo prueba
    pruebas/registro.mjs con node a secas.
    ═══════════════════════════════════════════════════════════ */
-export const VERSION = "registro-2";
+export const VERSION = "registro-3";
 
 /** El mail de Firebase suele caer en SPAM (pasó con el de Mauro, 7-nov-2026):
     se dice a la vista cada vez que se manda uno. */

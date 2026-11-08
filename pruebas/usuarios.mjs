@@ -1,6 +1,6 @@
 // pruebas/usuarios.mjs — la lógica de la pantalla de Usuarios (public/cuenta/usuarios.js), con node a secas.
 import assert from "node:assert/strict";
-import { puedeVer, puedeEditar, rolesQueInvita, dejaSinAdmin, validarInvitacion, invitacionNueva, pendientes, ordenar, mensajeInvitacion, LINK_REGISTRO } from "../public/cuenta/usuarios.js";
+import { puedeVer, puedeEditar, rolesQueInvita, dejaSinAdmin, validarInvitacion, invitacionNueva, pendientes, ordenar, mensajeInvitacion, leerLista, LINK_REGISTRO } from "../public/cuenta/usuarios.js";
 let ok = 0, mal = 0;
 const t = (n, f) => { try { f(); ok++; } catch (e) { mal++; console.log("✖", n, e.message); } };
 const admin = { id: "a", rol: "admin", activo: true, nombre: "Mauro", mail: "m@x.com" };
@@ -41,5 +41,19 @@ t("orden: activos primero, por rol y nombre", () => assert.deepEqual(ordenar([ba
 t("el mensaje lleva el link, el mail y el aviso de Spam", () => {
   const m = mensajeInvitacion("Ana@X.com", "alumno");
   assert.ok(m.includes(LINK_REGISTRO)); assert.ok(m.includes("ana@x.com")); assert.match(m, /alumno/); assert.match(m, /Spam/);
+});
+t("invitar varios: mail, o mail y usuario viejo; coma, punto y coma o tabulador", () => {
+  const r = leerLista("Ana2@x.com, ana\n\n  juan@x.com \npedro@x.com;pedro\nlu@x.com\tlu", "alumno", admin, [alu], []);
+  assert.deepEqual(r.ok.map((p) => [p.mail, p.usuario]), [["ana2@x.com", "ana"], ["juan@x.com", ""], ["pedro@x.com", "pedro"], ["lu@x.com", "lu"]]);
+  assert.equal(r.mal.length, 0);
+});
+t("invitar varios: lo que no sirve queda aparte con su motivo, y nada se repite", () => {
+  const r = leerLista("ana@x.com\nnoesmail\nz@x.com\nq@x.com\nq@x.com\nw@x.com, con espacio", "alumno", admin, [alu], [{ id: "z@x.com" }]);
+  assert.deepEqual(r.ok.map((p) => p.mail), ["q@x.com"]);
+  assert.deepEqual(r.mal.map((x) => x.linea), ["ana@x.com", "noesmail", "z@x.com", "q@x.com", "w@x.com, con espacio"]);
+  assert.ok(r.mal.every((x) => x.motivo));
+});
+t("invitar varios: un docente no invita docentes de a muchos tampoco", () => {
+  const r = leerLista("x@x.com", "docente", doc, [], []); assert.equal(r.ok.length, 0); assert.match(r.mal[0].motivo, /sólo alumnos/);
 });
 console.log(`${ok} pasadas, ${mal} fallidas`); process.exit(mal ? 1 : 0);

@@ -83,6 +83,15 @@ cualquier rol, cambia roles, suspende y marca «probador»; el docente invita s�
 alumnos. La invitación no manda mails: «Copiar mensaje» arma el texto con el link
 de registro y lo manda una persona.
 
+## La puerta
+
+Desde el 8-nov-2026 la app (el sitio de desarrollo) **no se abre sin cuenta**:
+`src/Puerta.jsx` pide el mail y la contraseña, lee la ficha `usuarios/{uid}` y la
+sigue escuchando. Sin ficha manda al registro; con la ficha suspendida no deja
+entrar (y si la suspenden con la app abierta, la cierra). El rol decide qué se
+ve: «Mis tareas» para el alumno; Organizador y Usuarios para docente y admin.
+No hizo falta tocar las reglas: la ficha ya la puede leer su dueño.
+
 ## La migración, en partes
 
 1. **Reglas v1 publicadas** y la base en el respaldo diario.
@@ -98,6 +107,9 @@ de registro y lo manda una persona.
    teléfono o de navegador.
 5. **La app**: una sola versión con login; el rol decide qué se ve (Usuarios
    para el admin, Organizador para el docente, Mis tareas para el alumno).
+   **Hecho en el sitio de desarrollo el 8-nov-2026** (ver «La puerta»). Los
+   alumnos de la planilla se invitan de a muchos con «Invitar varios» en
+   Usuarios, cada uno con su usuario viejo, antes de llevarlo al estable.
    Recién entonces se retiran la planilla, `clases.json`, `config.json` y
    `usuarios.json`.
 
