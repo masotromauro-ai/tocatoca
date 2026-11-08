@@ -192,6 +192,30 @@ import * as T from "./codigo/teoria.js";
 import { crearMotor } from "./gestos/audio.js";
 import { midiDe } from "./gestos/musica.js";
 
+// medir-1 (8-nov-2026): con la cuenta abierta, cada respuesta y el tiempo de
+// práctica suman al resumen del día del alumno (progreso/{uid}/dias, las mismas
+// reglas y el mismo cálculo que la app: cuenta/medir.js). Sin cuenta, nada.
+let acc = null;
+const medir = (bien, nota) => { if (!acc) return; const pc = T.CROMATICA ? T.CROMATICA.indexOf(nota) : -1; acc.resultado("practica-" + modo, bien, pc >= 0 ? pc : undefined); acc.actividad(); };
+(async () => {
+  try {
+    const [fb, me] = await Promise.all([import("./cuenta/firebase.js"), import("./cuenta/medir.js")]);
+    if (!(await fb.cargarFirebase())) return;
+    fb.A.onAuthStateChanged(fb.auth, (u) => {
+      if (!u || acc) return;
+      acc = me.crearAcumulador();
+      const visible = () => document.visibilityState === "visible";
+      const tic = () => acc.tic("practica", Date.now(), visible());
+      const mandar = () => { if (!acc.hayAlgo()) return; const p = acc.vaciar();
+        fb.F.setDoc(fb.F.doc(fb.db, "progreso", u.uid, "dias", me.dia()), me.aDocumento(p, fb.F.increment), { merge: true }).catch(() => acc.devolver(p)); };
+      ["pointerdown", "keydown", "touchstart"].forEach((e) => window.addEventListener(e, () => acc.actividad(), { passive: true }));
+      document.addEventListener("visibilitychange", () => { tic(); if (!visible()) mandar(); });
+      window.addEventListener("pagehide", () => { tic(); mandar(); });
+      acc.actividad(); tic(); setInterval(tic, 15000); setInterval(() => { tic(); mandar(); }, me.CADA_MS);
+    });
+  } catch (e) { /* sin cuenta o sin conexión: la práctica anda igual */ }
+})();
+
 const $ = (id) => document.getElementById(id);
 const lat = (n) => (T.LATINO[n] || n).replace("#", "♯");
 
@@ -300,6 +324,7 @@ $("opciones").addEventListener("click", (ev) => {
   const q = sesion.actual;
   const r = sesion.responder(b.dataset.r);
   if (r.yaRespondida) return;
+  medir(r.acierto, r.correcta);
 
   $("opciones").querySelectorAll("button").forEach((x) => {
     x.disabled = true;

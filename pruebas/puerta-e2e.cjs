@@ -21,6 +21,7 @@ const leer = async (c) => ((await (await fetch(FS + "/" + c, { headers: owner })
   await usuario("doc@x.com", "clave1234", { nombre: "Doc", rol: "docente" });
   const aluId = await usuario("alu@x.com", "clave1234", { nombre: "Alu", rol: "alumno", usuario: "alu_viejo" });
   await usuario("nueva@x.com", "clave1234", null);
+  const alu2 = await usuario("alu2@x.com", "clave1234", { nombre: "Beto", rol: "alumno", usuario: "beto" });
   await fetch(FS + "/invitaciones?documentId=ya@x.com", { method: "POST", headers: owner, body: JSON.stringify(fields({ rol: "alumno" })) });
   const fb = fs.readFileSync(path.join(__dirname, "..", "dist", "cuenta", "firebase.js"), "utf8").replace('auth.languageCode = "es";',
     'auth.languageCode = "es"; au.connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });')
@@ -65,7 +66,27 @@ const leer = async (c) => ((await (await fetch(FS + "/" + c, { headers: owner })
   // Cuenta sin ficha
   p = await nueva(); await entrar(p, "nueva@x.com");
   tx = await cuerpo(p);
+  if (!tx.includes("Te falta confirmar")) console.log("DBG", tx.slice(0, 300), errs);
   t("cuenta sin ficha ni mail confirmado: al registro, sin app", tx.includes("Te falta confirmar tu mail") && tx.includes("Ir al registro") && !tx.includes("Herramientas"));
+
+  // medir-1: lo practicado se guarda en el día, y «Traer lo de este teléfono»
+  p = await nueva();
+  await p.goto("http://localhost:4176/"); await p.waitForSelector("#pMail");
+  await p.evaluate(() => localStorage.setItem("bandomaps_hechas_beto", JSON.stringify({ c1: true })));
+  await entrar(p, "alu2@x.com");
+  t("el alumno ve que su docente ve su avance", (await cuerpo(p)).includes("Tu docente ve tu avance"));
+  t("ofrece traer lo de este teléfono", await p.isVisible("#pTraerSi"));
+  await p.click("#pTraerSi"); await p.waitForTimeout(1500);
+  const prog = await (await fetch(FS + "/progreso/" + alu2, { headers: owner })).json();
+  t("lo del teléfono quedó en su progreso", prog.fields && prog.fields.hechas && prog.fields.hechas.mapValue.fields.c1.booleanValue === true && !!prog.fields.traido);
+  if (await p.isVisible("text=Entendido")) await p.click("text=Entendido");   // el aviso inicial del alumno
+  await p.evaluate(() => { window.__medir("colores-nota", true, 0); window.__medir("colores-nota", false, 0); window.__medirLote("entrenador-notas", 5, 2); });
+  await p.click("text=Salir"); await p.waitForTimeout(2000);
+  const dias = await leer("progreso/" + alu2 + "/dias");
+  const f0 = dias[0] && dias[0].fields;
+  t("el día se guardó con su ingreso", !!f0 && Number(f0.ingresos.integerValue) === 1);
+  t("con aciertos y fallos por ejercicio y por nota", !!f0 && f0.ej.mapValue.fields["colores-nota"].mapValue.fields.a.integerValue === "1"
+    && f0.ej.mapValue.fields["entrenador-notas"].mapValue.fields.f.integerValue === "2" && f0.notas.mapValue.fields["0"].mapValue.fields.f.integerValue === "1");
 
   // Admin: invitar varios
   p = await nueva(); await entrar(p, "admin@x.com");

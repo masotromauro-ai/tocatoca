@@ -9,13 +9,14 @@ UID del agente como marcador) y se prueban con `pruebas/reglas.mjs` en el emulad
 
 | Colección | Qué es | Quién escribe |
 |---|---|---|
-| `usuarios/{uid}` | la ficha: `nombre`, `mail`, `rol` (admin · docente · alumno), `activo`, `usuario` (el de la planilla vieja), `prefs` | el admin; cada uno sólo su `nombre` y sus `prefs`. **Nadie se cambia su propio rol** |
+| `usuarios/{uid}` | la ficha: `nombre`, `mail`, `rol` (admin · docente · alumno), `activo`, `usuario` (el de la planilla vieja), `prefs`, y desde v2 `docente` (el uid de su docente) | el admin; cada uno sólo su `nombre` y sus `prefs`. **Nadie se cambia su propio rol** |
 | `invitaciones/{mail}` | el alta: `rol` | admin (cualquier rol) · docente (sólo alumnos) · agente (migración) |
 | `config/{doc}` | parámetros del sitio (`config/sitio`: registro, aviso inicial, `esquema`) | admin |
 | `clases/{id}` | una clase: `docente`, `alumnos` (uids), ejercicios | el docente que la creó |
-| `progreso/{uid}` | lo de cada alumno: acordes, tareas hechas, resultados | el alumno |
+| `progreso/{uid}` | lo de cada alumno: lo que trajo de su teléfono (`hechas`, `misAcordesJson`, `traido`) | el alumno. Lo leen él, **su** docente, los admin y el agente (v2) |
+| `progreso/{uid}/dias/{AAAA-MM-DD}` | el resumen de cada día (v2, 8-nov-2026): `min` (minutos por herramienta), `ingresos`, `ej` y `notas` (`{a, f}`: aciertos y fallos), `en` | sólo el alumno, con esa forma y nada más |
 | `historico/{usuario}` | lo que trae la migración de la planilla vieja, por usuario viejo | agente · admin |
-| `ingresos/{id}` | cada ingreso o práctica (`uid`, `tipo`, `en`, `app`) — reemplaza la hoja «Ingresos» | el alumno, sólo los suyos, sin campos de más |
+| `ingresos/{id}` | cada ingreso o práctica (`uid`, `tipo`, `en`, `app`) — reemplaza la hoja «Ingresos». Desde v2 los lista sólo el admin: el docente ve los ingresos de sus alumnos en `dias` | el alumno, sólo los suyos, sin campos de más |
 | `reportes/`, `avisos/`, `_historial/` | lo común del ecosistema: fallas y pedidos, el buzón de la Pizarra, la copia antes de cada cambio del agente | — |
 
 **Nadie es administrador por su UID.** Lo es quien tiene ficha activa con rol
@@ -114,6 +115,12 @@ No hizo falta tocar las reglas: la ficha ya la puede leer su dueño.
    `usuarios.json`.
 
 ## Cupo
+
+**El avance por día (v2):** cada alumno escribe su día cada 2 minutos mientras
+practica, y al irse: con 50 alumnos de una hora diaria, unas 1.500 escrituras
+por día contra 20.000 gratis; leer la pestaña «Alumnos» son unas decenas de
+lecturas por alumno y por mes que se mira.
+
 
 Con decenas de alumnos: unos cientos de lecturas y escrituras por día, contra
 50.000 lecturas y 20.000 escrituras gratis. Cada regla que mira la ficha

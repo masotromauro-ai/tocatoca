@@ -3230,7 +3230,7 @@ function PaletaRueda({compacta=false}){
   const reiniciaPregunta=()=>{ timers.current.forEach(clearTimeout); timers.current=[]; setJuego(j=>j?{...j,obj:null,res:null}:j); };
   const responder=(pc)=>{
     if(!juego||juego.res||juego.obj===null||juego.fin||!poolDe(juego.nivel).includes(pc)) return;
-    const bien=pc===juego.obj; playBand(CHROMATIC[juego.obj],4);
+    const bien=pc===juego.obj; playBand(CHROMATIC[juego.obj],4); medir("colores-"+(juego.modo||"nota"),bien,juego.obj);
     const racha=bien?juego.racha+1:0;
     setJuego({...juego,res:{pc,bien},ok:juego.ok+(bien?1:0),total:juego.total+1,racha,mejor:Math.max(juego.mejor,racha)});
     timers.current.push(setTimeout(()=>setJuego(j=>{
@@ -3347,7 +3347,7 @@ function EntrenaColores(){
   const nuevaOrden=()=>setOrd({mezcla:mezcla([...Array(12).keys()]),sig:0,err:0,pista:false,mal:null});
   const cambiar=(m)=>{ setModo(m); setQ(null); setOrd(null); };
 
-  const responder=(pc)=>{ if(Q.resp!==null) return; const bien=pc===Q.lista[Q.i]; playBand(CHROMATIC[Q.lista[Q.i]],4);
+  const responder=(pc)=>{ if(Q.resp!==null) return; const bien=pc===Q.lista[Q.i]; playBand(CHROMATIC[Q.lista[Q.i]],4); medir("preguntas-"+modo,bien,Q.lista[Q.i]);
     setQ(q=>q?{...q,resp:pc,ok:q.ok+(bien?1:0)}:q); setTimeout(()=>setQ(q=>q?{...q,i:q.i+1,resp:null}:q),bien?750:1500); };
   const tocarOrden=(pc)=>{ if(ord.sig>=12) return;
     if(pc===ord.sig){ playBand(CHROMATIC[pc],4); setOrd(o=>({...o,sig:o.sig+1,pista:false,mal:null})); }
@@ -5374,7 +5374,7 @@ function EntrenadorTab({preset}={}){
               👁 {reveal?"Ocultar respuesta":"Ver respuesta"}
             </button>
           )}
-          {modo!=="escalas" && !esCam && modo!=="lineas" && modo!=="construir" && modo!=="armonizar" && <button onClick={()=>setChecked(true)} style={{padding:"6px 14px",borderRadius:9,border:"none",background:"#e6e6e6",color:"#0a0a0a",fontWeight:800,fontSize:11,cursor:"pointer"}}>
+          {modo!=="escalas" && !esCam && modo!=="lineas" && modo!=="construir" && modo!=="armonizar" && <button onClick={()=>{ if(!checked&&painted.length) medirLote("entrenador-"+modo,correctos.length,painted.length-correctos.length); setChecked(true); }} style={{padding:"6px 14px",borderRadius:9,border:"none",background:"#e6e6e6",color:"#0a0a0a",fontWeight:800,fontSize:11,cursor:"pointer"}}>
             ✓ Corregir
           </button>}
           <button onClick={reiniciarFuelle} style={uiGhost}>
@@ -5901,6 +5901,9 @@ const cargarOrg = ()=>{ try{ const j=JSON.parse(localStorage.getItem(ORG_KEY)||"
 // así que el script de la planilla sabe quién es sin fiarse de lo que diga el navegador.
 const REG_URL_RE = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
 const REG_SES = "bandomaps_reg_sesion";
+// medir-1 (8-nov-2026): cada respuesta suma al resumen del día del alumno (src/Puerta.jsx y public/cuenta/medir.js).
+function medir(ej,bien,pc){ try{ window.__medir&&window.__medir(ej,bien,pc); }catch(e){} }
+function medirLote(ej,a,f){ try{ window.__medirLote&&window.__medirLote(ej,a,f); }catch(e){} }
 function registrar(tipo){
   try{
     const url=window.__ACCESO_URL, tok=window.__TOKEN;
@@ -6593,6 +6596,7 @@ export default function BandoMapsApp(){
   useEffect(()=>{ if(aviso&&!avisoManual){ try{ localStorage.setItem("bandomaps_aviso_vistas",String(avisoN.current)); }catch(e){} } },[]);
 
   const[tab,setTab]=useState("codigo");
+  useEffect(()=>{ window.__tab=tab; },[tab]);   // medir-1: qué herramienta se está usando (src/Puerta.jsx)
   const[navOpen,setNavOpen]=useState(false);
   const[chordInput,setChordInput]=useState("Dm7");
   const[pickRoot,setPickRoot]=useState("D");

@@ -4,7 +4,7 @@
 // el SDK del proyecto: se importa en tiempo de ejecución (no lo empaqueta Vite),
 // así la app y las páginas de public/ comparten una sola configuración y una
 // sola sesión.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const cargar = (ruta) => import(/* @vite-ignore */ ruta);
 const G = { bg: "#0a0a0b", card: "#131315", line: "#2a2a2e", tx: "#ececec", mu: "#8a8a90", mal: "#e08a84", ok: "#2dd4bf" };
@@ -33,16 +33,18 @@ export default function Puerta({ children }) {
   const [clave, setClave] = useState("");
   const [msg, setMsg] = useState({ t: "", ok: false });
   const [ocupado, setOcupado] = useState(false);
+  const vaciarRef = useRef(null);   // manda lo medido ANTES de cerrar la sesión (después la base ya no deja)
 
   useEffect(() => {
     let vivo = true, desFicha = () => {}, desAuth = () => {};
     (async () => {
       let fb, pu;
-      try { [fb, pu] = await Promise.all([cargar("/cuenta/firebase.js"), cargar("/cuenta/puerta.js")]); } catch (e) { fb = null; }
+      let me;
+      try { [fb, pu, me] = await Promise.all([cargar("/cuenta/firebase.js"), cargar("/cuenta/puerta.js"), cargar("/cuenta/medir.js")]); } catch (e) { fb = null; }
       const ok = !!fb && (await fb.cargarFirebase());
       if (!vivo) return;
       if (!ok) { setEst({ listo: true, firebase: false }); return; }
-      setM({ fb, pu });
+      setM({ fb, pu, me });
       import("https://maurogasta-crypto.github.io/datos/ojos.js").catch(() => {});
       desAuth = fb.A.onAuthStateChanged(fb.auth, (u) => {
         desFicha();
@@ -58,6 +60,52 @@ export default function Puerta({ children }) {
   }, []);
 
   const fase = m ? m.pu.fase(est) : (est.listo ? "sin-firebase" : "cargando");
+  const uid = fase === "app" && est.usuario ? est.usuario.uid : null;
+
+  // ── Medir (medir-1): minutos por herramienta, ingresos y aciertos, un resumen por día.
+  useEffect(() => {
+    if (!uid || !m) return;
+    const { fb, me } = m, acc = me.crearAcumulador();
+    const mandar = () => {
+      if (!acc.hayAlgo()) return Promise.resolve();
+      const p = acc.vaciar();
+      return fb.F.setDoc(fb.F.doc(fb.db, "progreso", uid, "dias", me.dia()), me.aDocumento(p, fb.F.increment), { merge: true })
+        .catch(() => acc.devolver(p));
+    };
+    const visible = () => document.visibilityState === "visible";
+    const tic = () => acc.tic(window.__tab || "codigo", Date.now(), visible());
+    const toque = () => acc.actividad();
+    vaciarRef.current = () => { tic(); return mandar(); };
+    window.__medir = (ej, bien, pc) => { try { acc.resultado(ej, bien, pc); acc.actividad(); } catch (e) {} };
+    window.__medirLote = (ej, a, f) => { try { acc.lote(ej, a, f); acc.actividad(); } catch (e) {} };
+    try { const k = "bandomaps_ingreso_" + uid; if (!sessionStorage.getItem(k)) { sessionStorage.setItem(k, "1"); acc.ingreso(); } } catch (e) { acc.ingreso(); }
+    acc.actividad(); tic();
+    const evs = ["pointerdown", "keydown", "wheel", "touchstart"];
+    evs.forEach((e) => window.addEventListener(e, toque, { passive: true }));
+    const cambio = () => { tic(); if (!visible()) mandar(); };
+    document.addEventListener("visibilitychange", cambio);
+    window.addEventListener("pagehide", cambio);
+    const t1 = setInterval(tic, 15000), t2 = setInterval(() => { tic(); mandar(); }, me.CADA_MS);
+    return () => { tic(); mandar(); clearInterval(t1); clearInterval(t2); evs.forEach((e) => window.removeEventListener(e, toque));
+      document.removeEventListener("visibilitychange", cambio); window.removeEventListener("pagehide", cambio);
+      delete window.__medir; delete window.__medirLote; vaciarRef.current = null; };
+  }, [uid, m]);
+
+  // ── «Traer lo de este teléfono»: una vez, lo que la app vieja guardaba en el navegador.
+  const [traer, setTraer] = useState(null);   // null | { datos } | "listo"
+  useEffect(() => {
+    if (!uid || !m || !est.ficha) return;
+    const datos = m.me.loDelTelefono((k) => localStorage.getItem(k), m.pu.usuarioDe(est.ficha));
+    if (!datos) return;
+    try { if (localStorage.getItem("bandomaps_traido_" + uid)) return; } catch (e) {}
+    m.fb.F.getDoc(m.fb.F.doc(m.fb.db, "progreso", uid)).then((d) => { if (!(d.exists() && d.data().traido)) setTraer({ datos }); }).catch(() => {});
+  }, [uid, m]);
+  const noTraer = () => { try { localStorage.setItem("bandomaps_traido_" + uid, "no"); } catch (e) {} setTraer(null); };
+  const siTraer = () => conEspera(async () => {
+    await m.fb.F.setDoc(m.fb.F.doc(m.fb.db, "progreso", uid), { ...traer.datos, traido: Date.now() }, { merge: true });
+    try { localStorage.setItem("bandomaps_traido_" + uid, "1"); } catch (e) {}
+    setTraer("listo"); setTimeout(() => setTraer(null), 5000);
+  });
   const per = m && est.ficha ? m.pu.permisos(est.ficha) : null;
 
   // Lo que lee la app vieja: Mis tareas / Organizador y el nombre del alumno.
@@ -82,7 +130,10 @@ export default function Puerta({ children }) {
     await m.fb.A.sendPasswordResetEmail(m.fb.auth, ml);
     setMsg({ t: "Listo: te mandamos un mail para elegir otra contraseña. Si no lo ves, buscalo en Spam.", ok: true });
   });
-  const salir = () => { delete window.__ALUMNO; delete window.__USUARIO; delete window.__ROL; m && m.fb.A.signOut(m.fb.auth); };
+  const salir = async () => {
+    try { if (vaciarRef.current) await vaciarRef.current(); } catch (e) {}
+    delete window.__ALUMNO; delete window.__USUARIO; delete window.__ROL; m && m.fb.A.signOut(m.fb.auth);
+  };
 
   if (fase === "cargando") return <Caja><Nota>Cargando…</Nota></Caja>;
   if (fase === "sin-firebase") return <Caja><Nota color={G.mal}>No se pudo comprobar tu cuenta: revisá la conexión y recargá la página.</Nota></Caja>;
@@ -124,7 +175,19 @@ export default function Puerta({ children }) {
   return (
     <>
       {children}
+      {traer && (
+        <div id="pTraer" style={{ position: "fixed", left: 10, right: 10, top: "calc(64px + env(safe-area-inset-top,0px))", zIndex: 1100, maxWidth: 420, margin: "0 auto", background: "#131315", border: `1px solid ${G.line}`, borderRadius: 12, padding: 14, color: G.tx, fontFamily: ui, fontSize: 14, boxShadow: "0 8px 24px rgba(0,0,0,.6)" }}>
+          {traer === "listo"
+            ? <><b>Listo.</b> Lo que tenías en este teléfono ya quedó guardado en tu cuenta. <button type="button" onClick={() => setTraer(null)} style={{ ...btn(false), padding: "5px 10px", fontSize: 12, marginLeft: 6 }}>Cerrar</button></>
+            : <><b>Este teléfono tiene cosas tuyas</b> de antes de la cuenta (tareas marcadas o acordes guardados). ¿Las traemos a tu cuenta, así no se pierden al cambiar de teléfono?
+              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                <button id="pTraerSi" type="button" onClick={siTraer} disabled={ocupado} style={btn(true)}>Traer lo de este teléfono</button>
+                <button type="button" onClick={noTraer} style={btn(false)}>Ahora no</button>
+              </div>{msg.t && <Nota color={G.mal}>{msg.t}</Nota>}</>}
+        </div>
+      )}
       <div style={{ position: "fixed", right: 10, bottom: "calc(10px + env(safe-area-inset-bottom,0px))", zIndex: 60, display: "flex", gap: 6, fontFamily: ui }}>
+        {per.alumno && <span title="Se guarda cuánto practicás y tus aciertos, para que tu docente acompañe tu avance." style={{ ...btn(false), padding: "7px 10px", fontSize: 11.5, background: "#131315", color: G.mu, fontWeight: 600, cursor: "default", boxShadow: "0 4px 16px rgba(0,0,0,.6)" }}>👁 Tu docente ve tu avance</span>}
         {per.usuarios && <a href="/usuarios.html" style={{ ...btn(false), padding: "7px 12px", fontSize: 12, background: "#131315", textDecoration: "none", boxShadow: "0 4px 16px rgba(0,0,0,.6)" }}>👥 Usuarios</a>}
         <button type="button" onClick={salir} style={{ ...btn(false), padding: "7px 12px", fontSize: 12, background: "#131315", boxShadow: "0 4px 16px rgba(0,0,0,.6)" }}>Salir ({est.ficha.nombre || est.ficha.mail})</button>
       </div>

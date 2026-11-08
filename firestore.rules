@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // firestore.rules — Reglas de la base de BandoMaps (proyecto tocatoca-621a5).
-// Versión v1 (7-nov-2026). Sin el UID de Mauro: los administradores entran
+// Versión v2 (8-nov-2026): el avance por día (progreso/{uid}/dias) y cada
+// docente ve sólo a SUS alumnos (usuarios/{uid}.docente). v1, 7-nov-2026. Sin el UID de Mauro: los administradores entran
 // por invitación, como cualquiera (Mauro: «ambos como administradores»).
 //
 // ESTO ES LA PLANTILLA, NO LO PUBLICADO. La autoridad es lo que está en la
@@ -39,6 +40,14 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(campos);
     }
     function rolValido(r) { return r in ["admin", "docente", "alumno"]; }
+    // v2: el docente de un alumno es el uid que el admin pone en su ficha
+    // (usuarios/{uid}.docente). Un docente ve el avance sólo de los suyos.
+    function esSuDocente(uid) {
+      return activo() && ficha().rol == "docente"
+        && exists(/databases/$(database)/documents/usuarios/$(uid))
+        && get(/databases/$(database)/documents/usuarios/$(uid)).data.get("docente", "") == request.auth.uid;
+    }
+    function veAvance(uid) { return logueado() && (request.auth.uid == uid || esAdmin() || esSuDocente(uid) || esAgente()); }
 
     // ── Personas ────────────────────────────────────────────────────────────
     match /usuarios/{uid} {
@@ -90,8 +99,24 @@ service cloud.firestore {
 
     // Lo de cada alumno: acordes, tareas hechas, resultados. Lo escribe él.
     match /progreso/{uid} {
-      allow read: if logueado() && (request.auth.uid == uid || esDocente() || esAgente());
+      allow read: if veAvance(uid);
       allow create, update: if (request.auth.uid == uid && activo()) || esAgente();
+      allow delete: if esAdmin();
+    }
+
+    // El resumen de cada día (v2): minutos por herramienta, ingresos y, por
+    // ejercicio y por nota, aciertos y fallos. Lo escribe sólo el alumno, con
+    // esta forma y nada más; lo leen él, su docente, los admin y el agente.
+    match /progreso/{uid}/dias/{dia} {
+      allow read: if veAvance(uid);
+      allow create, update: if request.auth.uid == uid && activo()
+        && dia.matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
+        && request.resource.data.keys().hasOnly(["min", "ingresos", "ej", "notas", "en"])
+        && request.resource.data.get("min", {}) is map && request.resource.data.get("min", {}).size() <= 30
+        && request.resource.data.get("ej", {}) is map && request.resource.data.get("ej", {}).size() <= 30
+        && request.resource.data.get("notas", {}) is map && request.resource.data.get("notas", {}).size() <= 12
+        && request.resource.data.get("ingresos", 0) is number
+        && request.resource.data.en is number;
       allow delete: if esAdmin();
     }
 
@@ -109,7 +134,9 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(["uid", "tipo", "en", "app"])
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.tipo in ["ingreso", "tarea"];
-      allow read: if esDocente() || esAgente()
+      // v2: los lee el admin (todos), el agente y cada uno los suyos; el
+      // docente ve el avance de sus alumnos por progreso/{uid}/dias.
+      allow read: if esAdmin() || esAgente()
         || (logueado() && resource.data.uid == request.auth.uid);
       allow update: if false;
       allow delete: if esAdmin();
