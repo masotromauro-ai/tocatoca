@@ -111,8 +111,12 @@ No hizo falta tocar las reglas: la ficha ya la puede leer su dueño.
    **Hecho en el sitio de desarrollo el 8-nov-2026** (ver «La puerta»). Los
    alumnos de la planilla se invitan de a muchos con «Invitar varios» en
    Usuarios, cada uno con su usuario viejo, antes de llevarlo al estable.
-   Recién entonces se retiran la planilla, `clases.json`, `config.json` y
-   `usuarios.json`.
+   Recién entonces se retiran la planilla, `clases.json`, `config.json` y el
+   `index.html` viejo de `src/`. (`src/usuarios.json` salió antes, el 9-nov-2026:
+   tenía el salt y el hash de cada usuario viejo en un repo público y no lo
+   usaba nada —el login de la planilla va por Apps Script, y el Organizador
+   importa ese archivo desde el teléfono—. Sigue en la historia de git: esas
+   contraseñas se dan por expuestas.)
 
 ## Cupo
 
