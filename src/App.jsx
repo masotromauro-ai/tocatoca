@@ -41,8 +41,8 @@ const mixLuzRaizDominante = (notes, rootWeight=0.8) => {
 };
 
 const CHROMATIC  = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-const ENARMONICO = {"C#":"Db","D#":"Eb","F#":"Gb","G#":"Ab","A#":"Bb"};
-const enh = n => ENARMONICO[n]||n;
+const ENHARMONIC = {"C#":"Db","D#":"Eb","F#":"Gb","G#":"Ab","A#":"Bb"};
+const enh = n => ENHARMONIC[n]||n;
 const NAT_PC = {C:0,D:2,E:4,F:5,G:7,A:9,B:11};
 const LETRAS = ["C","D","E","F","G","A","B"];
 const LAT_NOMBRE = {C:"Do",D:"Re",E:"Mi",F:"Fa",G:"Sol",A:"La",B:"Si"};
@@ -1630,8 +1630,8 @@ const aRomano = (lab)=>{
   return acc+(ROM_N[+m[2]-1]||m[2]);
 };
 function useRomanos(){
-  const [r,setR]=useState(()=>{ try{ const v=localStorage.getItem("bandomaps_romanos"); return v===null?true:v==="1"; }catch(e){ return true; } });
-  const set=(v)=>{ setR(v); try{ localStorage.setItem("bandomaps_romanos",v?"1":"0"); }catch(e){} };
+  const [r,setR]=useState(()=>{ try{ const v=localStorage.getItem("harmonia_romanos"); return v===null?true:v==="1"; }catch(e){ return true; } });
+  const set=(v)=>{ setR(v); try{ localStorage.setItem("harmonia_romanos",v?"1":"0"); }catch(e){} };
   return [r,set];
 }
 function calcAcorde(ac,romano){
@@ -1865,11 +1865,11 @@ function useAnchoMedido(){
 // ─── DISPOSICIÓN DE LOS TECLADOS: lado a lado (izquierda a la izquierda) o apilados ─────────
 const anchoMano = (btns)=> btns.length ? Math.max(...btns.map(b=>b.x))+BTN_SIZE+16 : 740;
 function useDisposicion(){
-  const [lado,setLadoS]=useState(()=>{ try{ return localStorage.getItem("bandomaps_lado")!=="0"; }catch(e){ return true; } });
-  const setLado=(v)=>{ setLadoS(v); try{ localStorage.setItem("bandomaps_lado",v?"1":"0"); }catch(e){} };
+  const [lado,setLadoS]=useState(()=>{ try{ return localStorage.getItem("harmonia_lado")!=="0"; }catch(e){ return true; } });
+  const setLado=(v)=>{ setLadoS(v); try{ localStorage.setItem("harmonia_lado",v?"1":"0"); }catch(e){} };
   const [full,setFull]=useState(false);
-  const [invertir,setInvertirS]=useState(()=>{ try{ return localStorage.getItem("bandomaps_invertir")==="1"; }catch(e){ return false; } });
-  const setInvertir=(v)=>{ setInvertirS(v); try{ localStorage.setItem("bandomaps_invertir",v?"1":"0"); }catch(e){} };
+  const [invertir,setInvertirS]=useState(()=>{ try{ return localStorage.getItem("harmonia_invertir")==="1"; }catch(e){ return false; } });
+  const setInvertir=(v)=>{ setInvertirS(v); try{ localStorage.setItem("harmonia_invertir",v?"1":"0"); }catch(e){} };
   useEffect(()=>{
     const f=()=>setFull(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange",f);
@@ -2368,9 +2368,9 @@ function BandEditor({ initialLeft, initialRight, onSave, onCancel }) {
 const RAIZ_NOM=["C","Db","D","Eb","E","F","F#","G","Ab","A","Bb","B"];
 // Nomenclatura general: nombra CUALQUIER conjunto de notas a partir de una raíz (3ª, 5ª, 7ª, tensiones, alteraciones, sus, add, 6).
 const CIF_ESTILOS={jazz:{M7:"△",dim:"°",hdim:"ø",aug:"+",mM:"m△"},amer:{M7:"maj",dim:"dim",hdim:"m7♭5",aug:"aug",mM:"mMaj"}};
-const cifEstilo=()=>{ try{ return localStorage.getItem("bandomaps_estilo_cifrado")==="amer"?"amer":"jazz"; }catch(e){ return "jazz"; } };
-const cifPropios=()=>{ try{ return JSON.parse(localStorage.getItem("bandomaps_nombres_acordes")||"{}")||{}; }catch(e){ return {}; } };
-const cifGuardarPropios=(o)=>{ try{ localStorage.setItem("bandomaps_nombres_acordes",JSON.stringify(o)); }catch(e){} };
+const cifEstilo=()=>{ try{ return localStorage.getItem("harmonia_estilo_cifrado")==="amer"?"amer":"jazz"; }catch(e){ return "jazz"; } };
+const cifPropios=()=>{ try{ return JSON.parse(localStorage.getItem("harmonia_nombres_acordes")||"{}")||{}; }catch(e){ return {}; } };
+const cifGuardarPropios=(o)=>{ try{ localStorage.setItem("harmonia_nombres_acordes",JSON.stringify(o)); }catch(e){} };
 const INTERVALOS_NOM=["unísono","segunda menor","segunda mayor","tercera menor","tercera mayor","cuarta justa","tritono","quinta justa","sexta menor","sexta mayor","séptima menor","séptima mayor"];
 function cifSufijo(S,est){
   const E=CIF_ESTILOS[est], has=i=>S.has(i);
@@ -3230,7 +3230,7 @@ function PaletaRueda({compacta=false}){
   const reiniciaPregunta=()=>{ timers.current.forEach(clearTimeout); timers.current=[]; setJuego(j=>j?{...j,obj:null,res:null}:j); };
   const responder=(pc)=>{
     if(!juego||juego.res||juego.obj===null||juego.fin||!poolDe(juego.nivel).includes(pc)) return;
-    const bien=pc===juego.obj; playBand(CHROMATIC[juego.obj],4); medir("colores-"+(juego.modo||"nota"),bien,juego.obj);
+    const bien=pc===juego.obj; playBand(CHROMATIC[juego.obj],4);
     const racha=bien?juego.racha+1:0;
     setJuego({...juego,res:{pc,bien},ok:juego.ok+(bien?1:0),total:juego.total+1,racha,mejor:Math.max(juego.mejor,racha)});
     timers.current.push(setTimeout(()=>setJuego(j=>{
@@ -3347,7 +3347,7 @@ function EntrenaColores(){
   const nuevaOrden=()=>setOrd({mezcla:mezcla([...Array(12).keys()]),sig:0,err:0,pista:false,mal:null});
   const cambiar=(m)=>{ setModo(m); setQ(null); setOrd(null); };
 
-  const responder=(pc)=>{ if(Q.resp!==null) return; const bien=pc===Q.lista[Q.i]; playBand(CHROMATIC[Q.lista[Q.i]],4); medir("preguntas-"+modo,bien,Q.lista[Q.i]);
+  const responder=(pc)=>{ if(Q.resp!==null) return; const bien=pc===Q.lista[Q.i]; playBand(CHROMATIC[Q.lista[Q.i]],4);
     setQ(q=>q?{...q,resp:pc,ok:q.ok+(bien?1:0)}:q); setTimeout(()=>setQ(q=>q?{...q,i:q.i+1,resp:null}:q),bien?750:1500); };
   const tocarOrden=(pc)=>{ if(ord.sig>=12) return;
     if(pc===ord.sig){ playBand(CHROMATIC[pc],4); setOrd(o=>({...o,sig:o.sig+1,pista:false,mal:null})); }
@@ -4570,6 +4570,15 @@ function EntrenadorTab({preset}={}){
   const conRaizUso=(conRaiz!=null&&conItems.some(i=>i.pc===conRaiz))?conRaiz:conPrimera;
   const conAn=useMemo(()=>{ if(conItems.length<2) return null; const bajo=[...conItems].sort((a,b)=>a.midi-b.midi)[0].pc; return analizarAcorde(conItems.map(i=>i.pc),bajo,{raiz:conRaizUso}); },[conItems,conRaizUso,conVer]);
   useEffect(()=>{ setConTxt(conAn&&!conAn.intervalo?conAn.suf:""); setConMsg(""); },[conAn&&conAn.key,conAn&&conAn.suf]);
+  // raíz, 3ª, 5ª y 7ª del acorde que se está armando (si las tiene) para sugerir formas
+  const conRoles=useMemo(()=>{
+    if(!conAn||conAn.intervalo) return null;
+    const r=conAn.rootPc, set=[...new Set(conItems.map(i=>i.pc))], iv=p=>(p-r+12)%12, de=(ivs)=>{ const h=set.find(p=>ivs.includes(iv(p))); return h===undefined?null:h; };
+    const t=de([3,4]), q=de([7,6,8]), sp=de([10,11,9]); if(t===null||q===null) return null;
+    const pcs=[r,t,q,...(sp!==null?[sp]:[])];
+    return {pcs,nombres:pcs.map(p=>(conAn.nombres&&conAn.nombres[p])||CROM_SIMPLE[CHROMATIC[p]])};
+  },[conAn,conItems]);
+  const conVoicings=useMemo(()=>conRoles?voicingsDe(conRoles.pcs,conRoles.nombres,leftBtns,rightBtns,bellows):null,[conRoles,leftBtns,rightBtns,bellows]);
   const conStateOf=(btn)=>{
     const it=itemDe(btn), nt=CHROMATIC[it.pc], col=nc(nt), k=conIds.indexOf(btn.id);
     if(k<0) return {bg:col+"30",border:`2px solid ${col}70`,glow:"none",content:<span style={{fontSize:8.5,fontWeight:700,color:"#ffffffa0",textShadow:"0 1px 2px #000"}}>{CROM_SIMPLE[nt]}</span>};
@@ -4587,8 +4596,8 @@ function EntrenadorTab({preset}={}){
   // Armonizar una escala + Mis acordes (tarjetas guardadas en este dispositivo)
   const [armGrado,setArmGrado]=useState(0), [armCuat,setArmCuat]=useState(false), [conNota,setConNota]=useState("");
   const [vozSel,setVozSel]=useState(null), [armPatron,setArmPatron]=useState("cerrado"), [armMatriz,setArmMatriz]=useState(false);
-  const [misAcordes,setMisAcordes]=useState(()=>{ try{ const v=JSON.parse(localStorage.getItem("bandomaps_mis_acordes")||"[]"); return Array.isArray(v)?v:[]; }catch(e){ return []; } });
-  useEffect(()=>{ try{ localStorage.setItem("bandomaps_mis_acordes",JSON.stringify(misAcordes)); }catch(e){} },[misAcordes]);
+  const [misAcordes,setMisAcordes]=useState(()=>{ try{ const v=JSON.parse(localStorage.getItem("harmonia_mis_acordes")||"[]"); return Array.isArray(v)?v:[]; }catch(e){ return []; } });
+  useEffect(()=>{ try{ localStorage.setItem("harmonia_mis_acordes",JSON.stringify(misAcordes)); }catch(e){} },[misAcordes]);
   const escTipo7 = ESC_ENT.slice(0,4).some(e=>e.id===escTipo) ? escTipo : "mayor";
   const famArm = {mayor:"mayor",menor:"menor",menorA:"armonica",menorM:"melodica"}[escTipo7];
   const armMenor = escTipo7!=="mayor";
@@ -4612,17 +4621,39 @@ function EntrenadorTab({preset}={}){
       return {pc,nombre:nombreAcordeEs(rootEng,armSel.q),nombres,pcs,v:voicingsDe(pcs,nombres,leftBtns,rightBtns,bellows)[pi]};
     });
   },[armMatriz,armSel.q,armPatron,leftBtns,rightBtns,bellows]);
+  const formasUI=(lista,{onVer,activoIds,btnVer,guardar})=>(
+<div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+          {lista.map(v=>{
+            const on=activoIds&&v.ids&&activoIds.join()===v.ids.join();
+            return (
+              <div key={v.id} style={{flex:"1 1 220px",maxWidth:340,padding:"9px 11px",borderRadius:12,background:on?"#1b1b20":"#0e0e10",border:`1px solid ${on?"#cfcfd4":"#2c2c30"}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",gap:6,alignItems:"baseline"}}>
+                  <b style={{fontFamily:"'Libre Baskerville',serif",fontSize:14,color:"#ececec"}}>{v.nombre}</b>
+                  {v.fuelle&&<span style={{fontSize:10,color:"#7c7c82"}}>{v.fuelle==="abre"?"abriendo":"cerrando"}{v.fuelle!==bellows?" (cambia el fuelle)":""}</span>}
+                </div>
+                <div style={{fontSize:10.5,color:"#8a8a90",margin:"2px 0 6px"}}>{v.uso}</div>
+                {v.vacio ? <div style={{fontSize:11.5,color:"#c9a25a"}}>No hay botones para armarlo así en este teclado.</div> : (<>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:4}}>
+                    {v.notas.map(n=>{ const col=nc(CHROMATIC[n.pc]); return (<span key={n.id} style={{display:"inline-flex",alignItems:"center",gap:4,padding:"1px 7px 1px 3px",borderRadius:999,background:"#16161a",border:"1px solid #2c2c30",fontSize:11.5,color:"#ececec"}}>
+                      <span style={{width:16,height:16,borderRadius:"50%",background:col,color:txtSobre(col),fontSize:8.5,fontWeight:800,fontFamily:"monospace",display:"inline-flex",alignItems:"center",justifyContent:"center"}}>{ROL_TXT[n.rol]}</span>
+                      <span style={{fontFamily:"'Libre Baskerville',serif",fontWeight:700}}>{n.nombre}{n.oct}</span><span style={{fontSize:9,color:"#6a6a70"}}>{n.hand==="L"?"izq":"der"}</span></span>); })}
+                  </div>
+                  <div style={{fontSize:10,color:"#6a6a70",marginBottom:6}}>{v.manos.L?`${v.manos.L} en la izquierda`:""}{v.manos.L&&v.manos.R?" · ":""}{v.manos.R?`${v.manos.R} en la derecha`:""}</div>
+                  <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                    <button style={uiPlay(false,{padding:"3px 11px",fontSize:11.5})} onClick={()=>tocarVoicing(v,false)}>▶</button>
+                    <button style={uiTool(on)} onClick={()=>onVer(v)}>{btnVer}</button>
+                    <button style={uiTool(false)} onClick={()=>guardar(v)}>★</button>
+                  </div>
+                </>)}
+              </div>);
+          })}
+        </div>
+  );
   const verVoicing=(v,titulo,nombres)=>{ if(!v||v.vacio) return; setBellows(v.fuelle); setVozSel({ids:v.ids,fuelle:v.fuelle,titulo,nom:Object.fromEntries(v.notas.map(n=>[n.id,n.nombre])),rol:Object.fromEntries(v.notas.map(n=>[n.id,n.rol]))}); };
   const vozItems=(v)=>v.notas.map(n=>conBy[n.id]).filter(Boolean).map(b=>itemsMano([b],v.fuelle)[0]);
   const tocarVoicing=(v,arp)=>{ const o=vozItems(v).sort((a,b)=>a.midi-b.midi); o.forEach((it,i)=>playBandDur(CHROMATIC[it.pc],it.oct,arp?0.38:1.8,arp?i*0.32:i*0.012)); };
   const guardarVoicing=(v,titulo)=>cardGuardar(titulo,"",v.ids,v.fuelle,Object.fromEntries(v.notas.map(n=>[n.pc,n.nombre])));
-  const armVoz = (pcs)=>{   // posición cerrada desde el bajo: raíz en la mano izquierda y las demás notas lo más cerca posible por encima
-    const L=itemsMano(leftBtns,bellows), R=itemsMano(rightBtns,bellows), all=[...L,...R];
-    const bajo=(L.filter(i=>i.pc===pcs[0]).sort((a,b)=>a.midi-b.midi)[0])||(all.filter(i=>i.pc===pcs[0]).sort((a,b)=>a.midi-b.midi)[0]); if(!bajo) return [];
-    const ids=[bajo.b.id];
-    pcs.slice(1).forEach(pc=>{ const c=all.filter(i=>i.pc===pc&&i.midi>bajo.midi&&i.midi<=bajo.midi+19).sort((a,b)=>a.midi-b.midi); const el=c.find(i=>L.includes(i))||c[0]; if(el) ids.push(el.b.id); });
-    return ids;
-  };
+  const armVoz = (pcs)=>{ const v=voicingsDe(pcs,[],leftBtns,rightBtns,bellows)[1]; return v&&!v.vacio?v.ids:[]; };   // por defecto: la forma «cerrado» sugerida
   const armItems = (pcs)=>armVoz(pcs).map(id=>conBy[id]).filter(Boolean).map(b=>itemsMano([b],bellows)[0]);
   const armTocar = (arp)=>{ const o=(vozSel?vozItems({fuelle:vozSel.fuelle,notas:vozSel.ids.map(id=>({id}))}):armItems(armSel.pcs)).sort((a,b)=>a.midi-b.midi); o.forEach((it,i)=>playBandDur(CHROMATIC[it.pc],it.oct,arp?0.38:1.8,arp?i*0.32:i*0.012)); };
   const armRecorrer = ()=>{ armAcordes.forEach((a,k)=>{ armItems(a.pcs).sort((x,y)=>x.midi-y.midi).forEach(it=>playBandDur(CHROMATIC[it.pc],it.oct,1.1,k*1.25)); }); };
@@ -4842,9 +4873,17 @@ function EntrenadorTab({preset}={}){
   const acoVistas = (
     <div style={{display:"flex",gap:6,marginBottom:12,flexWrap:"wrap"}}>
       <button style={uiPill(modo==="arpegio",{padding:"7px 16px"})} onClick={()=>setModo("arpegio")}>🧭 Ver y escuchar</button>
-      <button style={uiPill(modo==="construir",{padding:"7px 16px"})} onClick={()=>setModo("construir")}>🏗 Construir</button>
       <button style={uiPill(modo==="armonizar",{padding:"7px 16px"})} onClick={()=>setModo("armonizar")}>🎹 Armonizar</button>
-      <button style={uiPill(modo==="acordes",{padding:"7px 16px"})} onClick={()=>setModo("acordes")}>🎼 Armar</button>
+      <button style={uiPill(modo==="construir"||modo==="acordes",{padding:"7px 16px"})} onClick={()=>setModo(modo==="acordes"?"acordes":"construir")}>🎼 Armar acordes</button>
+    </div>
+  );
+  // Dentro de «Armar acordes»: dos maneras de trabajar con el mismo teclado
+  const armarToggle = (
+    <div style={{display:"flex",gap:8,marginBottom:10,flexWrap:"wrap",alignItems:"center"}}>
+      <span style={{...uiLabel,fontSize:9}}>Cómo querés armar</span>
+      <div style={{display:"flex",background:"#0e0e10",border:"1px solid #2f2f35",borderRadius:8,padding:2,gap:2,flexWrap:"wrap"}}>
+        {[["construir","Libre · toco y la app lo nombra"],["acordes","Ejercicio · me dan el acorde y lo marco"]].map(([m,l])=>(<button key={m} style={uiVista(modo===m,{padding:"4px 12px"})} onClick={()=>setModo(m)}>{l}</button>))}
+      </div>
     </div>
   );
   const scaleProps = modo==="armonizar" ? { stateOf:armStateOf } : modo==="construir" ? { stateOf:conStateOf } : modo==="lineas" ? { stateOf:linStateOf } : modo==="escalas" ? { stateOf:escStateOf } : modo==="notas" ? { stateOf:notaStateOf } : esCam ? { stateOf:camStateOf } : null;
@@ -5006,32 +5045,7 @@ function EntrenadorTab({preset}={}){
           <p style={{...uiLabel,margin:0}}>Formas sugeridas · {armSel.nombre}</p>
           {vozSel && <button style={uiGhost} onClick={()=>setVozSel(null)}>↺ Ver todas las notas</button>}
         </div>
-        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-          {armVoicings.map(v=>{
-            const on=vozSel&&v.ids&&vozSel.ids.join()===v.ids.join();
-            return (
-              <div key={v.id} style={{flex:"1 1 220px",maxWidth:340,padding:"9px 11px",borderRadius:12,background:on?"#1b1b20":"#0e0e10",border:`1px solid ${on?"#cfcfd4":"#2c2c30"}`}}>
-                <div style={{display:"flex",justifyContent:"space-between",gap:6,alignItems:"baseline"}}>
-                  <b style={{fontFamily:"'Libre Baskerville',serif",fontSize:14,color:"#ececec"}}>{v.nombre}</b>
-                  {v.fuelle&&<span style={{fontSize:10,color:"#7c7c82"}}>{v.fuelle==="abre"?"abriendo":"cerrando"}{v.fuelle!==bellows?" (cambia el fuelle)":""}</span>}
-                </div>
-                <div style={{fontSize:10.5,color:"#8a8a90",margin:"2px 0 6px"}}>{v.uso}</div>
-                {v.vacio ? <div style={{fontSize:11.5,color:"#c9a25a"}}>No hay botones para armarlo así en este teclado.</div> : (<>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:4}}>
-                    {v.notas.map(n=>{ const col=nc(CHROMATIC[n.pc]); return (<span key={n.id} style={{display:"inline-flex",alignItems:"center",gap:4,padding:"1px 7px 1px 3px",borderRadius:999,background:"#16161a",border:"1px solid #2c2c30",fontSize:11.5,color:"#ececec"}}>
-                      <span style={{width:16,height:16,borderRadius:"50%",background:col,color:txtSobre(col),fontSize:8.5,fontWeight:800,fontFamily:"monospace",display:"inline-flex",alignItems:"center",justifyContent:"center"}}>{ROL_TXT[n.rol]}</span>
-                      <span style={{fontFamily:"'Libre Baskerville',serif",fontWeight:700}}>{n.nombre}{n.oct}</span><span style={{fontSize:9,color:"#6a6a70"}}>{n.hand==="L"?"izq":"der"}</span></span>); })}
-                  </div>
-                  <div style={{fontSize:10,color:"#6a6a70",marginBottom:6}}>{v.manos.L?`${v.manos.L} en la izquierda`:""}{v.manos.L&&v.manos.R?" · ":""}{v.manos.R?`${v.manos.R} en la derecha`:""}</div>
-                  <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-                    <button style={uiPlay(false,{padding:"3px 11px",fontSize:11.5})} onClick={()=>tocarVoicing(v,false)}>▶</button>
-                    <button style={uiTool(on)} onClick={()=>{ setArmPatron(v.id); verVoicing(v,v.nombre); }}>Ver en el teclado</button>
-                    <button style={uiTool(false)} onClick={()=>guardarVoicing(v,armSel.nombre+" · "+v.nombre)}>★</button>
-                  </div>
-                </>)}
-              </div>);
-          })}
-        </div>
+        {formasUI(armVoicings,{onVer:(v)=>{ setArmPatron(v.id); verVoicing(v,v.nombre); },activoIds:vozSel&&vozSel.ids,btnVer:"Ver en el teclado",guardar:(v)=>guardarVoicing(v,armSel.nombre+" · "+v.nombre)})}
         <details style={{marginTop:10}} onToggle={e=>setArmMatriz(e.currentTarget.open)}>
           <summary style={{cursor:"pointer",fontFamily:UI_FONT,fontSize:12,fontWeight:600,color:"#cfcfd4"}}>Esta misma forma en las doce tonalidades ({PATRONES_VOZ.find(p=>p.id===armPatron).nombre}, {SUF_ES[armSel.q]||armSel.q})</summary>
           <div style={{display:"flex",gap:6,margin:"8px 0"}}>
@@ -5215,6 +5229,7 @@ function EntrenadorTab({preset}={}){
         return (
         <div className="rounded-xl mb-3" style={{background:"#121212",border:"1px solid #2a2a2a",padding:"12px 14px"}}>
           {acoVistas}
+          {armarToggle}
           <p className="text-xs text-gray-500" style={{margin:"0 0 12px"}}>Tocá los botones de cualquier mano para armar el acorde. La primera nota que marcás es la raíz; después sumá las que quieras, en cualquier orden, repetidas en otras octavas o con tensiones. Tocá una nota marcada para sacarla.</p>
           <div style={{padding:"10px 12px",borderRadius:12,background:"#0e0e10",border:"1px solid #26262a",marginBottom:10}}>
             <p style={{...uiLabel,margin:"0 0 4px"}}>Acorde</p>
@@ -5244,6 +5259,13 @@ function EntrenadorTab({preset}={}){
             <button disabled={!orden.length} style={uiGhost} onClick={()=>conIds.length&&conQuitar(conIds[conIds.length-1])}>↶ Quitar la última</button>
             <button disabled={!orden.length} style={{...uiGhost,marginLeft:"auto"}} onClick={()=>{setConSel(m=>({...m,[bellows]:[]}));setConRaiz(null);}}>⟳ Limpiar</button>
           </div>
+          {conVoicings && (
+            <div style={{marginTop:12,paddingTop:10,borderTop:"1px solid #232326"}}>
+              <p style={{...uiLabel,margin:"0 0 6px"}}>Formas sugeridas · {conAn.nombre}</p>
+              {formasUI(conVoicings,{onVer:(v)=>{ setBellows(v.fuelle); setConSel(m=>({...m,[v.fuelle]:v.ids})); setConRaiz(null); tocarVoicing(v,false); },activoIds:conIds,btnVer:"Usar esta forma",guardar:(v)=>guardarVoicing(v,conAn.nombre+" · "+v.nombre)})}
+              <p style={{fontSize:10.5,color:"#6a6a70",margin:"6px 0 0"}}>Usan la raíz, la 3ª, la 5ª y la 7ª (si la tiene). Las demás notas las sumás vos tocando el teclado.</p>
+            </div>)}
+          {conItems.length>=3 && conAn && !conAn.intervalo && !conVoicings && <p style={{fontSize:11,color:"#7c7c82",margin:"10px 0 0"}}>Para sugerir formas, el acorde necesita raíz, 3ª y 5ª.</p>}
           <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center",marginTop:10}}>
             <input value={conNota} onChange={e=>setConNota(e.target.value)} placeholder="Anotación opcional (ej.: marcato, mano izquierda)" style={{...inpS,flex:"1 1 220px",fontSize:12,padding:"6px 8px"}}/>
             <button disabled={orden.length<2} style={uiTool(false,{padding:"6px 12px",opacity:orden.length<2?0.45:1})} onClick={()=>{ cardGuardar(conAn?conAn.nombre:"Acorde",conNota,conIds,bellows,conAn&&conAn.nombres); setConNota(""); }}>★ Guardar en mis acordes</button>
@@ -5253,7 +5275,7 @@ function EntrenadorTab({preset}={}){
             <div style={{marginTop:10}}>
               <p style={{fontSize:11.5,color:"#8a8a8a",margin:"0 0 10px",lineHeight:1.5}}>El nombre sale de las notas que armaste: tercera, quinta, séptima, tensiones y alteraciones. Si preferís otra forma de escribirlo para este acorde, cambiala acá y se guarda para esa estructura en todas las tonalidades.</p>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))",gap:12,marginBottom:10}}>
-                <Desplegable etiqueta="Estilo de cifrado" valor={cifEstilo()} opciones={[["jazz","△7 · m7 · ø7 · °7"],["amer","maj7 · m7 · m7♭5 · dim7"]]} onChange={v=>{ try{localStorage.setItem("bandomaps_estilo_cifrado",v);}catch(e){} setConVer(n=>n+1); }}/>
+                <Desplegable etiqueta="Estilo de cifrado" valor={cifEstilo()} opciones={[["jazz","△7 · m7 · ø7 · °7"],["amer","maj7 · m7 · m7♭5 · dim7"]]} onChange={v=>{ try{localStorage.setItem("harmonia_estilo_cifrado",v);}catch(e){} setConVer(n=>n+1); }}/>
               </div>
               {conAn&&!conAn.intervalo ? (
                 <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"flex-end",marginBottom:6}}>
@@ -5341,6 +5363,7 @@ function EntrenadorTab({preset}={}){
       {modo==="acordes" && (
         <>
           {acoVistas}
+          {armarToggle}
           <p className="text-xs text-gray-500 mb-2">
             Armá el acorde (fundamental, tipo, séptima, extensiones) y marcá en los teclados los botones que lo forman, con una mano o con las dos. Después tocá "Corregir". Podés ir sumando notas al acorde y seguir marcando.
           </p>
@@ -5374,7 +5397,7 @@ function EntrenadorTab({preset}={}){
               👁 {reveal?"Ocultar respuesta":"Ver respuesta"}
             </button>
           )}
-          {modo!=="escalas" && !esCam && modo!=="lineas" && modo!=="construir" && modo!=="armonizar" && <button onClick={()=>{ if(!checked&&painted.length) medirLote("entrenador-"+modo,correctos.length,painted.length-correctos.length); setChecked(true); }} style={{padding:"6px 14px",borderRadius:9,border:"none",background:"#e6e6e6",color:"#0a0a0a",fontWeight:800,fontSize:11,cursor:"pointer"}}>
+          {modo!=="escalas" && !esCam && modo!=="lineas" && modo!=="construir" && modo!=="armonizar" && <button onClick={()=>setChecked(true)} style={{padding:"6px 14px",borderRadius:9,border:"none",background:"#e6e6e6",color:"#0a0a0a",fontWeight:800,fontSize:11,cursor:"pointer"}}>
             ✓ Corregir
           </button>}
           <button onClick={reiniciarFuelle} style={uiGhost}>
@@ -5891,7 +5914,7 @@ function CirculoQuintas(){
 // Cada ejercicio de escala viaja COMPLETO: camino, octavas, frecuencias y digitación.
 // Los datos se publican en "clases.json" junto a index.html.
 // ═══════════════════════════════════════════════════════════════════════════
-const ORG_KEY = "bandomaps_org";
+const ORG_KEY = "harmonia_org";
 const idn = ()=>Math.random().toString(36).slice(2,8);
 const cargarOrg = ()=>{ try{ const j=JSON.parse(localStorage.getItem(ORG_KEY)||"null"); if(j&&Array.isArray(j.clases)) return {alumnos:j.alumnos||[],clases:j.clases,asign:j.asign||{},usuarios:j.usuarios||[],registroUrl:j.registroUrl||""}; }catch(e){} return {alumnos:[],clases:[],asign:{},usuarios:[],registroUrl:""}; };
 
@@ -5900,10 +5923,7 @@ const cargarOrg = ()=>{ try{ const j=JSON.parse(localStorage.getItem(ORG_KEY)||"
 // No se envía qué ejercicio ni cuánto tiempo. El aviso va firmado con la sesión verificada (window.__TOKEN),
 // así que el script de la planilla sabe quién es sin fiarse de lo que diga el navegador.
 const REG_URL_RE = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
-const REG_SES = "bandomaps_reg_sesion";
-// medir-1 (8-nov-2026): cada respuesta suma al resumen del día del alumno (src/Puerta.jsx y public/cuenta/medir.js).
-function medir(ej,bien,pc){ try{ window.__medir&&window.__medir(ej,bien,pc); }catch(e){} }
-function medirLote(ej,a,f){ try{ window.__medirLote&&window.__medirLote(ej,a,f); }catch(e){} }
+const REG_SES = "harmonia_reg_sesion";
 function registrar(tipo){
   try{
     const url=window.__ACCESO_URL, tok=window.__TOKEN;
@@ -5911,7 +5931,7 @@ function registrar(tipo){
     fetch(url,{method:"POST",mode:"no-cors",keepalive:true,body:JSON.stringify({a:"reg",t:tipo,tok:tok})}).catch(()=>{});
   }catch(e){}
 }
-const REG_CLAVE_KEY = "bandomaps_reg_clave";   // la clave de lectura queda solo en el navegador del profesor (nunca va en clases.json)
+const REG_CLAVE_KEY = "harmonia_reg_clave";   // la clave de lectura queda solo en el navegador del profesor (nunca va en clases.json)
 const diaLocal = (ms)=>{ const d=new Date(ms); return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(); };
 function haceCuanto(ms, ahora){
   if(!ms) return "nunca";
@@ -6258,11 +6278,11 @@ function MisTareasTab({onPracticar}){
   const u = window.__USUARIO || "";
   const [romano]=useRomanos();
   const [datos,setDatos]=useState(null), [err,setErr]=useState(false);
-  const [hechas,setHechas]=useState(()=>{ try{ return JSON.parse(localStorage.getItem("bandomaps_hechas_"+u)||"{}"); }catch(e){ return {}; } });
+  const [hechas,setHechas]=useState(()=>{ try{ return JSON.parse(localStorage.getItem("harmonia_hechas_"+u)||"{}"); }catch(e){ return {}; } });
   useEffect(()=>{ let vivo=true;
     fetch("clases.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{ if(!vivo) return; if(j&&Array.isArray(j.clases)) setDatos(j); else setErr(true); }).catch(()=>{ if(vivo) setErr(true); });
     return ()=>{vivo=false;}; },[]);
-  const marcar=(id)=>{ const n={...hechas,[id]:!hechas[id]}; setHechas(n); try{ localStorage.setItem("bandomaps_hechas_"+u,JSON.stringify(n)); }catch(e){} };
+  const marcar=(id)=>{ const n={...hechas,[id]:!hechas[id]}; setHechas(n); try{ localStorage.setItem("harmonia_hechas_"+u,JSON.stringify(n)); }catch(e){} };
   const ids = (()=>{ if(!datos||!datos.asignaciones) return []; const out=[];
     Object.entries(datos.asignaciones).forEach(([k,l])=>{ if(k.trim().toLowerCase()===u.trim().toLowerCase()) (l||[]).forEach(id=>{ if(!out.includes(id)) out.push(id); }); });
     return out; })();
@@ -6561,6 +6581,178 @@ function ColoresTab(){
 }
 
 // ─── APP PRINCIPAL ────────────────────────────────────────────────────────────
+// ─── TEORÍA BÁSICA: nociones generales para llegar a escalas y acordes en el bandoneón ───
+const TEO_GRADOS_MAYOR=[["I","Tónica"],["II","Supertónica"],["III","Mediante"],["IV","Subdominante"],["V","Dominante"],["VI","Superdominante"],["VII","Sensible"]];
+const TEO_GRADOS_MENOR=[["I","Tónica"],["II","Supertónica"],["III","Mediante"],["IV","Subdominante"],["V","Dominante"],["VI","Superdominante"],["VII","Subtónica"]];
+// notas (nombres en inglés) ordenadas hacia arriba: la octava sube cuando la altura baja
+function teoAscender(pcs,base=4){ let oct=base,prev=-1; return pcs.map(pc=>{ if(prev>=0&&pc<=prev) oct++; prev=pc; return {pc,oct}; }); }
+function useTeoSeq(){
+  const timers=useRef([]); useEffect(()=>()=>timers.current.forEach(clearTimeout),[]);
+  const parar=()=>{ timers.current.forEach(clearTimeout); timers.current=[]; };
+  const tras=(ms,fn)=>{ timers.current.push(setTimeout(fn,ms)); };
+  return {parar,tras};
+}
+const teoBox={background:"#121214",border:"1px solid #26262a",borderRadius:14,padding:"14px 16px",marginBottom:12};
+const teoP={fontFamily:"'Crimson Text',Georgia,serif",fontSize:17,lineHeight:1.55,color:"#cfcfd4",margin:"0 0 10px"};
+function TeoNota({pc,txt,sub,size=40}){ const c=WCOL_TEO[pc]; return (
+  <div style={{display:"inline-flex",flexDirection:"column",alignItems:"center",gap:3}}>
+    <div style={{width:size,height:size,borderRadius:"50%",background:c,border:"2px solid rgba(255,255,255,.3)",display:"flex",alignItems:"center",justifyContent:"center",color:txtSobre(c),fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:size*0.34}}>{txt}</div>
+    {sub!==undefined&&<span style={{fontSize:10,color:"#8a8a90",fontFamily:"monospace"}}>{sub}</span>}
+  </div>); }
+const WCOL_TEO=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"].map(n=>NC[n]);
+const FigSvg=({id,size=44})=>{ const hueco=id==="redonda"||id==="blanca", asta=id!=="redonda", flags=id==="corchea"?1:id==="semicorchea"?2:0;
+  return (<svg width={size} height={size} viewBox="0 0 44 44"><ellipse cx="16" cy="32" rx="9" ry="6.5" transform="rotate(-20 16 32)" fill={hueco?"none":"#ececec"} stroke="#ececec" strokeWidth="2.4"/>
+    {asta&&<line x1="24.6" y1="29.5" x2="24.6" y2="6" stroke="#ececec" strokeWidth="2.4"/>}
+    {[...Array(flags)].map((_,i)=><path key={i} d={`M24.6,${6+i*7} q10,5 6,16`} fill="none" stroke="#ececec" strokeWidth="2.4"/>)}</svg>); };
+
+function TeoL1(){
+  const {parar,tras}=useTeoSeq(); const [vivo,setVivo]=useState(null);   // {que, i}
+  const ritmo=()=>{ parar(); const d=[1,1,.5,.5,1], pulso=0.62; let t=0; d.forEach((x,i)=>{ tras(t*1000,()=>{ playTone("C",5,0.12); setVivo({que:"ritmo",i}); }); t+=x*pulso; }); tras(t*1000,()=>setVivo(null)); };
+  const melodia=()=>{ parar(); const n=[0,2,4,7,4,2,0]; n.forEach((pc,i)=>tras(i*430,()=>{ playTone(CHROMATIC[pc],4,0.5); setVivo({que:"melodia",i}); })); tras(n.length*430,()=>setVivo(null)); };
+  const armonia=()=>{ parar(); [[0,4,7],[5,9,0],[7,11,2]].forEach((ch,k)=>tras(k*1200,()=>{ setVivo({que:"armonia",i:k}); teoAscender(ch,4).forEach((x,j)=>tras(0,()=>playTone(CHROMATIC[x.pc],x.oct,1.0))); })); tras(3600,()=>setVivo(null)); };
+  const on=(q,i)=>vivo&&vivo.que===q&&vivo.i===i;
+  const Card=({t,txt,f,children})=>(<div style={{...teoBox,flex:"1 1 190px",marginBottom:0}}><p style={{margin:"0 0 4px",fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:18,color:"#ececec"}}>{t}</p><p style={{...teoP,fontSize:15,margin:"0 0 10px"}}>{txt}</p>{children}<div style={{marginTop:10}}><button style={uiPlay(false,{padding:"5px 14px"})} onClick={f}>▶ Escuchar</button></div></div>);
+  return (<div>
+    <p style={teoP}>La música es el arte de combinar sonidos y silencios en el tiempo. Se apoya en tres elementos:</p>
+    <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+      <Card t="Ritmo" txt="Cómo se ordenan los sonidos en el tiempo: pulso y duraciones." f={ritmo}>
+        <div style={{display:"flex",gap:4,alignItems:"flex-end",height:46}}>{[1,1,.5,.5,1].map((d,i)=>(<div key={i} style={{width:d*40,height:on("ritmo",i)?44:30,borderRadius:6,background:on("ritmo",i)?"#2dd4bf":"#2e2e34",transition:"all .08s"}}/>))}</div></Card>
+      <Card t="Melodía" txt="Sonidos de distinta altura, uno detrás del otro." f={melodia}>
+        <div style={{display:"flex",gap:4}}>{[0,2,4,7,4,2,0].map((pc,i)=>(<div key={i} style={{width:24,height:24+(on("melodia",i)?10:0)+[0,1,2,4,2,1,0][i]*4,borderRadius:7,background:WCOL_TEO[pc],opacity:on("melodia",i)?1:.55,alignSelf:"flex-end",transition:"all .1s"}}/>))}</div></Card>
+      <Card t="Armonía" txt="Sonidos al mismo tiempo: los acordes." f={armonia}>
+        <div style={{display:"flex",gap:10}}>{[[0,4,7],[5,9,0],[7,11,2]].map((ch,k)=>(<div key={k} style={{display:"flex",flexDirection:"column-reverse",gap:3,opacity:on("armonia",k)?1:.5,transition:"opacity .15s"}}>{ch.map(pc=><div key={pc} style={{width:28,height:14,borderRadius:5,background:WCOL_TEO[pc]}}/>)}</div>))}</div></Card>
+    </div>
+    <p style={{...teoP,marginTop:14}}>Una canción usa los tres a la vez: el <b style={{color:"#ececec"}}>ritmo</b> la hace avanzar, la <b style={{color:"#ececec"}}>melodía</b> es lo que se canta, y la <b style={{color:"#ececec"}}>armonía</b> la acompaña.</p>
+  </div>);
+}
+function TeoL2(){
+  const {parar,tras}=useTeoSeq(); const [bpm,setBpm]=useState(80); const [sono,setSono]=useState(null);
+  const FIG=[["redonda","Redonda",4,"4 pulsos"],["blanca","Blanca",2,"2 pulsos"],["negra","Negra",1,"1 pulso"],["corchea","Corchea",.5,"medio pulso"],["semicorchea","Semicorchea",.25,"un cuarto de pulso"]];
+  const tocar=(id,p)=>{ parar(); const pul=60/bpm, cuantas=Math.round(4/p); setSono(id); for(let i=0;i<cuantas;i++) tras(i*p*pul*1000,()=>playTone("C",i%(cuantas/Math.min(cuantas,4)||1)===0?5:4,Math.min(p*pul*0.9,1.6))); tras(4*pul*1000+200,()=>setSono(null)); };
+  return (<div>
+    <p style={teoP}>Cada figura indica cuánto dura un sonido. Se mide en <b style={{color:"#ececec"}}>pulsos</b>: el latido regular que sentís cuando marcás el paso. Tomando la negra como un pulso:</p>
+    <div style={teoBox}>
+      {FIG.map(([id,nom,p,txt])=>(
+        <div key={id} style={{display:"flex",alignItems:"center",gap:12,padding:"7px 0",borderTop:id==="redonda"?"none":"1px solid #1c1c1f",flexWrap:"wrap"}}>
+          <FigSvg id={id}/>
+          <div style={{width:130}}><b style={{color:"#ececec",fontFamily:"'Libre Baskerville',serif"}}>{nom}</b><div style={{fontSize:12,color:"#8a8a90"}}>dura {txt}</div></div>
+          <div style={{flex:"1 1 120px",height:14,background:"#1b1b20",borderRadius:7,overflow:"hidden"}}><div style={{width:`${p/4*100}%`,height:"100%",background:sono===id?"#2dd4bf":"#5a5a64",borderRadius:7,transition:"background .15s"}}/></div>
+          <button style={uiPlay(false,{padding:"4px 12px",fontSize:11.5})} onClick={()=>tocar(id,p)}>▶ Un compás</button>
+        </div>))}
+    </div>
+    <div style={{display:"flex",alignItems:"center",gap:12,margin:"0 0 12px",flexWrap:"wrap"}}><span style={{...uiLabel,fontSize:10}}>Velocidad</span><input type="range" min="50" max="140" value={bpm} onChange={e=>setBpm(+e.target.value)} style={{width:180}}/><span style={{fontFamily:"monospace",color:"#ececec"}}>♩ = {bpm}</span></div>
+    <p style={teoP}>Los pulsos se agrupan en <b style={{color:"#ececec"}}>compases</b>. En un compás de 4/4 caben cuatro negras, o dos blancas, o una redonda. Cada figura tiene también su <b style={{color:"#ececec"}}>silencio</b>: dura lo mismo, pero no suena.</p>
+  </div>);
+}
+function TeoL3(){
+  const [a,setA]=useState(null); const [b,setB]=useState(null);
+  const pick=(pc)=>{ playTone(CHROMATIC[pc],4,0.6); if(a===null||b!==null){ setA(pc); setB(null); } else setB(pc); };
+  const d=a!==null&&b!==null?((b-a+12)%12):null;
+  const NOMD=["la misma nota","1 semitono","1 tono","1 tono y 1 semitono","2 tonos","2 tonos y 1 semitono","3 tonos (tritono)","3 tonos y 1 semitono","4 tonos menos 1 semitono","4 tonos","5 tonos menos 1 semitono","5 tonos y 1 semitono"];
+  return (<div>
+    <p style={teoP}>Hay <b style={{color:"#ececec"}}>doce sonidos</b> distintos antes de que todo se repita una octava más arriba. La distancia más chica entre dos de ellos es el <b style={{color:"#ececec"}}>semitono</b>; dos semitonos forman un <b style={{color:"#ececec"}}>tono</b>.</p>
+    <div style={teoBox}>
+      <div style={{display:"flex",gap:4}}>{CHROMATIC.map((n,pc)=>{ const sel=pc===a||pc===b; return (
+        <div key={n} onClick={()=>pick(pc)} style={{flex:1,minWidth:0,cursor:"pointer",textAlign:"center"}}>
+          <div style={{height:44,borderRadius:8,background:WCOL_TEO[pc],border:sel?"3px solid #fff":"1px solid rgba(255,255,255,.2)",boxShadow:sel?"0 0 12px rgba(255,255,255,.35)":"none"}}/>
+          <div style={{fontSize:10,color:"#bdbdc6",fontFamily:"serif",marginTop:3,whiteSpace:"nowrap"}}>{nombreLat(n)}</div></div>); })}</div>
+      <p style={{...teoP,fontSize:15,margin:"12px 0 0",minHeight:24}}>{a===null?"Tocá una nota y después otra para medir la distancia entre las dos.":b===null?`Elegiste ${nombreLat(CHROMATIC[a])}. Ahora tocá otra.`:`De ${nombreLat(CHROMATIC[a])} a ${nombreLat(CHROMATIC[b])} (subiendo) hay ${NOMD[d]}.`}</p>
+    </div>
+    <p style={teoP}>Un <b style={{color:"#ececec"}}>sostenido</b> (♯) sube la nota un semitono y un <b style={{color:"#ececec"}}>bemol</b> (♭) la baja un semitono. Por eso Do♯ y Re♭ son el mismo sonido con dos nombres: a eso se le llama <i>enarmonía</i>. Entre Mi y Fa, y entre Si y Do, no hay nota en el medio: son semitonos naturales.</p>
+  </div>);
+}
+function TeoL4(){
+  const {parar,tras}=useTeoSeq(); const [menor,setMenor]=useState(false); const [tn,setTn]=useState("C"); const [vivo,setVivo]=useState(-1);
+  const lista=menor?TONICAS_MENOR:TONICAS_MAYOR, ton=lista.includes(tn)?tn:lista[noteIdx(tn)];
+  const ivs=menor?[0,2,3,5,7,8,10]:[0,2,4,5,7,9,11], notas=buildScale(ton,ivs), pcs=notas.map(noteIdx), gr=menor?TEO_GRADOS_MENOR:TEO_GRADOS_MAYOR;
+  const pasos=ivs.map((x,i)=>((ivs[i+1]??12)-x)===2?"T":"S");
+  const escuchar=()=>{ parar(); const arr=teoAscender([...pcs,pcs[0]],4); arr.forEach((x,i)=>tras(i*420,()=>{ playTone(CHROMATIC[x.pc],x.oct,0.5); setVivo(i); })); tras(arr.length*420,()=>setVivo(-1)); };
+  return (<div>
+    <p style={teoP}>Una <b style={{color:"#ececec"}}>escala</b> es una serie ordenada de notas. Cada una es un <b style={{color:"#ececec"}}>grado</b> y se nombra con un número romano; el primero es la <b style={{color:"#ececec"}}>tónica</b>, la nota donde la escala «descansa».</p>
+    <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"flex-end",marginBottom:10}}>
+      <div style={{display:"flex",background:"#0e0e10",border:"1px solid #2f2f35",borderRadius:8,padding:2,gap:2}}>{[[false,"Mayor"],[true,"Menor natural"]].map(([v,l])=>(<button key={l} style={uiVista(menor===v,{padding:"4px 12px"})} onClick={()=>setMenor(v)}>{l}</button>))}</div>
+      <Desplegable ancho={90} etiqueta="Tónica" valor={ton} opciones={lista.map(x=>[x,nombreLat(x)])} onChange={setTn}/>
+      <button style={uiPlay(false,{padding:"6px 16px"})} onClick={escuchar}>▶ Escuchar la escala</button>
+    </div>
+    <div style={{...teoBox,overflowX:"auto"}}>
+      <div style={{display:"flex",alignItems:"flex-start",gap:0,minWidth:560}}>
+        {[...notas,notas[0]].map((n,i)=>(<div key={i} style={{display:"flex",alignItems:"flex-start"}}>
+          <div style={{textAlign:"center",width:56,opacity:vivo<0||vivo===i?1:.45,transition:"opacity .1s"}}>
+            <TeoNota pc={pcs[i%7]} txt={nombreLat(n)} size={48}/>
+            <div style={{fontFamily:"monospace",fontWeight:800,color:"#ececec",fontSize:13,marginTop:4}}>{i===7?"I":gr[i][0]}</div>
+            <div style={{fontSize:10,color:"#8a8a90"}}>{i===7?"octava":gr[i][1]}</div></div>
+          {i<7&&<div style={{width:20,height:48,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,fontFamily:"monospace",color:pasos[i]==="S"?"#f2c14e":"#9a9aa2"}}>{pasos[i]}</div>}
+        </div>))}
+      </div>
+    </div>
+    <p style={teoP}>La fórmula de la escala <b style={{color:"#ececec"}}>mayor</b> es siempre la misma: <b style={{color:"#ececec"}}>T T S T T T S</b> (tono, tono, semitono…). La <b style={{color:"#ececec"}}>menor natural</b> es <b style={{color:"#ececec"}}>T S T T S T T</b>. Cambiando la tónica, la fórmula se traslada a cualquier tonalidad.</p>
+  </div>);
+}
+function TeoL5({irA}){
+  const {parar,tras}=useTeoSeq(); const [raiz,setRaiz]=useState("C");
+  const tocarPcs=(pcs,arp)=>{ parar(); teoAscender(pcs,3).forEach((x,i)=>tras(arp?i*380:i*15,()=>playTone(CHROMATIC[x.pc],x.oct,arp?0.6:1.4))); };
+  const tipos=[["","Mayor","3ª mayor + 5ª justa"],["m","Menor","3ª menor + 5ª justa"],["maj7","Mayor con 7ª mayor (△7)","tríada mayor + 7ª mayor"],["7","Dominante (7)","tríada mayor + 7ª menor"]];
+  const dia=acordesDiatonicos(raiz,"mayor");
+  const ROLES=["Raíz","3ª","5ª","7ª"];
+  return (<div>
+    <p style={teoP}>Un <b style={{color:"#ececec"}}>acorde</b> son tres o más notas sonando juntas. Se arman <b style={{color:"#ececec"}}>apilando terceras</b>: partís de una nota (la <b style={{color:"#ececec"}}>raíz</b>), saltás una nota de la escala y tomás la siguiente, y repetís. Con tres notas es una <b style={{color:"#ececec"}}>tríada</b>: raíz, 3ª y 5ª.</p>
+    <div style={{marginBottom:10}}><Desplegable ancho={90} etiqueta="Raíz" valor={raiz} opciones={TONICAS_MAYOR.map(x=>[x,nombreLat(x)])} onChange={setRaiz}/></div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",gap:10,marginBottom:12}}>
+      {tipos.map(([suf,nom,regla])=>{ const ch=parseChord(raiz+suf); if(!ch) return null; const pcs=ch.notes.map(noteIdx); return (
+        <div key={suf||"M"} style={{...teoBox,marginBottom:0}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:6}}><b style={{fontFamily:"'Libre Baskerville',serif",color:"#ececec",fontSize:16}}>{nombreLat(raiz)} {({"":"mayor",m:"menor",maj7:"△7","7":"7"})[suf]}</b></div>
+          <div style={{fontSize:11.5,color:"#8a8a90",margin:"2px 0 10px"}}>{nom} · {regla}</div>
+          <div style={{display:"flex",flexDirection:"column-reverse",gap:6}}>
+            {ch.notes.map((n,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:10}}><TeoNota pc={pcs[i]} txt={nombreLat(n)} size={34}/><span style={{fontSize:12,color:"#9a9aa2"}}>{ROLES[i]}</span></div>))}
+          </div>
+          <div style={{display:"flex",gap:6,marginTop:10}}><button style={uiPlay(false,{padding:"4px 12px",fontSize:11.5})} onClick={()=>tocarPcs(pcs,false)}>▶ Juntas</button><button style={uiPlay(false,{padding:"4px 12px",fontSize:11.5})} onClick={()=>tocarPcs(pcs,true)}>▶ Una por una</button></div>
+        </div>); })}
+    </div>
+    <p style={teoP}>Si apilás terceras sobre <b style={{color:"#ececec"}}>cada grado de una escala</b>, obtenés un acorde por grado. En {nombreLat(raiz)} mayor son:</p>
+    <div style={{...teoBox,display:"flex",gap:8,flexWrap:"wrap"}}>
+      {dia.map(d=>(<button key={d.i} onClick={()=>tocarPcs(d.pcs.slice(0,3),false)} style={{minWidth:78,padding:"6px 8px 7px",borderRadius:10,cursor:"pointer",textAlign:"center",background:"#0e0e10",border:"1px solid #2c2c30",borderTop:`4px solid ${WCOL_TEO[d.pc]}`,color:"#ececec"}}>
+        <div style={{fontSize:10,fontFamily:"monospace",color:"#9a9aa2",fontWeight:700}}>{romTri(d.i,d.tq)}</div><div style={{fontSize:12.5,fontWeight:700,fontFamily:"'Libre Baskerville',serif"}}>{nombreAcordeEs(d.raiz,d.tq)}</div></button>))}
+    </div>
+    <p style={{...teoP,fontSize:15}}>Tocá cada uno para escucharlo. Mayúscula = acorde mayor, minúscula = menor, ° = disminuido. Para verlos en el teclado, andá a <b style={{color:"#ececec"}}>Entrenador → Acordes → Armonizar</b>.</p>
+  </div>);
+}
+function TeoL6({irA}){
+  const GL=[["Pulso","El latido regular de la música."],["Compás","Agrupación de pulsos; en 4/4 caben cuatro negras."],["Figura","Símbolo que indica cuánto dura un sonido."],["Semitono","La distancia más chica entre dos notas."],["Tono","Dos semitonos."],["Escala","Serie ordenada de notas con una fórmula de tonos y semitonos."],["Grado","Cada nota de la escala, con su número romano."],["Tónica","El primer grado: la nota de reposo."],["Acorde","Tres o más notas sonando juntas."],["Tríada","Acorde de tres notas: raíz, 3ª y 5ª."],["Raíz","La nota sobre la que se arma el acorde."],["Enarmonía","Dos nombres para el mismo sonido (Do♯ y Re♭)."]];
+  return (<div>
+    <p style={teoP}>Con estas nociones ya podés entrar a las escalas y los acordes en el bandoneón.</p>
+    <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:14}}>
+      <button style={uiPill(true,{padding:"9px 18px"})} onClick={()=>irA("bandoneon")}>♬ El mapa del bandoneón</button>
+      <button style={uiPill(false,{padding:"9px 18px"})} onClick={()=>irA("entrenador")}>◎ Entrenador: escalas y acordes</button>
+    </div>
+    <div style={teoBox}><p style={{...uiLabel,margin:"0 0 8px"}}>Glosario</p>
+      {GL.map(([t,d],i)=>(<div key={t} style={{display:"flex",gap:12,padding:"6px 0",borderTop:i?"1px solid #1c1c1f":"none",flexWrap:"wrap"}}><b style={{minWidth:96,color:"#ececec",fontFamily:"'Libre Baskerville',serif"}}>{t}</b><span style={{flex:"1 1 220px",color:"#b4b4bc",fontSize:14}}>{d}</span></div>))}
+    </div>
+  </div>);
+}
+function TeoriaTab({irA}){
+  const [lec,setLec]=useState(0);
+  const LEC=[["Qué es la música",<TeoL1/>],["Figuras y valores",<TeoL2/>],["Las notas",<TeoL3/>],["Cómo se forma una escala",<TeoL4/>],["Cómo se forma un acorde",<TeoL5 irA={irA}/>],["Ahora, en el bandoneón",<TeoL6 irA={irA}/>]];
+  return (
+    <div>
+      <div style={{marginBottom:12}}>
+        <h2 style={{margin:0,fontFamily:"'Libre Baskerville',serif",fontSize:22,fontWeight:700,color:"#ececec"}}>📚 Teoría básica</h2>
+        <p style={{margin:"4px 0 0",fontSize:12,color:"#8a8a90"}}>Nociones generales, para llegar a las escalas y los acordes. Tu profesor las amplía.</p>
+      </div>
+      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>
+        {LEC.map(([t],i)=>(<button key={t} style={uiPill(lec===i,{padding:"6px 12px",fontSize:12})} onClick={()=>setLec(i)}>{i+1} · {t}</button>))}
+      </div>
+      <div key={lec}>
+        <h3 style={{margin:"0 0 10px",fontFamily:"'Libre Baskerville',serif",fontSize:19,color:"#ececec"}}>{lec+1}. {LEC[lec][0]}</h3>
+        {LEC[lec][1]}
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",marginTop:10}}>
+        <button disabled={lec===0} style={{...uiPill(false,{padding:"7px 16px"}),opacity:lec===0?.4:1}} onClick={()=>setLec(l=>Math.max(0,l-1))}>← Anterior</button>
+        <button disabled={lec===LEC.length-1} style={{...uiPill(true,{padding:"7px 18px"}),opacity:lec===LEC.length-1?.4:1}} onClick={()=>setLec(l=>Math.min(LEC.length-1,l+1))}>Siguiente →</button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Aviso inicial: alcance de la plataforma y papel del profesor ───
 const AVISO_VISTAS_SIN_OPCION = 3;   // las primeras veces no se puede ocultar; después aparece "No mostrar más"
 function AvisoInicial({n,manual,onClose,onNunca}){
@@ -6588,7 +6780,7 @@ function AvisoInicial({n,manual,onClose,onNunca}){
   );
 }
 
-export default function BandoMapsApp(){
+export default function HarmoniaApp(){
   // Aviso inicial (solo en la versión de alumnos): se cuenta cada ingreso; desde el cuarto se puede ocultar
   const avisoN = useRef((()=>{ try{ const n=parseInt(localStorage.getItem("bandomaps_aviso_vistas")||"0",10)||0; return n+1; }catch(e){ return 1; } })());
   const [aviso,setAviso]=useState(()=>{ if(!window.__ALUMNO) return false; try{ if(localStorage.getItem("bandomaps_aviso_no")==="1") return false; }catch(e){} return true; });
@@ -6596,7 +6788,6 @@ export default function BandoMapsApp(){
   useEffect(()=>{ if(aviso&&!avisoManual){ try{ localStorage.setItem("bandomaps_aviso_vistas",String(avisoN.current)); }catch(e){} } },[]);
 
   const[tab,setTab]=useState("codigo");
-  useEffect(()=>{ window.__tab=tab; },[tab]);   // medir-1: qué herramienta se está usando (src/Puerta.jsx)
   const[navOpen,setNavOpen]=useState(false);
   const[chordInput,setChordInput]=useState("Dm7");
   const[pickRoot,setPickRoot]=useState("D");
@@ -6636,6 +6827,7 @@ export default function BandoMapsApp(){
   const [preset,setPreset]=useState(null);
   const ESTUDIO=[
     {id:"codigo",label:"El Código",icon:"◐"},
+    {id:"teoria",label:"Teoría",icon:"♩"},
     {id:"bandoneon",label:"Bandoneón",icon:"♬"},
     {id:"entrenador",label:"Entrenador",icon:"◎"},
     window.__ALUMNO ? {id:"tareas",label:"Mis tareas",icon:"✎"} : {id:"organizador",label:"Organizador",icon:"▦"},
@@ -6737,6 +6929,9 @@ export default function BandoMapsApp(){
 
             {/* ══ EL CÓDIGO ══ */}
             {tab==="codigo"&&<ElCodigoTab irA={setTab}/>}
+
+            {/* ══ TEORÍA BÁSICA ══ */}
+            {tab==="teoria"&&<TeoriaTab irA={setTab}/>}
 
             {/* ══ ACORDE ══ */}
             {tab==="chord"&&(
