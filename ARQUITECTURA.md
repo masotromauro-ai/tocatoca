@@ -18,6 +18,22 @@ nuevo que existe es el mapa de áreas (`areas.json`), la herramienta que lo lee
   lugar para la guía. La única grande es el Entrenador (30 mil), que se parte al final.
 - **Lo primero que se vuelve trabajable**: las formas recomendadas (47 líneas de lógica pura).
 
+## Revisión del 10-nov: qué cambió en el plan
+
+Se contrastó con las apps parecidas y con las tendencias de 2026 (detalle y fuentes en
+`TENDENCIAS.md`). La base del plan se sostiene: carpetas chicas por tema, lógica separada de la
+pantalla y pruebas que vigilan las reglas no dependen de ninguna moda. Cambian tres cosas:
+
+1. **Se suma una fase 7, «la plataforma al día»**, que va **después** de partir el archivo (en
+   archivos chicos cada cambio se prueba mejor): React 19 con el React Compiler (saca a mano los
+   38 `useMemo` de hoy), la app instalable y que anda sin conexión, y la escucha con AudioWorklet.
+2. **Se abre un carril de producto para los alumnos**, en paralelo desde que termina la fase 1, con
+   lo que hacen las mejores apps y BandoMaps todavía no: la práctica del día (corta, armada con lo
+   que más falla cada uno), nada que dependa sólo del color, el dedo en el botón, ayudas que se
+   apagan a medida que se avanza, y láminas del teclado para imprimir.
+3. **Se escribe qué NO se adopta** (componentes de servidor, Next.js, microfrontends, un tutor de
+   IA para los alumnos), para que nadie lo agregue por moda.
+
 ## El problema, medido
 
 | | Hoy |
@@ -128,13 +144,31 @@ Los tamaños salen de `areas.json` (se pueden recalcular con `node pruebas/areas
 | **4** | La raíz y el armador de acordes: las tres herramientas de adentro de `BandoMapsApp` pasan a su carpeta; `App.jsx` queda como esquema | 866 | `App.jsx` ≤ 250 líneas, `features/herramientas/{acorde,progresion,biblioteca}` | alto (es el centro) | Se ve de un vistazo qué pestañas hay y qué estado comparten |
 | **5** | Pestaña Bandoneón | 491 | `features/bandoneon/` (4 archivos) | alto | Se toca la escucha física sin mover el mapa |
 | **6** | **Entrenador**: un hook `useEntrenador` con el estado y **un panel por modo** | 1.129 | `features/entrenador/` (~10 archivos) | alto | El archivo más grande del proyecto deja de existir; las formas recomendadas se enchufan en un panel |
+| **7** | **La plataforma al día**: React 19 + React Compiler; app instalable que anda sin conexión (como el panel); escucha con AudioWorklet; caché persistente de la base | — | `vite.config.js`, `public/manifest`, `sw.js`, `shared/audio/mic.js` | medio | Menos código a mano, se practica sin señal, la escucha no se traba |
 
-**Unas 16 subidas chicas** en total (0: 2 · 1: 2 · 2: 2 · 3: 3 · 4: 2 · 5: 1 · 6: 4). Se puede
+**Unas 19 subidas chicas** en total (0: 2 · 1: 2 · 2: 2 · 3: 3 · 4: 2 · 5: 1 · 6: 4 · 7: 3). Se puede
 frenar entre fases sin perder nada: después de la fase 1 el proyecto ya anda mejor que hoy.
 
 **Por qué este orden:** primero lo que no tiene pantalla (no hay nada que romper a la vista),
 después lo que usan varias pestañas, después cada pestaña sola, y al final el Entrenador, que
 depende de todo lo anterior y es el más enredado (34 estados que se reparten entre modos).
+
+## El carril de producto: lo que los alumnos notan
+
+Corre en paralelo a las fases 2 a 7, de a una mejora por vez y siempre en una carpeta nueva y
+chica (así nunca vuelve a crecer un archivo gigante). En orden de valor para el alumno:
+
+| | Qué | De dónde sale | Necesita |
+|---|---|---|---|
+| A | **La práctica del día**: 5 a 10 minutos con lo que más le falla a cada uno, que se repite espaciado | Las apps de mayor uso y el aprendizaje en sesiones cortas; los datos ya se miden desde el 8-nov | fase 1 + la pestaña «Alumnos» |
+| B | **Nunca sólo color**: nombre de la nota o una marca en cada botón, y un modo que lo garantice | Accesibilidad: hay quien no distingue bien algunos colores | fase 1 (`shared/ui/tema.js`) |
+| C | **El dedo en el botón** y **ayudas que se apagan** con el avance | Apps de acordeón de botones (dedos, nombres que se ocultan) | fase 2 (teclado) |
+| D | **Formas recomendadas** del profesor, con «ver todas las notas» aparte | El pedido de Mariano | fase 1 + respuestas V6, V7, V11 |
+| E | **Láminas del teclado para imprimir** | Herramientas web de bandoneón | fase 2 |
+| F | **Metas del docente** en vez de puntos («3 prácticas con 80 %»), con una racha suave y medida | El juego liviano ayuda a volver; no hay pruebas serias de que las rachas enseñen | tareas con meta (plan de BandoMaps) |
+| G | **Escucha que corrige al tocar**, probada con un bandoneón real | Yousician y Skoove escuchan y corrigen | fase 7 (AudioWorklet) |
+
+Lo que decide el orden real es el profesor: está como pregunta en su panel.
 
 ## Qué gana el desarrollo: potencia por áreas
 

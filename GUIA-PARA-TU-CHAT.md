@@ -55,6 +55,16 @@ paquete** (esta guía + la ficha del área + su código recortado).
 5. **La lógica pura** (teoría, formas, sonido) se entrega con una prueba chica de `node`
    (sin navegador ni npm), como las de `pruebas/`.
 
+## Lo que cuida la experiencia del alumno
+
+- **Menos opciones, más claridad.** Ante la duda, mostrar menos; lo avanzado, plegado.
+- **Nunca sólo color**: cada nota lleva también su nombre o una marca (hay quien no distingue
+  bien algunos colores).
+- **Sesiones cortas** y respuesta inmediata: el alumno sabe al instante si estuvo bien.
+- **Pensado para tableta y teléfono**: el teclado grande y legible, también apaisado.
+- **Metas del docente antes que puntos.** Nada de rankings entre alumnos.
+- Las tendencias y las apps parecidas que se tomaron como referencia están en `TENDENCIAS.md`.
+
 ## Lo que no se toca (rompe cosas que ya andan)
 
 - Las claves de guardado `bandomaps_*` en `localStorage`: **no se renombran** (los alumnos perderían
