@@ -3,7 +3,7 @@
 // mapa no la cubre, esta prueba falla y dice cuál. Así una guía para un chat nunca queda desactualizada.
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { declaraciones, verificar, extraer } from "../herramientas/areas.mjs";
+import { declaraciones, verificar, extraer, usa } from "../herramientas/areas.mjs";
 let ok = 0, mal = 0;
 const t = (n, f) => { try { f(); ok++; console.log("  ✓ " + n); } catch (e) { mal++; console.log("  ✗ " + n + "\n      " + e.message); } };
 const src = fs.readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
@@ -34,5 +34,11 @@ t("el paquete de un área trae su código y avisa de dónde sale", () => {
   const e = extraer(src, mapa.areas.find((a) => a.id === "formas-recomendadas"), decls);
   assert.ok(e.texto.includes("function elegirVoicing") && e.texto.includes("function voicingsDe"));
   assert.ok(e.lineas < 80 && e.tokens < 3000, `${e.lineas} líneas`);
+});
+t("las dependencias: las formas recomendadas sólo necesitan itemsMano, y un área no se cita a sí misma", () => {
+  const u = usa(src, mapa.areas.find((a) => a.id === "formas-recomendadas"), mapa.areas, decls);
+  assert.deepEqual(u.map((x) => x.nombre), ["itemsMano"]);
+  assert.equal(u[0].area, "entrenador-ayudas");
+  for (const a of mapa.areas) for (const x of usa(src, a, mapa.areas, decls)) assert.notEqual(x.area, a.id, `${a.id} se cita a sí misma por ${x.nombre}`);
 });
 console.log(`\n${ok} pasadas, ${mal} fallidas`); process.exit(mal ? 1 : 0);

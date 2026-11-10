@@ -53,3 +53,27 @@ export function extraer(src, area, decls = declaraciones(src)) {
   const lineas = partes.reduce((t, p) => t + (p.a - p.de + 1), 0);
   return { texto, lineas, tokens: Math.round(texto.length / 3.3), partes };
 }
+
+/** Qué declaraciones de OTRAS áreas usa un área (por nombre, mirando el código). Sirve para que el
+ *  paquete traiga también lo que hace falta para entenderla. Puede incluir de más, nunca de menos
+ *  en el primer nivel (no sigue las dependencias de las dependencias). */
+export function usa(src, area, areas, decls = declaraciones(src)) {
+  const propios = new Set();
+  for (const [d, h] of area.tramos || []) {
+    const i = decls.findIndex((x) => x.nombre === d), j = decls.findIndex((x) => x.nombre === h);
+    for (let k = i; k <= j && i >= 0 && j >= 0; k++) propios.add(decls[k].nombre);
+  }
+  const dueno = new Map();
+  for (const a of areas) for (const [d, h] of a.tramos || []) {
+    const i = decls.findIndex((x) => x.nombre === d), j = decls.findIndex((x) => x.nombre === h);
+    for (let k = i; k <= j && i >= 0 && j >= 0; k++) dueno.set(decls[k].nombre, a.id);
+  }
+  const L = String(src).split("\n"), texto = extraer(src, area, decls).texto;
+  const sinCom = texto.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
+  const out = [];
+  for (const d of decls) {
+    if (propios.has(d.nombre) || !new RegExp("(?<![\\w$.])" + d.nombre.replace(/\$/g, "\\$") + "(?![\\w$])").test(sinCom)) continue;
+    out.push({ nombre: d.nombre, area: dueno.get(d.nombre), lineas: d.hasta - d.desde + 1, texto: L.slice(d.desde - 1, d.hasta).join("\n") });
+  }
+  return out;
+}
