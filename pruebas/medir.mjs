@@ -45,4 +45,15 @@ t("traer lo del teléfono: tareas marcadas y acordes; nada si no hay", () => {
   assert.equal(loDelTelefono(() => null, "ana"), null);
   assert.equal(loDelTelefono((k) => (k === "bandomaps_hechas_ana" ? '{"c1":false}' : "basura{"), "ana"), null);
 });
+// La app tiene que llamar a lo que mide. El 9-nov-2026 un App.jsx subido entero desde una copia vieja
+// sacó medir(), medirLote() y window.__tab y devolvió las claves harmonia_: nada falló, sólo dejó de medirse.
+import fs from "node:fs";
+const app = fs.readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
+t("App.jsx sigue llamando a medir y a medirLote, y avisa qué herramienta se usa", () => {
+  assert.ok((app.match(/\bmedir\(/g) || []).length >= 3, "medir(");
+  assert.ok(/medirLote\("entrenador-"/.test(app), "medirLote del Entrenador");
+  assert.ok(app.includes("window.__tab=tab"), "window.__tab");
+});
+t("App.jsx no vuelve a guardar con las claves viejas harmonia_", () => assert.equal((app.match(/harmonia_/g) || []).length, 0));
+
 console.log(`${ok} pasadas, ${mal} fallidas`); process.exit(mal ? 1 : 0);

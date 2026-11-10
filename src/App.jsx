@@ -1630,8 +1630,8 @@ const aRomano = (lab)=>{
   return acc+(ROM_N[+m[2]-1]||m[2]);
 };
 function useRomanos(){
-  const [r,setR]=useState(()=>{ try{ const v=localStorage.getItem("harmonia_romanos"); return v===null?true:v==="1"; }catch(e){ return true; } });
-  const set=(v)=>{ setR(v); try{ localStorage.setItem("harmonia_romanos",v?"1":"0"); }catch(e){} };
+  const [r,setR]=useState(()=>{ try{ const v=localStorage.getItem("bandomaps_romanos"); return v===null?true:v==="1"; }catch(e){ return true; } });
+  const set=(v)=>{ setR(v); try{ localStorage.setItem("bandomaps_romanos",v?"1":"0"); }catch(e){} };
   return [r,set];
 }
 function calcAcorde(ac,romano){
@@ -1865,11 +1865,11 @@ function useAnchoMedido(){
 // ─── DISPOSICIÓN DE LOS TECLADOS: lado a lado (izquierda a la izquierda) o apilados ─────────
 const anchoMano = (btns)=> btns.length ? Math.max(...btns.map(b=>b.x))+BTN_SIZE+16 : 740;
 function useDisposicion(){
-  const [lado,setLadoS]=useState(()=>{ try{ return localStorage.getItem("harmonia_lado")!=="0"; }catch(e){ return true; } });
-  const setLado=(v)=>{ setLadoS(v); try{ localStorage.setItem("harmonia_lado",v?"1":"0"); }catch(e){} };
+  const [lado,setLadoS]=useState(()=>{ try{ return localStorage.getItem("bandomaps_lado")!=="0"; }catch(e){ return true; } });
+  const setLado=(v)=>{ setLadoS(v); try{ localStorage.setItem("bandomaps_lado",v?"1":"0"); }catch(e){} };
   const [full,setFull]=useState(false);
-  const [invertir,setInvertirS]=useState(()=>{ try{ return localStorage.getItem("harmonia_invertir")==="1"; }catch(e){ return false; } });
-  const setInvertir=(v)=>{ setInvertirS(v); try{ localStorage.setItem("harmonia_invertir",v?"1":"0"); }catch(e){} };
+  const [invertir,setInvertirS]=useState(()=>{ try{ return localStorage.getItem("bandomaps_invertir")==="1"; }catch(e){ return false; } });
+  const setInvertir=(v)=>{ setInvertirS(v); try{ localStorage.setItem("bandomaps_invertir",v?"1":"0"); }catch(e){} };
   useEffect(()=>{
     const f=()=>setFull(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange",f);
@@ -2368,9 +2368,9 @@ function BandEditor({ initialLeft, initialRight, onSave, onCancel }) {
 const RAIZ_NOM=["C","Db","D","Eb","E","F","F#","G","Ab","A","Bb","B"];
 // Nomenclatura general: nombra CUALQUIER conjunto de notas a partir de una raíz (3ª, 5ª, 7ª, tensiones, alteraciones, sus, add, 6).
 const CIF_ESTILOS={jazz:{M7:"△",dim:"°",hdim:"ø",aug:"+",mM:"m△"},amer:{M7:"maj",dim:"dim",hdim:"m7♭5",aug:"aug",mM:"mMaj"}};
-const cifEstilo=()=>{ try{ return localStorage.getItem("harmonia_estilo_cifrado")==="amer"?"amer":"jazz"; }catch(e){ return "jazz"; } };
-const cifPropios=()=>{ try{ return JSON.parse(localStorage.getItem("harmonia_nombres_acordes")||"{}")||{}; }catch(e){ return {}; } };
-const cifGuardarPropios=(o)=>{ try{ localStorage.setItem("harmonia_nombres_acordes",JSON.stringify(o)); }catch(e){} };
+const cifEstilo=()=>{ try{ return localStorage.getItem("bandomaps_estilo_cifrado")==="amer"?"amer":"jazz"; }catch(e){ return "jazz"; } };
+const cifPropios=()=>{ try{ return JSON.parse(localStorage.getItem("bandomaps_nombres_acordes")||"{}")||{}; }catch(e){ return {}; } };
+const cifGuardarPropios=(o)=>{ try{ localStorage.setItem("bandomaps_nombres_acordes",JSON.stringify(o)); }catch(e){} };
 const INTERVALOS_NOM=["unísono","segunda menor","segunda mayor","tercera menor","tercera mayor","cuarta justa","tritono","quinta justa","sexta menor","sexta mayor","séptima menor","séptima mayor"];
 function cifSufijo(S,est){
   const E=CIF_ESTILOS[est], has=i=>S.has(i);
@@ -3230,7 +3230,7 @@ function PaletaRueda({compacta=false}){
   const reiniciaPregunta=()=>{ timers.current.forEach(clearTimeout); timers.current=[]; setJuego(j=>j?{...j,obj:null,res:null}:j); };
   const responder=(pc)=>{
     if(!juego||juego.res||juego.obj===null||juego.fin||!poolDe(juego.nivel).includes(pc)) return;
-    const bien=pc===juego.obj; playBand(CHROMATIC[juego.obj],4);
+    const bien=pc===juego.obj; playBand(CHROMATIC[juego.obj],4); medir("colores-"+(juego.modo||"nota"),bien,juego.obj);
     const racha=bien?juego.racha+1:0;
     setJuego({...juego,res:{pc,bien},ok:juego.ok+(bien?1:0),total:juego.total+1,racha,mejor:Math.max(juego.mejor,racha)});
     timers.current.push(setTimeout(()=>setJuego(j=>{
@@ -3347,7 +3347,7 @@ function EntrenaColores(){
   const nuevaOrden=()=>setOrd({mezcla:mezcla([...Array(12).keys()]),sig:0,err:0,pista:false,mal:null});
   const cambiar=(m)=>{ setModo(m); setQ(null); setOrd(null); };
 
-  const responder=(pc)=>{ if(Q.resp!==null) return; const bien=pc===Q.lista[Q.i]; playBand(CHROMATIC[Q.lista[Q.i]],4);
+  const responder=(pc)=>{ if(Q.resp!==null) return; const bien=pc===Q.lista[Q.i]; playBand(CHROMATIC[Q.lista[Q.i]],4); medir("preguntas-"+modo,bien,Q.lista[Q.i]);
     setQ(q=>q?{...q,resp:pc,ok:q.ok+(bien?1:0)}:q); setTimeout(()=>setQ(q=>q?{...q,i:q.i+1,resp:null}:q),bien?750:1500); };
   const tocarOrden=(pc)=>{ if(ord.sig>=12) return;
     if(pc===ord.sig){ playBand(CHROMATIC[pc],4); setOrd(o=>({...o,sig:o.sig+1,pista:false,mal:null})); }
@@ -4596,8 +4596,8 @@ function EntrenadorTab({preset}={}){
   // Armonizar una escala + Mis acordes (tarjetas guardadas en este dispositivo)
   const [armGrado,setArmGrado]=useState(0), [armCuat,setArmCuat]=useState(false), [conNota,setConNota]=useState("");
   const [vozSel,setVozSel]=useState(null), [armPatron,setArmPatron]=useState("cerrado"), [armMatriz,setArmMatriz]=useState(false);
-  const [misAcordes,setMisAcordes]=useState(()=>{ try{ const v=JSON.parse(localStorage.getItem("harmonia_mis_acordes")||"[]"); return Array.isArray(v)?v:[]; }catch(e){ return []; } });
-  useEffect(()=>{ try{ localStorage.setItem("harmonia_mis_acordes",JSON.stringify(misAcordes)); }catch(e){} },[misAcordes]);
+  const [misAcordes,setMisAcordes]=useState(()=>{ try{ const v=JSON.parse(localStorage.getItem("bandomaps_mis_acordes")||"[]"); return Array.isArray(v)?v:[]; }catch(e){ return []; } });
+  useEffect(()=>{ try{ localStorage.setItem("bandomaps_mis_acordes",JSON.stringify(misAcordes)); }catch(e){} },[misAcordes]);
   const escTipo7 = ESC_ENT.slice(0,4).some(e=>e.id===escTipo) ? escTipo : "mayor";
   const famArm = {mayor:"mayor",menor:"menor",menorA:"armonica",menorM:"melodica"}[escTipo7];
   const armMenor = escTipo7!=="mayor";
@@ -5275,7 +5275,7 @@ function EntrenadorTab({preset}={}){
             <div style={{marginTop:10}}>
               <p style={{fontSize:11.5,color:"#8a8a8a",margin:"0 0 10px",lineHeight:1.5}}>El nombre sale de las notas que armaste: tercera, quinta, séptima, tensiones y alteraciones. Si preferís otra forma de escribirlo para este acorde, cambiala acá y se guarda para esa estructura en todas las tonalidades.</p>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))",gap:12,marginBottom:10}}>
-                <Desplegable etiqueta="Estilo de cifrado" valor={cifEstilo()} opciones={[["jazz","△7 · m7 · ø7 · °7"],["amer","maj7 · m7 · m7♭5 · dim7"]]} onChange={v=>{ try{localStorage.setItem("harmonia_estilo_cifrado",v);}catch(e){} setConVer(n=>n+1); }}/>
+                <Desplegable etiqueta="Estilo de cifrado" valor={cifEstilo()} opciones={[["jazz","△7 · m7 · ø7 · °7"],["amer","maj7 · m7 · m7♭5 · dim7"]]} onChange={v=>{ try{localStorage.setItem("bandomaps_estilo_cifrado",v);}catch(e){} setConVer(n=>n+1); }}/>
               </div>
               {conAn&&!conAn.intervalo ? (
                 <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"flex-end",marginBottom:6}}>
@@ -5397,7 +5397,7 @@ function EntrenadorTab({preset}={}){
               👁 {reveal?"Ocultar respuesta":"Ver respuesta"}
             </button>
           )}
-          {modo!=="escalas" && !esCam && modo!=="lineas" && modo!=="construir" && modo!=="armonizar" && <button onClick={()=>setChecked(true)} style={{padding:"6px 14px",borderRadius:9,border:"none",background:"#e6e6e6",color:"#0a0a0a",fontWeight:800,fontSize:11,cursor:"pointer"}}>
+          {modo!=="escalas" && !esCam && modo!=="lineas" && modo!=="construir" && modo!=="armonizar" && <button onClick={()=>{ if(!checked&&painted.length) medirLote("entrenador-"+modo,correctos.length,painted.length-correctos.length); setChecked(true); }} style={{padding:"6px 14px",borderRadius:9,border:"none",background:"#e6e6e6",color:"#0a0a0a",fontWeight:800,fontSize:11,cursor:"pointer"}}>
             ✓ Corregir
           </button>}
           <button onClick={reiniciarFuelle} style={uiGhost}>
@@ -5914,7 +5914,7 @@ function CirculoQuintas(){
 // Cada ejercicio de escala viaja COMPLETO: camino, octavas, frecuencias y digitación.
 // Los datos se publican en "clases.json" junto a index.html.
 // ═══════════════════════════════════════════════════════════════════════════
-const ORG_KEY = "harmonia_org";
+const ORG_KEY = "bandomaps_org";
 const idn = ()=>Math.random().toString(36).slice(2,8);
 const cargarOrg = ()=>{ try{ const j=JSON.parse(localStorage.getItem(ORG_KEY)||"null"); if(j&&Array.isArray(j.clases)) return {alumnos:j.alumnos||[],clases:j.clases,asign:j.asign||{},usuarios:j.usuarios||[],registroUrl:j.registroUrl||""}; }catch(e){} return {alumnos:[],clases:[],asign:{},usuarios:[],registroUrl:""}; };
 
@@ -5923,7 +5923,10 @@ const cargarOrg = ()=>{ try{ const j=JSON.parse(localStorage.getItem(ORG_KEY)||"
 // No se envía qué ejercicio ni cuánto tiempo. El aviso va firmado con la sesión verificada (window.__TOKEN),
 // así que el script de la planilla sabe quién es sin fiarse de lo que diga el navegador.
 const REG_URL_RE = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
-const REG_SES = "harmonia_reg_sesion";
+const REG_SES = "bandomaps_reg_sesion";
+// medir-1 (8-nov-2026): cada respuesta suma al resumen del día del alumno (src/Puerta.jsx y public/cuenta/medir.js).
+function medir(ej,bien,pc){ try{ window.__medir&&window.__medir(ej,bien,pc); }catch(e){} }
+function medirLote(ej,a,f){ try{ window.__medirLote&&window.__medirLote(ej,a,f); }catch(e){} }
 function registrar(tipo){
   try{
     const url=window.__ACCESO_URL, tok=window.__TOKEN;
@@ -5931,7 +5934,7 @@ function registrar(tipo){
     fetch(url,{method:"POST",mode:"no-cors",keepalive:true,body:JSON.stringify({a:"reg",t:tipo,tok:tok})}).catch(()=>{});
   }catch(e){}
 }
-const REG_CLAVE_KEY = "harmonia_reg_clave";   // la clave de lectura queda solo en el navegador del profesor (nunca va en clases.json)
+const REG_CLAVE_KEY = "bandomaps_reg_clave";   // la clave de lectura queda solo en el navegador del profesor (nunca va en clases.json)
 const diaLocal = (ms)=>{ const d=new Date(ms); return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(); };
 function haceCuanto(ms, ahora){
   if(!ms) return "nunca";
@@ -6278,11 +6281,11 @@ function MisTareasTab({onPracticar}){
   const u = window.__USUARIO || "";
   const [romano]=useRomanos();
   const [datos,setDatos]=useState(null), [err,setErr]=useState(false);
-  const [hechas,setHechas]=useState(()=>{ try{ return JSON.parse(localStorage.getItem("harmonia_hechas_"+u)||"{}"); }catch(e){ return {}; } });
+  const [hechas,setHechas]=useState(()=>{ try{ return JSON.parse(localStorage.getItem("bandomaps_hechas_"+u)||"{}"); }catch(e){ return {}; } });
   useEffect(()=>{ let vivo=true;
     fetch("clases.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{ if(!vivo) return; if(j&&Array.isArray(j.clases)) setDatos(j); else setErr(true); }).catch(()=>{ if(vivo) setErr(true); });
     return ()=>{vivo=false;}; },[]);
-  const marcar=(id)=>{ const n={...hechas,[id]:!hechas[id]}; setHechas(n); try{ localStorage.setItem("harmonia_hechas_"+u,JSON.stringify(n)); }catch(e){} };
+  const marcar=(id)=>{ const n={...hechas,[id]:!hechas[id]}; setHechas(n); try{ localStorage.setItem("bandomaps_hechas_"+u,JSON.stringify(n)); }catch(e){} };
   const ids = (()=>{ if(!datos||!datos.asignaciones) return []; const out=[];
     Object.entries(datos.asignaciones).forEach(([k,l])=>{ if(k.trim().toLowerCase()===u.trim().toLowerCase()) (l||[]).forEach(id=>{ if(!out.includes(id)) out.push(id); }); });
     return out; })();
@@ -6780,7 +6783,7 @@ function AvisoInicial({n,manual,onClose,onNunca}){
   );
 }
 
-export default function HarmoniaApp(){
+export default function BandoMapsApp(){
   // Aviso inicial (solo en la versión de alumnos): se cuenta cada ingreso; desde el cuarto se puede ocultar
   const avisoN = useRef((()=>{ try{ const n=parseInt(localStorage.getItem("bandomaps_aviso_vistas")||"0",10)||0; return n+1; }catch(e){ return 1; } })());
   const [aviso,setAviso]=useState(()=>{ if(!window.__ALUMNO) return false; try{ if(localStorage.getItem("bandomaps_aviso_no")==="1") return false; }catch(e){} return true; });
@@ -6788,6 +6791,7 @@ export default function HarmoniaApp(){
   useEffect(()=>{ if(aviso&&!avisoManual){ try{ localStorage.setItem("bandomaps_aviso_vistas",String(avisoN.current)); }catch(e){} } },[]);
 
   const[tab,setTab]=useState("codigo");
+  useEffect(()=>{ window.__tab=tab; },[tab]);   // medir-1: qué herramienta se está usando (src/Puerta.jsx)
   const[navOpen,setNavOpen]=useState(false);
   const[chordInput,setChordInput]=useState("Dm7");
   const[pickRoot,setPickRoot]=useState("D");
