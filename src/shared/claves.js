@@ -3,4 +3,9 @@
 export const CLAVES = {
   estiloCifrado: "bandomaps_estilo_cifrado",
   nombresAcordes: "bandomaps_nombres_acordes",
+  romanos: "bandomaps_romanos",
+  org: "bandomaps_org",
+  regSesion: "bandomaps_reg_sesion",
+  regClave: "bandomaps_reg_clave",
+  hechas: "bandomaps_hechas_",          // más el usuario: bandomaps_hechas_<usuario>
 };

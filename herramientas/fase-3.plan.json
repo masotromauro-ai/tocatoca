@@ -1,0 +1,208 @@
+{
+  "archivo": "src/App.jsx",
+  "destinos": {
+    "src/features/codigo/capitulos.js": {
+      "cabecera": "@datos\nEl texto del manual de El Código, por capítulos.",
+      "declaraciones": [
+        "CAPITULOS",
+        "CAPITULOS_TEC"
+      ]
+    },
+    "src/features/codigo/entrena.jsx": {
+      "cabecera": "El entrenador de colores de El Código.",
+      "declaraciones": [
+        "EntrenaColores"
+      ]
+    },
+    "src/features/codigo/ElCodigoTab.jsx": {
+      "cabecera": "La pestaña El Código.",
+      "declaraciones": [
+        "ElCodigoTab",
+        "HojaDeColor"
+      ]
+    },
+    "src/features/herramientas/quintas/CirculoQuintas.jsx": {
+      "cabecera": "La pestaña Quintas.",
+      "declaraciones": [
+        "CirculoQuintas"
+      ]
+    },
+    "src/shared/medicion.js": {
+      "cabecera": "@motor\nINTOCABLE: lo que mide el avance de cada alumno. Avisa a src/Puerta.jsx por window.__medir / __medirLote.",
+      "declaraciones": [
+        "medir",
+        "medirLote"
+      ]
+    },
+    "src/features/clases/org.js": {
+      "cabecera": "El Organizador: guardado, registro de ejercicios y rótulos.",
+      "declaraciones": [
+        "ORG_KEY",
+        "idn",
+        "cargarOrg",
+        "REG_URL_RE",
+        "REG_SES",
+        "registrar",
+        "REG_CLAVE_KEY",
+        "diaLocal",
+        "haceCuanto",
+        "EJ_NUEVO",
+        "inpS",
+        "Sel",
+        "OPT_MANO",
+        "DEDO_OPC",
+        "NOM_DEDO_1",
+        "nomDedo",
+        "fmtHz",
+        "rutaDeEjercicio",
+        "descEj"
+      ]
+    },
+    "src/features/clases/PanelIngresos.jsx": {
+      "cabecera": "Ingresos de los alumnos.",
+      "declaraciones": [
+        "PanelIngresos"
+      ]
+    },
+    "src/features/clases/OrganizadorTab.jsx": {
+      "cabecera": "La pestaña Organizador.",
+      "declaraciones": [
+        "OrganizadorTab"
+      ]
+    },
+    "src/features/clases/MisTareasTab.jsx": {
+      "cabecera": "La pestaña Mis tareas.",
+      "declaraciones": [
+        "MisTareasTab"
+      ]
+    },
+    "src/features/herramientas/modos/ModosTab.jsx": {
+      "cabecera": "La pestaña Modos y sus tres vistas.",
+      "declaraciones": [
+        "ModosTab",
+        "DondeVive",
+        "VistaLineal",
+        "VistaCircular",
+        "VistaEspiral"
+      ]
+    },
+    "src/features/herramientas/colores/ColoresTab.jsx": {
+      "cabecera": "La pestaña Colores.",
+      "declaraciones": [
+        "ColoresTab"
+      ]
+    },
+    "src/features/teoria/lecciones.jsx": {
+      "cabecera": "Las seis lecciones de Teoría.",
+      "declaraciones": [
+        "TeoL1",
+        "TeoL2",
+        "TeoL3",
+        "TeoL4",
+        "TeoL5",
+        "TeoL6"
+      ]
+    },
+    "src/features/teoria/piezas.jsx": {
+      "cabecera": "Piezas de las lecciones de Teoría.",
+      "declaraciones": [
+        "TEO_GRADOS_MAYOR",
+        "TEO_GRADOS_MENOR",
+        "teoAscender",
+        "useTeoSeq",
+        "teoBox",
+        "teoP",
+        "TeoNota",
+        "WCOL_TEO",
+        "FigSvg"
+      ]
+    },
+    "src/features/teoria/TeoriaTab.jsx": {
+      "cabecera": "La pestaña Teoría.",
+      "declaraciones": [
+        "TeoriaTab"
+      ]
+    },
+    "src/shared/teoria/romanos.js": {
+      "cabecera": "Grados en números romanos (I, ♭III, ♯XI…) y su distancia en la escala.",
+      "declaraciones": [
+        "GRADO_LAB",
+        "ROM_N",
+        "aRomano"
+      ]
+    },
+    "src/shared/bandoneon/acorde.js": {
+      "cabecera": "El armador de acordes: de las piezas elegidas a las notas con su escritura correcta.",
+      "declaraciones": [
+        "calcAcorde"
+      ]
+    },
+    "src/shared/almacen/romanos.js": {
+      "cabecera": "Preferencias guardadas en el teléfono: romanos o números.",
+      "declaraciones": [
+        "useRomanos"
+      ]
+    },
+    "src/shared/teoria/color-hsl.js": {
+      "cabecera": "Cuentas de color: HSL, mezcla de tonos y paleta real.",
+      "declaraciones": [
+        "CROM_DOBLE",
+        "hexToHsl",
+        "hslToHex",
+        "circularLerpHue",
+        "paletteReal"
+      ]
+    },
+    "src/shared/ui/codigo/figuras.jsx": {
+      "cabecera": "Las figuras del manual: tira y rueda cromática, mezcla y piezas de capítulo.",
+      "declaraciones": [
+        "TiraCromatica",
+        "RuedaCromatica",
+        "MixFigure",
+        "CapP",
+        "CapH3",
+        "CapNota",
+        "CapFig",
+        "CapImgPend",
+        "ConceptoPar",
+        "pasoLabel",
+        "PasoCard",
+        "TiraColores",
+        "TarjetasMuestra"
+      ]
+    },
+    "src/shared/ui/codigo/paleta.jsx": {
+      "cabecera": "La rueda de la paleta de El Código.",
+      "declaraciones": [
+        "PIEDRAS",
+        "ESCALAS_HERO",
+        "NOMBRES_PC",
+        "RAICES_HERO",
+        "PaletaRueda"
+      ]
+    },
+    "src/shared/teoria/quintas.js": {
+      "cabecera": "@datos\nEl círculo de quintas: posiciones, escalas y acordes.",
+      "declaraciones": [
+        "CQ_MAJ",
+        "CQ_MIN",
+        "CQ_ESC",
+        "CQ_MAJ_IV",
+        "CQ_NUM",
+        "cqPcOfPos",
+        "cqPosOfPc",
+        "cqAcc",
+        "cqPol",
+        "cqSector",
+        "cqChords",
+        "cqPlay"
+      ]
+    },
+    "src/shared/audio/tocar.js": {
+      "cabecera": "@motor\nToca una lista de notas con nombre, una tras otra.",
+      "declaraciones": [
+        "tocarNombres"
+      ]
+    }
+  }
+}

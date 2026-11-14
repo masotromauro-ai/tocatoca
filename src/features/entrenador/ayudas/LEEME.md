@@ -3,10 +3,9 @@
 | Archivo | Qué es |
 |---|---|
 | `lienzo.jsx` | `PaintCanvas`: el teclado donde se pintan teclas, con `canalGrafo` y `rutaCanal` |
-| `controles.jsx` | secciones, selectores de acorde, desplegables, leyenda del camino y selector de notas |
 | `formas.jsx` | el cuadro de formas (`FormaCanvas`, `matchForma`) y las líneas (`lineasDe`) |
 
-Usa: `shared/bandoneon/` (layouts, camino, acordes-base), `shared/teoria/` y `shared/ui/`.
+Los selectores y desplegables viven en `shared/ui/ayudas.jsx`. Usa: `shared/bandoneon/` (layouts, camino, acordes-base), `shared/teoria/` y `shared/ui/`.
 **Intocables:** no cambia lo que dibuja (la prueba de humo compara las 11 pestañas) ni `medir()` / `medirLote()`.
 
 Cómo se prueba: `node pruebas/humo.mjs`.

@@ -266,4 +266,25 @@ Tres decisiones de orden: el estilo de cifrado se guarda en `shared/almacen/pref
 las piezas del Entrenador que sólo usa el Entrenador van a su feature y las que usan varias pestañas a `shared`; y
 `areas.json` marca las cinco áreas como movidas y corrige los límites de las que siguen en `App.jsx`.
 
-**Sigue la fase 3** (las pestañas, una por una: 4.571 líneas), que espera el OK de Mauro.
+**La fase 3 está hecha** (ver abajo).
+
+## Fase 3: hecha (14-nov-2026)
+
+Mauro la aprobó en el chat el mismo día. **`App.jsx` pasó de 4.571 a 2.467 líneas** y salieron las pestañas
+El Código, Quintas, Modos, Colores, Teoría, Organizador y Mis tareas, con sus piezas (24 archivos):
+
+- `features/codigo/` (`ElCodigoTab.jsx`, `capitulos.jsx`, `entrena.jsx`), `features/clases/` (`OrganizadorTab.jsx`,
+  `MisTareasTab.jsx`, `PanelIngresos.jsx`, `org.jsx`), `features/teoria/` (`TeoriaTab.jsx`, `lecciones.jsx`, `piezas.jsx`),
+  `features/herramientas/{quintas,modos,colores}/`;
+- lo que usan varias pestañas pasó a `shared/`: `ui/codigo/` (figuras y rueda de la paleta), `ui/ayudas.jsx` (selectores y
+  desplegables, que se movió desde `features/entrenador/ayudas/` porque Teoría también los usa), `teoria/{romanos,color-hsl,quintas}.js`,
+  `almacen/romanos.js`, `bandoneon/acorde.js`, `audio/tocar.js` y **`medicion.js`** (`medir()` y `medirLote()`, intocables).
+
+Comprobado igual que antes: `mover.mjs` marca **sólo 7 renglones cambiados, a propósito** (las claves `bandomaps_…` pasaron a
+`shared/claves.js`, con el mismo texto); humo **igual en las 11 pestañas**; arquitectura, nombres sin definir y los demás bancos
+en verde. Dos cosas que la fase enseñó: un `.js` que lleva JSX tiene que llamarse `.jsx` (`capitulos` y `org`), y `pruebas/medir.mjs`
+ahora mira todo `src/` y no sólo `App.jsx`, porque los ejercicios ya no viven ahí.
+
+Un feature no importa de otro: lo que dos pestañas compartían subió a `shared/` (Modos y Colores son del mismo feature `herramientas`).
+
+**Sigue la fase 4** (raíz de la app y armador de acordes: unas 850 líneas), que espera el OK de Mauro.

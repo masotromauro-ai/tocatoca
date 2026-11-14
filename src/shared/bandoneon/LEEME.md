@@ -21,3 +21,5 @@ Usa: `shared/teoria/notas.js`; `voicings.js` usa `tablas.js`.
 Bandoneón **bisonoro**: cada botón da una nota al abrir y otra al cerrar; 33 botones a la izquierda, 38 a la derecha. **No es isomórfico**: la forma no se transporta a otra tonalidad.
 
 Cómo se prueba: `node pruebas/humo.mjs`.
+
+`acorde.js`: `calcAcorde`, de las piezas elegidas en el armador a las notas con su escritura correcta.

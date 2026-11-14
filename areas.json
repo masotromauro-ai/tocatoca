@@ -135,12 +135,13 @@
       "que": "Armar un acorde sobre el teclado, dónde está disponible en cada fuelle y cómo se acomodan las manos.",
       "tramos": [
         [
-          "GRADO_LAB",
+          "useAcorde",
           "ControlesDisposicion"
         ]
       ],
       "destino": "src/features/herramientas/acorde/",
-      "probar": "pestaña Acorde"
+      "probar": "pestaña Acorde",
+      "nota": "En la fase 3 salieron de acá GRADO_LAB, ROM_N, aRomano (shared/teoria/romanos.js), useRomanos (shared/almacen/romanos.js) y calcAcorde (shared/bandoneon/acorde.js): los usan varias pestañas."
     },
     {
       "id": "teclado-componentes",
@@ -197,14 +198,16 @@
       "fase": 3,
       "riesgo": "medio",
       "que": "La rueda de los doce colores, los juegos para aprenderlos y las figuras de cada capítulo.",
-      "tramos": [
-        [
-          "CROM_DOBLE",
-          "TarjetasMuestra"
-        ]
-      ],
+      "tramos": [],
       "destino": "src/features/codigo/",
-      "probar": "node pruebas/codigo.mjs y pestaña El Código"
+      "probar": "node pruebas/codigo.mjs y pestaña El Código",
+      "movida": "14-nov-2026 (fase 3)",
+      "archivos": [
+        "src/shared/ui/codigo/figuras.jsx",
+        "src/shared/ui/codigo/paleta.jsx",
+        "src/shared/teoria/color-hsl.js",
+        "src/features/codigo/entrena.jsx"
+      ]
     },
     {
       "id": "codigo-manual",
@@ -212,15 +215,14 @@
       "fase": 3,
       "riesgo": "bajo",
       "que": "Los capítulos del manual de teoría a través del color. Es texto: se edita sin tocar la lógica.",
-      "tramos": [
-        [
-          "CAPITULOS",
-          "CAPITULOS_TEC"
-        ]
-      ],
+      "tramos": [],
       "destino": "src/features/codigo/capitulos.js (datos)",
       "probar": "abrir un capítulo",
-      "nota": "Se movía en la fase 1, pero CAPITULOS usa componentes de la fase 3 (TiraCromatica, RuedaCromatica, MixFigure…): va con El Código."
+      "nota": "Se movía en la fase 1, pero CAPITULOS usa componentes de la fase 3 (TiraCromatica, RuedaCromatica, MixFigure…): va con El Código.",
+      "movida": "14-nov-2026 (fase 3)",
+      "archivos": [
+        "src/features/codigo/capitulos.jsx"
+      ]
     },
     {
       "id": "codigo-pestana",
@@ -228,14 +230,13 @@
       "fase": 3,
       "riesgo": "medio",
       "que": "La pantalla de El Código que junta el manual, la rueda y la práctica.",
-      "tramos": [
-        [
-          "ElCodigoTab",
-          "HojaDeColor"
-        ]
-      ],
+      "tramos": [],
       "destino": "src/features/codigo/ElCodigoTab.jsx",
-      "probar": "pestaña El Código"
+      "probar": "pestaña El Código",
+      "movida": "14-nov-2026 (fase 3)",
+      "archivos": [
+        "src/features/codigo/ElCodigoTab.jsx"
+      ]
     },
     {
       "id": "entrenador-ayudas",
@@ -251,7 +252,7 @@
       "archivos": [
         "src/shared/bandoneon/camino.js",
         "src/features/entrenador/ayudas/lienzo.jsx",
-        "src/features/entrenador/ayudas/controles.jsx",
+        "src/shared/ui/ayudas.jsx",
         "src/features/entrenador/ayudas/formas.jsx",
         "src/shared/ui/Popover.jsx",
         "src/shared/teoria/etiquetas.js"
@@ -292,14 +293,14 @@
       "fase": 3,
       "riesgo": "medio",
       "que": "El círculo de quintas y sus acordes.",
-      "tramos": [
-        [
-          "CQ_MAJ",
-          "CirculoQuintas"
-        ]
-      ],
+      "tramos": [],
       "destino": "src/features/herramientas/quintas/",
-      "probar": "pestaña Quintas"
+      "probar": "pestaña Quintas",
+      "movida": "14-nov-2026 (fase 3)",
+      "archivos": [
+        "src/shared/teoria/quintas.js",
+        "src/features/herramientas/quintas/CirculoQuintas.jsx"
+      ]
     },
     {
       "id": "clases-y-registro",
@@ -307,14 +308,17 @@
       "fase": 3,
       "riesgo": "alto",
       "que": "El Organizador del profesor, Mis tareas del alumno, el panel de ingresos y el registro de lo que se practica (medición). Toca datos de alumnos.",
-      "tramos": [
-        [
-          "ORG_KEY",
-          "tocarNombres"
-        ]
-      ],
+      "tramos": [],
       "destino": "src/features/clases/",
-      "probar": "node pruebas/medir.mjs; Organizador y Mis tareas"
+      "probar": "node pruebas/medir.mjs; Organizador y Mis tareas",
+      "movida": "14-nov-2026 (fase 3)",
+      "archivos": [
+        "src/features/clases/org.jsx",
+        "src/features/clases/PanelIngresos.jsx",
+        "src/features/clases/OrganizadorTab.jsx",
+        "src/features/clases/MisTareasTab.jsx",
+        "src/shared/medicion.js"
+      ]
     },
     {
       "id": "modos-y-colores",
@@ -322,14 +326,15 @@
       "fase": 3,
       "riesgo": "medio",
       "que": "Las pestañas Modos (vistas lineal, circular y espiral) y Colores.",
-      "tramos": [
-        [
-          "ModosTab",
-          "ColoresTab"
-        ]
-      ],
+      "tramos": [],
       "destino": "src/features/herramientas/modos/, colores/",
-      "probar": "pestañas Modos y Colores"
+      "probar": "pestañas Modos y Colores",
+      "movida": "14-nov-2026 (fase 3)",
+      "archivos": [
+        "src/features/herramientas/modos/ModosTab.jsx",
+        "src/features/herramientas/colores/ColoresTab.jsx",
+        "src/shared/audio/tocar.js"
+      ]
     },
     {
       "id": "teoria-lecciones",
@@ -337,14 +342,15 @@
       "fase": 3,
       "riesgo": "medio",
       "que": "Las seis lecciones de la pestaña Teoría con sus ejemplos que suenan.",
-      "tramos": [
-        [
-          "TEO_GRADOS_MAYOR",
-          "TeoriaTab"
-        ]
-      ],
+      "tramos": [],
       "destino": "src/features/teoria/",
-      "probar": "pestaña Teoría"
+      "probar": "pestaña Teoría",
+      "movida": "14-nov-2026 (fase 3)",
+      "archivos": [
+        "src/features/teoria/TeoriaTab.jsx",
+        "src/features/teoria/lecciones.jsx",
+        "src/features/teoria/piezas.jsx"
+      ]
     },
     {
       "id": "raiz-app",

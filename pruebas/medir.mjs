@@ -48,12 +48,15 @@ t("traer lo del teléfono: tareas marcadas y acordes; nada si no hay", () => {
 // La app tiene que llamar a lo que mide. El 9-nov-2026 un App.jsx subido entero desde una copia vieja
 // sacó medir(), medirLote() y window.__tab y devolvió las claves harmonia_: nada falló, sólo dejó de medirse.
 import fs from "node:fs";
-const app = fs.readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
-t("App.jsx sigue llamando a medir y a medirLote, y avisa qué herramienta se usa", () => {
+// Desde la fase 3 los ejercicios viven en varios archivos (shared/, features/, App.jsx): se mira todo src/ junto.
+import path from "node:path";
+const listar = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? listar(path.join(d, e.name)) : [path.join(d, e.name)]);
+const app = listar(new URL("../src", import.meta.url).pathname).filter((f) => /\.(jsx?|mjs)$/.test(f)).map((f) => fs.readFileSync(f, "utf8")).join("\n");
+t("src/ sigue llamando a medir y a medirLote, y avisa qué herramienta se usa", () => {
   assert.ok((app.match(/\bmedir\(/g) || []).length >= 3, "medir(");
   assert.ok(/medirLote\("entrenador-"/.test(app), "medirLote del Entrenador");
   assert.ok(app.includes("window.__tab=tab"), "window.__tab");
 });
-t("App.jsx no vuelve a guardar con las claves viejas harmonia_", () => assert.equal((app.match(/harmonia_/g) || []).length, 0));
+t("src/ no vuelve a guardar con las claves viejas harmonia_", () => assert.equal((app.match(/harmonia_/g) || []).length, 0));
 
 console.log(`${ok} pasadas, ${mal} fallidas`); process.exit(mal ? 1 : 0);

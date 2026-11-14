@@ -1,11 +1,11 @@
-// Secciones y selectores del Entrenador.
+// Secciones, selectores y desplegables que usan el Entrenador, Teoría y otras pestañas.
 
-import { ACORDE_BASES, ACORDE_NOV, ACORDE_RAICES, ACORDE_SEPT, ACORDE_TRE, ACORDE_UND } from "../../../shared/bandoneon/acordes-base.js";
-import { CROM_SIMPLE } from "../../../shared/teoria/etiquetas.js";
-import { PopoverAnclado } from "../../../shared/ui/Popover.jsx";
-import { CHROMATIC, nombreLat } from "../../../shared/teoria/notas.js";
-import { nc } from "../../../shared/teoria/color.js";
-import { UI_FONT, uiLabel, uiPill, uiPlay } from "../../../shared/ui/tema.js";
+import { ACORDE_BASES, ACORDE_NOV, ACORDE_RAICES, ACORDE_SEPT, ACORDE_TRE, ACORDE_UND } from "../bandoneon/acordes-base.js";
+import { CROM_SIMPLE } from "../teoria/etiquetas.js";
+import { PopoverAnclado } from "../ui/Popover.jsx";
+import { CHROMATIC, nombreLat } from "../teoria/notas.js";
+import { nc } from "../teoria/color.js";
+import { UI_FONT, uiLabel, uiPill, uiPlay } from "../ui/tema.js";
 
 // Título de sección para ordenar los paneles
 export function Seccion({t}){ return <p style={{...uiLabel,color:"#c8c8cc",borderTop:"1px solid #232326",paddingTop:10,margin:"6px 0 10px"}}>{t}</p>; }

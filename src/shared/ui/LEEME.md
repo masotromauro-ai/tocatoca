@@ -7,3 +7,5 @@ También: `controles.jsx` (panel de notas marcadas y grupos), `Popover.jsx` (ven
 Para el alumno: **nada puede depender sólo del color** (cada nota lleva también su nombre o una marca). Cuando se haga el modo que lo garantiza, va acá.
 
 Cómo se prueba: `node pruebas/humo.mjs` (si un estilo cambia, la foto de las pestañas cambia a propósito y se rehace con `--guardar`).
+
+`ayudas.jsx`: secciones, selectores de acorde, desplegables y selector de notas (los usan el Entrenador, Teoría y otras pestañas) y `codigo/` (figuras y paleta de El Código, con su ficha).

@@ -15,3 +15,5 @@ Usa: sólo `notas.js` y entre sí (notas → color/escalas → acordes → progr
 **No tocar sin pensar:** `NC` está **copiada** en `public/gestos/musica.js` (esa página no pasa por el build): si cambia una, cambia la otra. Las notas se escriben **según la tonalidad** (La mayor → Do♯, no Re♭): nunca con una tabla fija.
 
 Cómo se prueba: `node pruebas/codigo.mjs` y `node pruebas/humo.mjs`.
+
+También: `romanos.js` (grados en romanos), `color-hsl.js` (cuentas de color) y `quintas.js` (los datos del círculo de quintas).

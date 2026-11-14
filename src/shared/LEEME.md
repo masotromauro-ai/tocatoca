@@ -14,3 +14,5 @@ Reglas: un archivo, un tema, hasta 300 líneas; la lógica pura no usa React, `w
 **Intocable** (no está en esta carpeta, pero no hay que sacarlo de `App.jsx`): `medir()`, `medirLote()`, `window.__tab`, `__ALUMNO`, `__USUARIO`, `Puerta.jsx`, `public/cuenta/`.
 
 Historia: salió de `src/App.jsx` en la fase 1 (14-nov-2026), moviendo sin reescribir. Plan: `ARQUITECTURA.md`.
+
+`medicion.js` (`@motor`): **INTOCABLE.** `medir()` y `medirLote()` avisan a `src/Puerta.jsx` qué se practicó; sacarlas no da error, sólo deja de medirse. `claves.js`: el único lugar donde se escriben las claves `bandomaps_…`.
