@@ -163,13 +163,16 @@ vuelve a la rama.
 > quedan sin mergear, con el nombre exacto.** Contestada una vez, no se vuelve a
 > preguntar en esa sesión. Está en `PROTOCOLO-GENERAL.md` § 6.0.
 
-- **`src/App.jsx` es un monolito de 3268 líneas** y es lo que efectivamente
-  corre: `src/main.jsx` importa `App.jsx` y nada más. Los módulos de
-  `src/theory/`, `src/audio/` y `src/components/` **existen pero no se
-  importan** — están duplicados adentro de `App.jsx`, y algunos hasta por
-  triplicado (`src/components/ChordTab.jsx` y `src/components/tabs/ChordTab.jsx`).
-  Antes de "arreglar" un archivo de esos, comprobar si alguien lo usa: lo más
-  probable es que no.
+- **`src/App.jsx` es un monolito de 7.322 líneas** y es lo que efectivamente
+  corre: `src/main.jsx` importa `Puerta.jsx` y `App.jsx` y nada más. Hay un plan
+  aprobado para partirlo (`ARQUITECTURA.md`, fase por fase, **con el OK de Mauro en
+  cada una**). **Fase 0 hecha el 14-nov-2026**: se borraron los 36 archivos viejos
+  sin uso (`src/components`, `theory`, `audio`) y entró la red de seguridad. Antes
+  de publicar cualquier cambio a `src/` se corren `node pruebas/humo.mjs` (compila,
+  entra a las 11 pestañas y compara con la foto de `pruebas/humo/`),
+  `node pruebas/arquitectura.mjs` y, si se movió código, `node herramientas/mover.mjs
+  --base <rama> src/App.jsx <archivos>`. Si un cambio es a propósito, la foto se
+  rehace con `--guardar`, a la vista.
 - **La paleta oficial de colores tonales vive en `src/App.jsx`** (constante
   `NC`, la del *Manual de teoría musical a través del color*). Está **copiada**
   en `public/gestos/musica.js`, porque esa página no pasa por el build. Si
@@ -195,10 +198,12 @@ vuelve a la rama.
 - **La app no se abre sin cuenta (`src/Puerta.jsx`, 8-nov-2026, Mauro: «implementá todo»)**: mail y contraseña (las del registro), «Olvidé la contraseña» y el enlace al registro. La ficha se ESCUCHA: si un admin suspende a alguien o le cambia el rol, la app se entera sola. El rol decide qué se ve: el alumno, «Mis tareas»; docente y admin, el Organizador y el botón «👥 Usuarios». Pone `window.__ALUMNO` y `window.__USUARIO` (el usuario de la planilla vieja si la invitación lo traía) como el acceso viejo, así el resto de la app no cambió. El SDK lo pide a `public/cuenta/firebase.js` en tiempo de ejecución (`import(/* @vite-ignore */ …)`): sigue siendo el ÚNICO contacto con Firebase. La lógica, en `public/cuenta/puerta.js` (`pruebas/puerta.mjs`, 9 casos); de punta a punta, `pruebas/puerta-e2e.cjs` (24 casos, como el de Usuarios). **Esto es el sitio de desarrollo** (tocatoca-il7f.vercel.app): el estable de los alumnos sigue con su acceso viejo hasta que pase.
 - **Se mide lo que practica cada alumno (medir-1, 8-nov-2026, reglas v2)**: un resumen por día en `progreso/{uid}/dias/{AAAA-MM-DD}` —minutos por herramienta (la pestaña, `window.__tab`; o «practica»), ingresos, y aciertos y fallos por ejercicio y por nota—, sumado con incrementos y mandado cada 2 minutos, al esconder la página y ANTES de Salir (después la base ya no deja). Un minuto cuenta sólo con actividad en los últimos 2. Los ejercicios llaman a `medir(ej, bien, pc)` / `medirLote` de `src/App.jsx` (juego y preguntas de colores, Entrenador) y `practica.html` hace lo mismo con su sesión. La primera vez, «Traer lo de este teléfono» sube las tareas marcadas y los acordes guardados a `progreso/{uid}`. El alumno ve «👁 Tu docente ve tu avance». **Cada docente lee sólo a SUS alumnos** (`usuarios/{uid}.docente`, lo pone el admin); el admin, a todos. La lógica, en `public/cuenta/medir.js` (`pruebas/medir.mjs`, 8 casos). Es la parte 1 de «El avance de cada alumno» (plan de BandoMaps); las partes 2 (pestaña «Alumnos») y 3 (tareas con meta) siguen.
 - **La pantalla de Usuarios (`public/usuarios.html`, 7-nov-2026)**: admin y docente entran; el admin invita con cualquier rol, cambia roles, suspende y marca «probador»; el docente invita sólo alumnos. Nadie se cambia a sí mismo y nunca queda la base sin un admin activo. La invitación no manda mails: «Copiar mensaje» y lo manda una persona. Desde usuarios-2, «Invitar varios»: un renglón por persona (mail, o mail y usuario viejo), lo que no sirve queda en la lista con su motivo. Lógica en `public/cuenta/usuarios.js` (`pruebas/usuarios.mjs`, 14 casos, node a secas) y de punta a punta contra los emuladores (`pruebas/usuarios-e2e.cjs`, 17 casos; cómo se corre, en su cabecera).
-- **Se corren los bancos de pruebas antes de subir:** `npm run prueba`, que
-  encadena los dos, sin dependencias ni navegador. `pruebas/gestos.mjs` (8
-  casos) cubre la teoría musical del instrumento; `pruebas/codigo.mjs` (60)
-  cubre el motor de color, la teoría y los ejercicios de «El Código».
+- **Se corren los bancos de pruebas antes de subir**, cada uno con `node`, sin
+  dependencias ni navegador: `pruebas/gestos.mjs` (teoría musical del instrumento),
+  `pruebas/codigo.mjs` (60: el motor de color, la teoría y los ejercicios de «El
+  Código»), `medir`, `puerta`, `registro`, `usuarios`, `areas`, `mover` y
+  `arquitectura`; más `node pruebas/humo.mjs`, que sí abre un navegador (el del chat
+  de Claude) y compila la app. No hay un `npm run prueba`.
 - **El banco de «El Código» compara contra valores PUBLICADOS, no contra sí
   mismo.** Los cents de la serie de armónicos, la curva de sRGB y el rango del
   visible se afirman contra la literatura. Es a propósito: lo que ahí se

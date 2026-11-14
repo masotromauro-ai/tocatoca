@@ -137,7 +137,7 @@ Los tamaños salen de `areas.json` (se pueden recalcular con `node pruebas/areas
 
 | Fase | Qué se mueve | Líneas | Queda | Riesgo | Lo que se gana |
 |---|---|---:|---|---|---|
-| **0** | **Nada del código.** Se escriben `humo`, `mover`, `arquitectura`; se decide V8–V11 | 0 | la red de seguridad | ninguno | Se puede empezar a mover sin miedo |
+| **0** | **Nada del código** ✔ *hecha el 14-nov.* Se escribieron `humo`, `mover`, `arquitectura`; se decidió V8–V11; se borraron los 36 archivos viejos | 0 | la red de seguridad | ninguno | Se puede empezar a mover sin miedo |
 | **1** | Lo puro, sin pantalla: notas y color, estilos, sonido, teoría de acordes, biblioteca (datos), tablas del teclado, texto del manual, **formas recomendadas** | 997 | `shared/teoria`, `shared/audio`, `shared/ui/tema`, `shared/bandoneon/{tablas,voicings}.js` | bajo | **Las formas recomendadas se vuelven un archivo de ~50 líneas con su prueba**: se pueden rehacer con el criterio del profesor sin abrir el resto |
 | **2** | Piezas compartidas con pantalla: dibujo y editor del teclado, guardado del teclado, piezas visuales de teoría, ayudas del Entrenador, cifrado y micrófono | 1.955 | `shared/bandoneon/*`, `shared/ui/teoria/*` | medio | Un cambio en el teclado se prueba en un lugar |
 | **3** | Pestañas chicas: El Código, Teoría, Quintas, Modos, Colores, Clases y registro | 1.882 | `features/codigo`, `teoria`, `herramientas/{quintas,modos,colores}`, `clases` | medio (clases: alto, toca datos de alumnos) | Cada pestaña es una carpeta que un chat gratuito abre entera |
@@ -197,9 +197,28 @@ publicar, porque un cambio chico puede chocar con otra área.
 
 ## Decisiones que necesito (están en el panel de Mariano)
 
-- **V8** — cómo llegan sus cambios al código. Define cómo se hace todo lo demás.
-- **V9** — si se parte `App.jsx` según este plan (y a qué ritmo).
-- **V10** — si se borran los 36 archivos viejos sin uso (`src/components`, `theory`, `audio`).
-- **V11** — dónde viven las formas recomendadas: en la base de datos o en un archivo.
+## Decisiones tomadas (14-nov-2026)
 
-Mientras no estén contestadas, **no se toca `App.jsx`**.
+- **V8** — Mariano: «sigo subiendo el archivo, pero siempre bajándolo de GitHub antes de editar». Entonces
+  cada subida suya se compara con `node herramientas/mover.mjs` y `node pruebas/humo.mjs` antes de publicarse.
+- **V9** — Mariano: «sí, el plan completo, una fase por vez (con tu OK en cada una)». **Mauro aprobó el plan
+  y la fase 0 el 14-nov**; cada fase siguiente espera su OK.
+- **V10** — sí: se borraron los 36 archivos viejos sin uso (`src/components`, `theory`, `audio`). La prueba de
+  humo dio igual antes y después.
+- **V11** — las formas recomendadas van en la base de datos de BandoMaps, con una pantalla para editarlas
+  (Mariano). Es de la fase 1 en adelante y toca reglas de Firestore: se planea aparte.
+
+## Fase 0: hecha (14-nov-2026)
+
+No se tocó una línea de `App.jsx`. Entraron la red de seguridad y la limpieza:
+
+| Pieza | Qué hace | Cómo se corre |
+|---|---|---|
+| `herramientas/mover.mjs` + `pruebas/mover.mjs` | compara los renglones de código de antes y después, ignorando `import`/`export`: prueba que sólo se movió | `node herramientas/mover.mjs --base <rama> src/App.jsx <archivos nuevos…>` |
+| `pruebas/humo.mjs` + `pruebas/humo/` | compila, abre la app en un navegador (con una cuenta de mentira), entra a cada una de las 11 pestañas y compara el HTML con la foto guardada; falla con cualquier error de consola | `node pruebas/humo.mjs` (`--guardar` sólo al empezar una fase con la app sana) |
+| `herramientas/arquitectura.mjs` + `pruebas/arquitectura.mjs` | las seis reglas de arriba sobre `src/shared` y `src/features` (se exigen solas cuando existen) y los intocables hoy | `node pruebas/arquitectura.mjs` |
+
+La prueba de humo usa Playwright del entorno del chat; no agrega nada a `package.json`.
+**Antes de publicar una fase, las tres pasan, más los bancos de siempre.**
+
+Mientras no esté el OK de la fase 1, **no se toca `App.jsx`**.
