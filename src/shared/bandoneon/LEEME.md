@@ -23,3 +23,5 @@ Bandoneón **bisonoro**: cada botón da una nota al abrir y otra al cerrar; 33 b
 Cómo se prueba: `node pruebas/humo.mjs`.
 
 `acorde.js`: `calcAcorde`, de las piezas elegidas en el armador a las notas con su escritura correcta.
+
+`armador.jsx` y `disposicion.jsx`: el armador de acordes (`ArmadorAcordes`, `useAcorde`, `armarVoicing`) y dónde cae cada acorde en cada mano (`DisponibilidadAcorde`, `useDisposicion`, `calcAnchos`). Los usan la pestaña Acorde y la pestaña Bandoneón.

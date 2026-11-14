@@ -1,0 +1,11 @@
+{
+  "archivo": "src/features/bandoneon/BandoneonTab.jsx",
+  "componente": "BandoneonTab",
+  "destino": "src/features/bandoneon/hooks.jsx",
+  "cabecera": "Los tres bloques de lógica de la pestaña Bandoneón (sonido, escucha por micrófono y marcas), sacados tal cual para que ningún archivo pase de 400 líneas.",
+  "hooks": [
+    { "nombre": "useSonidoBandoneon", "desde": 117, "hasta": 168 },
+    { "nombre": "useEscuchaBandoneon", "desde": 171, "hasta": 223 },
+    { "nombre": "useMarcasBandoneon", "desde": 226, "hasta": 241 }
+  ]
+}

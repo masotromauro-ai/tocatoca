@@ -164,7 +164,7 @@ vuelve a la rama.
 > preguntar en esa sesión. Está en `PROTOCOLO-GENERAL.md` § 6.0.
 
 - **`src/App.jsx` está en proceso de partirse** (plan aprobado en `ARQUITECTURA.md`,
-  fase por fase, **con el OK de Mauro en cada una**). Hoy tiene 2.467 líneas y es lo
+  fase por fase, **con el OK de Mauro en cada una**). Hoy tiene 1.390 líneas y es lo
   que efectivamente corre (`src/main.jsx` importa `Puerta.jsx` y `App.jsx`). **Fase 0
   (14-nov-2026)**: red de seguridad y borrado de los 36 archivos viejos sin uso.
   **Fase 1 (14-nov-2026)**: lo puro salió a `src/shared/` (`teoria/`, `audio/`, `ui/`,
@@ -178,6 +178,10 @@ vuelve a la rama.
   **Fase 3 (14-nov-2026)**: las pestañas El Código, Quintas, Modos, Colores, Teoría, Organizador y
   Mis tareas salieron a `features/` (`fase-3.plan.json`); lo que usaban varias, a `shared/`.
   `medir()` y `medirLote()` viven ahora en `shared/medicion.js` (INTOCABLES). Un `.js` con JSX se llama `.jsx`.
+  **Fases 4 y 5 (14-nov-2026)**: armador de acordes a `shared/bandoneon/`, aviso inicial a `features/aviso/`,
+  pestañas Acorde, Progresión, Biblioteca y Bandoneón a `features/` (el estado de las tres primeras sigue en la
+  raíz y les llega como props: `herramientas/vista.mjs`; Bandoneón se partió en `hooks.jsx` por el límite de 400
+  líneas: `herramientas/hook.mjs`). El humo ahora también toca botones.
   Antes de publicar cualquier cambio a `src/` se corren `node pruebas/humo.mjs`
   (compila, entra a las 11 pestañas y compara con la foto de `pruebas/humo/`),
   `node pruebas/arquitectura.mjs`, `node pruebas/indefinidos.mjs` y, si se movió código, `node herramientas/mover.mjs

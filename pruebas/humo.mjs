@@ -95,6 +95,31 @@ for (let i = 0; i < cuantos; i++) {
   const html = await pag.evaluate(() => document.getElementById("root").innerHTML);
   fotos[id] = { etiqueta, html };
 }
+// Después de las fotos: tocar. Una pestaña puede dibujar igual y romperse al usarla (un hook sin sus datos, una prop que falta).
+// Se tocan los botones de las pestañas que arman cosas (hasta 40 por pestaña, sin los del menú ni los de la sesión) y se
+// mira si hubo algún error. No compara dibujos: sólo que nada se rompa.
+let toques = 0;
+const TOCAR = ["bandoneon", "chord", "prog", "biblioteca", "entrenador", "modos", "colors", "circle"];
+for (const id of TOCAR) {
+  const etiqueta = fotos[id] && fotos[id].etiqueta; if (!etiqueta) continue;
+  await pag.evaluate((et) => {
+    const el = [...document.querySelectorAll(".nav-item")].find((x) => (x.innerText || "").trim().replace(/\s+/g, " ") === et);
+    if (el) el.click();
+  }, etiqueta);
+  await pag.waitForTimeout(300);
+  const n = await pag.evaluate(() => {
+    window.__bs = [...document.querySelectorAll("#root button")].filter((x) => !x.classList.contains("nav-item") && !/salir|usuarios|sesión/i.test(x.innerText || ""));
+    return window.__bs.length;
+  });
+  for (let i = 0; i < Math.min(n, 40); i++) {
+    await pag.evaluate((k) => {
+      const x = (window.__bs || [])[k];
+      if (x && x.isConnected) { x.dispatchEvent(new MouseEvent("mousedown", { bubbles: true })); x.click(); x.dispatchEvent(new MouseEvent("mouseup", { bubbles: true })); }
+    }, i);
+    await pag.waitForTimeout(25); toques++;
+  }
+}
+console.log(`  ☝ ${toques} botones tocados en ${TOCAR.length} pestañas, sin errores nuevos`.replace(", sin errores nuevos", "") + (problemas.length ? " (con errores: ver abajo)" : ""));
 await nav.close(); server.close();
 
 if (!Object.keys(fotos).length) { console.log("✖ no se pudo entrar a ninguna pestaña."); problemas.forEach((p) => console.log("   " + p)); process.exit(1); }

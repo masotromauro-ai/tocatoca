@@ -1,0 +1,9 @@
+{
+  "archivo": "src/App.jsx",
+  "destinos": {
+    "src/shared/bandoneon/armador.jsx": { "cabecera": "El armador de acordes: elegir las piezas y ver el acorde en el teclado.", "declaraciones": ["useAcorde", "tocarAcordeBand", "ArmadorAcordes", "armarVoicing", "octLista"] },
+    "src/shared/bandoneon/disposicion.jsx": { "cabecera": "Dónde cae el acorde en cada mano: disponibilidad, anchos y disposición.", "declaraciones": ["DisponibilidadAcorde", "useAnchoMedido", "anchoMano", "useDisposicion", "calcAnchos", "ControlesDisposicion"] },
+    "src/features/aviso/AvisoInicial.jsx": { "cabecera": "El aviso que ve el alumno al entrar (se cuenta cada ingreso; desde el cuarto se puede ocultar).", "declaraciones": ["AVISO_VISTAS_SIN_OPCION", "AvisoInicial"] },
+    "src/features/bandoneon/BandoneonTab.jsx": { "cabecera": "La pestaña Bandoneón.", "declaraciones": ["BandoneonTab"] }
+  }
+}

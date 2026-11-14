@@ -1,0 +1,9 @@
+{
+  "archivo": "src/App.jsx",
+  "componente": "BandoMapsApp",
+  "bloques": [
+    { "linea": 1335, "nombre": "AcordeTab", "destino": "src/features/herramientas/acorde/AcordeTab.jsx", "cabecera": "La pestaña Acorde. El estado vive en la raíz (no se pierde al cambiar de pestaña) y llega como props." },
+    { "linea": 1423, "nombre": "ProgresionTab", "destino": "src/features/herramientas/progresion/ProgresionTab.jsx", "cabecera": "La pestaña Progresión. El estado vive en la raíz y llega como props." },
+    { "linea": 1574, "nombre": "BibliotecaTab", "destino": "src/features/herramientas/biblioteca/BibliotecaTab.jsx", "cabecera": "La pestaña Biblioteca. El estado vive en la raíz y llega como props." }
+  ]
+}

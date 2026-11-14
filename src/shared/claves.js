@@ -7,5 +7,7 @@ export const CLAVES = {
   org: "bandomaps_org",
   regSesion: "bandomaps_reg_sesion",
   regClave: "bandomaps_reg_clave",
+  lado: "bandomaps_lado",
+  invertir: "bandomaps_invertir",
   hechas: "bandomaps_hechas_",          // más el usuario: bandomaps_hechas_<usuario>
 };

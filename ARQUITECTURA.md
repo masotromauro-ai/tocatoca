@@ -287,4 +287,25 @@ ahora mira todo `src/` y no sólo `App.jsx`, porque los ejercicios ya no viven a
 
 Un feature no importa de otro: lo que dos pestañas compartían subió a `shared/` (Modos y Colores son del mismo feature `herramientas`).
 
-**Sigue la fase 4** (raíz de la app y armador de acordes: unas 850 líneas), que espera el OK de Mauro.
+**Las fases 4 y 5 están hechas** (ver abajo).
+
+## Fases 4 y 5: hechas (14-nov-2026)
+
+Mauro las pidió juntas. **`App.jsx` pasó de 2.467 a 1.390 líneas**; lo que queda es `BandoMapsApp` (538 líneas: el estado, el menú
+y las pestañas puestas en pantalla) y `EntrenadorTab`, que es la fase 6.
+
+- **Fase 4:** el armador de acordes y su disposición a `shared/bandoneon/` (`armador.jsx`, `disposicion.jsx`: los usan Acorde y
+  Bandoneón), el aviso inicial a `features/aviso/`, y las pestañas **Acorde, Progresión y Biblioteca** a `features/herramientas/`.
+  Esas tres vivían como bloques adentro de la raíz: salieron con **`herramientas/vista.mjs`**, que las vuelve componentes sin
+  tocar su texto. **El estado se quedó en la raíz y les llega como props**, porque si se mudara con ellas se reiniciaría al cambiar
+  de pestaña (lo que el alumno escribió se perdería, y el humo no lo vería).
+- **Fase 5:** la pestaña Bandoneón a `features/bandoneon/BandoneonTab.jsx`. Era un componente de 489 líneas y la regla 1 pide
+  ≤ 400, así que tres bloques de lógica (sonido, escucha por micrófono y marcas) salieron a `hooks.jsx` con
+  **`herramientas/hook.mjs`**: el texto de adentro es el mismo y cada hook recibe lo que necesita del componente.
+
+Comprobado: `mover.mjs` marca sólo lo que cambió a propósito (4 renglones de claves a `shared/claves.js` y los encabezados,
+`return` y llamadas de los tres hooks y las tres pestañas); humo **igual en las 11 pestañas**; arquitectura, nombres sin definir
+y los demás bancos en verde. **La prueba de humo ahora también toca**: después de las fotos aprieta hasta 40 botones de ocho
+pestañas (260 en total, con el sonido y el micrófono de Bandoneón) y falla si algo se rompe al usarlo.
+
+**Sigue la fase 6** (el Entrenador, 1.129 líneas: un hook y un panel por modo) y la 7 (la plataforma al día). Las dos esperan el OK de Mauro.

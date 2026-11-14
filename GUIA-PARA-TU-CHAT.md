@@ -20,7 +20,7 @@ Lo decidió Mauro el 14-nov: Mariano sigue haciendo modificaciones **él mismo**
    - `src/shared/bandoneon/` — las tablas del teclado, las **formas recomendadas** (`voicings.js`), el dibujo del teclado (`Teclado.jsx`), su editor (`Editor.jsx`), guardar y cargar (`almacen.js`, `csv.js`, `Modales.jsx`) y los caminos de notas (`camino.js`)
    - `src/shared/ui/` — estilos, y las piezas visuales de teoría en `teoria/` (piano, círculo, tarjetas de función)
    - `src/shared/audio/` — el sonido y la escucha por micrófono (`mic.js`)
-   - `src/features/` — una carpeta por pestaña: `codigo/`, `teoria/`, `clases/` (Organizador y Mis tareas) y `herramientas/` (Biblioteca, Quintas, Modos, Colores). Quedan en `App.jsx` Acorde, Progresión, Bandoneón y Entrenador (fases 4 a 6)
+   - `src/features/` — una carpeta por pestaña: `codigo/`, `teoria/`, `clases/` (Organizador y Mis tareas) y `herramientas/` (Acorde, Progresión, Biblioteca, Quintas, Modos, Colores), `bandoneon/` y `aviso/`. Queda en `App.jsx` el Entrenador (fase 6) y la raíz con el menú
 
    Cada carpeta tiene un `LEEME.md` que dice qué hay, qué usa y **qué no se toca**. Lo que todavía está en `src/App.jsx` (las pestañas) se va a ir pasando a carpetas; hasta entonces, si el cambio es ahí, **volvé a bajar `App.jsx` justo antes de editarlo**.
 3. **Subí por la web de GitHub, a `main`**: abrí el archivo → lápiz ✏️ (o «Add file → Upload files») → en el mensaje escribí una línea con lo que hiciste («Formas: agrego la forma lleno») → «Commit changes». **Una cosa por subida**, no cinco juntas. A `main` directo: es lo que decidió Mauro para todo el ecosistema mientras BandoMaps está en desarrollo.
@@ -85,7 +85,7 @@ Si querés que Claude (el de Mauro) revise o aplique lo que armó tu chat, pegal
 - El fuelle: **no son dos fuentes de datos**, es el mismo acorde abriendo o cerrando, y no cambia. Bajo a la izquierda y voces abiertas a la derecha.
 - Dónde viven las formas: en la **base de datos de BandoMaps**, con una pantalla para editarlas (se planea aparte, toca reglas de Firestore).
 
-**El plan de partir `App.jsx` (14-nov):** aprobado por Mauro, **una fase por vez con su OK**. Fase 0 (red de seguridad), fase 1 (lo puro: teoría, audio, estilos, tablas y formas) fase 2 (las piezas con pantalla: piano, círculo, teclado y su editor, cifrado, micrófono, ayudas del Entrenador) y fase 3 (las pestañas El Código, Quintas, Modos, Colores, Teoría, Organizador y Mis tareas) **hechas**. Sigue la fase 4 (la raíz de la app y el armador de acordes). Detalle y estado en `ARQUITECTURA.md`.
+**El plan de partir `App.jsx` (14-nov):** aprobado por Mauro, **una fase por vez con su OK**. Fase 0 (red de seguridad), fase 1 (lo puro: teoría, audio, estilos, tablas y formas) fase 2 (las piezas con pantalla: piano, círculo, teclado y su editor, cifrado, micrófono, ayudas del Entrenador) fase 3 (las pestañas El Código, Quintas, Modos, Colores, Teoría, Organizador y Mis tareas), fase 4 (el armador de acordes y las pestañas Acorde, Progresión y Biblioteca) y fase 5 (la pestaña Bandoneón) **hechas**. Sigue la fase 6 (el Entrenador). Detalle y estado en `ARQUITECTURA.md`.
 
 ## 8. A dónde va tu respuesta
 

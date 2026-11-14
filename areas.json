@@ -133,15 +133,17 @@
       "fase": 4,
       "riesgo": "medio",
       "que": "Armar un acorde sobre el teclado, dónde está disponible en cada fuelle y cómo se acomodan las manos.",
-      "tramos": [
-        [
-          "useAcorde",
-          "ControlesDisposicion"
-        ]
-      ],
+      "tramos": [],
       "destino": "src/features/herramientas/acorde/",
       "probar": "pestaña Acorde",
-      "nota": "En la fase 3 salieron de acá GRADO_LAB, ROM_N, aRomano (shared/teoria/romanos.js), useRomanos (shared/almacen/romanos.js) y calcAcorde (shared/bandoneon/acorde.js): los usan varias pestañas."
+      "movida": "14-nov-2026 (fase 4)",
+      "archivos": [
+        "src/shared/bandoneon/armador.jsx",
+        "src/shared/bandoneon/disposicion.jsx",
+        "src/shared/bandoneon/acorde.js",
+        "src/shared/teoria/romanos.js",
+        "src/shared/almacen/romanos.js"
+      ]
     },
     {
       "id": "teclado-componentes",
@@ -183,14 +185,14 @@
       "fase": 5,
       "riesgo": "alto",
       "que": "El mapa de los dos teclados con Abre/Cierra, Marcar y la escucha física.",
-      "tramos": [
-        [
-          "BandoneonTab",
-          "BandoneonTab"
-        ]
-      ],
+      "tramos": [],
       "destino": "src/features/bandoneon/",
-      "probar": "pestaña Bandoneón"
+      "probar": "pestaña Bandoneón",
+      "movida": "14-nov-2026 (fase 5)",
+      "archivos": [
+        "src/features/bandoneon/BandoneonTab.jsx",
+        "src/features/bandoneon/hooks.jsx"
+      ]
     },
     {
       "id": "codigo-color-y-rueda",
@@ -360,12 +362,13 @@
       "que": "El aviso inicial, la barra de pestañas, el estado que se comparte y tres herramientas que hoy viven adentro (Acorde, Progresión y Biblioteca, unas 330 líneas). Tiene que quedar como un esquema corto.",
       "tramos": [
         [
-          "AVISO_VISTAS_SIN_OPCION",
+          "BandoMapsApp",
           "BandoMapsApp"
         ]
       ],
       "destino": "src/App.jsx (≤ 250 líneas) + src/features/herramientas/",
-      "probar": "entrar y recorrer todas las pestañas"
+      "probar": "entrar y recorrer todas las pestañas",
+      "nota": "El aviso inicial salió a src/features/aviso/ en la fase 4, y las pestañas Acorde, Progresión y Biblioteca a src/features/herramientas/ (con su estado en la raíz, que les llega como props). Queda BandoMapsApp: el estado, el menú y las pestañas puestas en pantalla."
     }
   ]
 }
