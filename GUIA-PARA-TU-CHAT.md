@@ -85,7 +85,7 @@ Si querés que Claude (el de Mauro) revise o aplique lo que armó tu chat, pegal
 - El fuelle: **no son dos fuentes de datos**, es el mismo acorde abriendo o cerrando, y no cambia. Bajo a la izquierda y voces abiertas a la derecha.
 - Dónde viven las formas: en la **base de datos de BandoMaps**, con una pantalla para editarlas (se planea aparte, toca reglas de Firestore).
 
-**El plan de partir `App.jsx` (14-nov):** aprobado por Mauro, **una fase por vez con su OK**. Fase 0 (red de seguridad) y fase 1 (lo puro: teoría, audio, estilos, tablas y formas) **hechas**. Sigue la fase 2. Detalle y estado en `ARQUITECTURA.md`.
+**El plan de partir `App.jsx` (14-nov):** aprobado por Mauro, **una fase por vez con su OK**. Fase 0 (red de seguridad), fase 1 (lo puro: teoría, audio, estilos, tablas y formas) y fase 2 (las piezas con pantalla: piano, círculo, teclado y su editor, cifrado, micrófono, ayudas del Entrenador) **hechas**. Sigue la fase 3 (las pestañas). Detalle y estado en `ARQUITECTURA.md`.
 
 ## 8. A dónde va tu respuesta
 

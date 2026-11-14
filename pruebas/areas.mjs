@@ -31,9 +31,9 @@ t("ningún área nueva pesa más que el Entrenador (que es la que hay que partir
   assert.equal(mayor.id, "entrenador-pestana", "la más grande es " + mayor.id);
 });
 const leer = (r) => fs.readFileSync(new URL("../" + r, import.meta.url), "utf8");
-t("las áreas ya movidas (fase 1) tienen sus archivos y ya no dejan nada en App.jsx", () => {
+t("las áreas ya movidas (fases 1 y 2) tienen sus archivos y ya no dejan nada en App.jsx", () => {
   const movidas = mapa.areas.filter((a) => a.movida);
-  assert.ok(movidas.length >= 7, "se esperaban las áreas de la fase 1");
+  assert.ok(movidas.length >= 12, "se esperaban las áreas de las fases 1 y 2");
   for (const a of movidas) {
     assert.deepEqual(a.tramos, [], a.id + " movida pero con tramos en App.jsx");
     for (const f of a.archivos) { assert.ok(fs.existsSync(new URL("../" + f, import.meta.url)), a.id + ": falta " + f); }

@@ -7,6 +7,8 @@
 | `escalas.js` | modos, círculo de quintas, grados |
 | `acordes.js` | fórmulas de acordes, sus funciones, `parseChord` |
 | `progresiones.js` | grados romanos, familias, análisis y cálculo de progresiones |
+| `cifrado.js` | cómo se nombra un acorde y cómo se reconoce uno a partir de notas |
+| `etiquetas.js` | rótulos de grados y notas, y color de texto sobre un fondo |
 
 Usa: sólo `notas.js` y entre sí (notas → color/escalas → acordes → progresiones; sin ciclos).
 

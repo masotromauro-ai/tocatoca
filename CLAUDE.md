@@ -164,17 +164,21 @@ vuelve a la rama.
 > preguntar en esa sesión. Está en `PROTOCOLO-GENERAL.md` § 6.0.
 
 - **`src/App.jsx` está en proceso de partirse** (plan aprobado en `ARQUITECTURA.md`,
-  fase por fase, **con el OK de Mauro en cada una**). Hoy tiene 6.586 líneas y es lo
+  fase por fase, **con el OK de Mauro en cada una**). Hoy tiene 4.571 líneas y es lo
   que efectivamente corre (`src/main.jsx` importa `Puerta.jsx` y `App.jsx`). **Fase 0
   (14-nov-2026)**: red de seguridad y borrado de los 36 archivos viejos sin uso.
   **Fase 1 (14-nov-2026)**: lo puro salió a `src/shared/` (`teoria/`, `audio/`, `ui/`,
   `bandoneon/`) y `src/features/herramientas/biblioteca/`, cada carpeta con su
   `LEEME.md`; las formas recomendadas son `shared/bandoneon/voicings.js`. Se movió, no
   se reescribió (`herramientas/partir.mjs`, plan en `herramientas/fase-1.plan.json`).
+  **Fase 2 (14-nov-2026)**: las piezas compartidas con pantalla (piano, círculo, teclado y su
+  editor, cifrado, micrófono, ayudas del Entrenador) salieron a `shared/` y
+  `features/entrenador/ayudas/` (23 archivos, `fase-2.plan.json`). Se corre además
+  `node pruebas/indefinidos.mjs`: busca nombres usados sin importar en todo `src/`.
   Antes de publicar cualquier cambio a `src/` se corren `node pruebas/humo.mjs`
   (compila, entra a las 11 pestañas y compara con la foto de `pruebas/humo/`),
-  `node pruebas/arquitectura.mjs` y, si se movió código, `node herramientas/mover.mjs
-  --base <rama> src/App.jsx <archivos>`. Si un cambio es a propósito, la foto se
+  `node pruebas/arquitectura.mjs`, `node pruebas/indefinidos.mjs` y, si se movió código, `node herramientas/mover.mjs
+  --base <rama> src/App.jsx src/App.jsx <archivos nuevos>` (el App.jsx recortado también cuenta como «después»). Si un cambio es a propósito, la foto se
   rehace con `--guardar`, a la vista. **Mariano sube sus cambios directo a `main` con
   su cuenta de colaborador**, siguiendo `GUIA-PARA-TU-CHAT.md` § 2; el chat de Mauro
   los comprueba en la ronda.

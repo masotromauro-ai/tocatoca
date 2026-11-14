@@ -242,4 +242,28 @@ Dos cambios respecto del plan, y por qué:
 
 **Lo que se gana ya:** las formas recomendadas son un archivo de 55 líneas (`shared/bandoneon/voicings.js`) con
 su prueba; se pueden rehacer con el criterio del profesor (marcato y lleno, sin la 5ª) sin abrir el resto.
-**Sigue la fase 2** (piezas compartidas con pantalla: 1.955 líneas), que espera el OK de Mauro.
+**La fase 2 está hecha** (ver abajo).
+
+## Fase 2: hecha (14-nov-2026)
+
+Mauro la aprobó en el panel (`harmonia:B3`). **`App.jsx` pasó de 6.586 a 4.571 líneas** y nacieron 23 archivos con
+las piezas compartidas con pantalla:
+
+- `shared/ui/teoria/` (`notas.jsx`, `Piano.jsx`, `Funciones.jsx`, `Circulo.jsx`), `shared/ui/controles.jsx`, `shared/ui/Popover.jsx`;
+- `shared/bandoneon/` (`layouts.js`, `almacen.js`, `csv.js`, `Botones.jsx`, `Teclado.jsx`, `Modales.jsx`, `Editor.jsx`, `acordes-base.js`, `camino.js`);
+- `shared/teoria/` (`cifrado.js`, `etiquetas.js`), `shared/audio/mic.js`, `shared/almacen/preferencias.js`, `shared/claves.js`;
+- `features/entrenador/ayudas/` (`lienzo.jsx`, `controles.jsx`, `formas.jsx`).
+
+Se hizo con `herramientas/partir.mjs` (plan en `herramientas/fase-2.plan.json`). Para esta fase aprendió a poner solo los
+`import` de React, de `pitchfinder` y de lo que ya salió en la fase 1 (y arregló que un `...nombre` no se contaba como uso).
+
+Comprobado: `mover.mjs` dice que sólo cambian **3 renglones, a propósito** (los que leen o guardan el estilo de cifrado: la
+clave `bandomaps_…` pasó a `shared/claves.js`, regla 4); la prueba de humo da **igual en las 11 pestañas y sin errores**; los
+bancos de siempre dan verde; y **`pruebas/indefinidos.mjs` es nueva**: busca en todo `src/` nombres usados sin importar. La
+hizo falta porque el humo atrapó un `hexToRgb` que faltaba, y un import que falta no rompe al compilar sino al tocar esa pantalla.
+
+Tres decisiones de orden: el estilo de cifrado se guarda en `shared/almacen/preferencias.js` (no en `teoria/`, que es pura);
+las piezas del Entrenador que sólo usa el Entrenador van a su feature y las que usan varias pestañas a `shared`; y
+`areas.json` marca las cinco áreas como movidas y corrige los límites de las que siguen en `App.jsx`.
+
+**Sigue la fase 3** (las pestañas, una por una: 4.571 líneas), que espera el OK de Mauro.

@@ -15,7 +15,7 @@ import { declaraciones } from "./areas.mjs";
 const DECL = /^(?:export default function|export function|function|const|let)\s+([A-Za-z_$][\w$]*)/;
 const quitarTextos = (t) => t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1")
   .replace(/"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/g, '""');
-const usaNombre = (texto, nombre) => new RegExp("(?<![\\w$.])" + nombre.replace(/\$/g, "\\$") + "(?![\\w$])").test(texto);
+const usaNombre = (texto, nombre) => new RegExp("(?<![\\w$])(?<!(?<![.])[.])" + nombre.replace(/\$/g, "\\$") + "(?![\\w$])").test(texto);
 
 export function planear(src, plan) {
   const L = src.split("\n"), decls = declaraciones(src), porNombre = new Map(decls.map((d) => [d.nombre, d]));
@@ -24,6 +24,13 @@ export function planear(src, plan) {
     if (!porNombre.has(n)) problemas.push(`${ruta}: «${n}» no existe en ${plan.archivo}`);
     else if (destDe.has(n)) problemas.push(`«${n}» está en dos destinos`);
     else destDe.set(n, ruta);
+  }
+  // los nombres que App.jsx ya trae de otros archivos (fases anteriores) y que el código movido también usa
+  const importados = new Map();
+  for (const m of src.matchAll(/^import\s*\{([^}]*)\}\s*from\s*["']([^"']+)["'];?[ \t]*$/gm)) {
+    if (!m[2].startsWith(".")) continue;
+    const abs = path.posix.normalize(path.posix.join(path.posix.dirname(plan.archivo), m[2]));
+    for (const n of m[1].split(",").map((x) => x.trim()).filter(Boolean)) importados.set(n, abs);
   }
   const textoDe = (n) => L.slice(porNombre.get(n).desde - 1, porNombre.get(n).hasta).join("\n");
   const movidas = new Set(destDe.keys());
@@ -41,7 +48,14 @@ export function planear(src, plan) {
       else faltan.add(o.nombre);
     }
     if (faltan.size) problemas.push(`${ruta} usa ${[...faltan].join(", ")}, que se queda en ${plan.archivo}: moverlo también o pasarlo como parámetro`);
-    info[ruta] = { imports, exporta: new Set() };
+    // lo que viene de afuera del proyecto: los hooks de React y el detector de tono
+    const externos = [];
+    const hooks = ["useState", "useEffect", "useCallback", "useMemo", "useRef"].filter((h) => usaNombre(t, h));
+    if (hooks.length) externos.push(`import { ${hooks.join(", ")} } from "react";`);
+    if (usaNombre(t, "YIN")) externos.push('import { YIN } from "pitchfinder";');
+    // y lo que ya vive en archivos de fases anteriores
+    for (const [n, abs] of importados) if (usaNombre(t, n) && !propios.has(n)) (imports.get(abs) || imports.set(abs, new Set()).get(abs)).add(n);
+    info[ruta] = { imports, exporta: new Set(), externos };
   }
   // qué hay que exportar
   const usadasAfuera = new Set();
@@ -50,7 +64,7 @@ export function planear(src, plan) {
   for (const n of movidas) if (usaNombre(restoTexto, n)) { usadasAfuera.add(n); const r = destDe.get(n); (importsApp.get(r) || importsApp.set(r, new Set()).get(r)).add(n); }
   // ciclos entre destinos
   const color = {}; const visita = (r, pila) => {
-    if (color[r] === 2) return; if (color[r] === 1) { problemas.push("ciclo entre archivos: " + [...pila, r].join(" → ")); return; }
+    if (!info[r] || color[r] === 2) return; if (color[r] === 1) { problemas.push("ciclo entre archivos: " + [...pila, r].join(" → ")); return; }
     color[r] = 1; for (const o of info[r].imports.keys()) visita(o, [...pila, r]); color[r] = 2;
   };
   Object.keys(info).forEach((r) => visita(r, []));
@@ -64,7 +78,7 @@ export function generar(src, plan, p) {
   for (const [ruta, d] of Object.entries(plan.destinos)) {
     const lineas = [];
     if (d.cabecera) lineas.push(...d.cabecera.split("\n").map((l) => "// " + l), "");
-    const imps = [...p.info[ruta].imports].map(([o, ns]) => `import { ${[...ns].sort().join(", ")} } from "${relativa(ruta, o)}";`);
+    const imps = [...p.info[ruta].externos, ...[...p.info[ruta].imports].map(([o, ns]) => `import { ${[...ns].sort().join(", ")} } from "${relativa(ruta, o)}";`)];
     if (imps.length) lineas.push(...imps, "");
     const ordenadas = d.declaraciones.slice().sort((a, b) => p.porNombre.get(a).desde - p.porNombre.get(b).desde);
     for (const n of ordenadas) {

@@ -97,14 +97,17 @@
       "fase": 2,
       "riesgo": "medio",
       "que": "El piano, las tarjetas de función, la tabla comparativa y el círculo de armonía que usan Acorde, Progresión, Biblioteca y Modos.",
-      "tramos": [
-        [
-          "fmtNota",
-          "Circulo"
-        ]
-      ],
+      "tramos": [],
       "destino": "src/shared/ui/teoria/",
-      "probar": "pestañas Acorde, Progresión y Biblioteca"
+      "probar": "pestañas Acorde, Progresión y Biblioteca",
+      "movida": "14-nov-2026 (fase 2)",
+      "archivos": [
+        "src/shared/ui/teoria/notas.jsx",
+        "src/shared/ui/teoria/Piano.jsx",
+        "src/shared/ui/teoria/Funciones.jsx",
+        "src/shared/ui/teoria/Circulo.jsx",
+        "src/shared/teoria/etiquetas.js"
+      ]
     },
     {
       "id": "teclado-datos-y-botones",
@@ -112,14 +115,17 @@
       "fase": 2,
       "riesgo": "medio",
       "que": "Cómo se guarda el teclado de cada uno en el teléfono, cómo se importa y exporta (CSV), las posiciones por defecto y los botones base.",
-      "tramos": [
-        [
-          "BBtn",
-          "snapV"
-        ]
-      ],
+      "tramos": [],
       "destino": "src/shared/bandoneon/layouts.js, almacen.js, csv.js",
-      "probar": "editar y guardar un botón"
+      "probar": "editar y guardar un botón",
+      "movida": "14-nov-2026 (fase 2)",
+      "archivos": [
+        "src/shared/bandoneon/layouts.js",
+        "src/shared/bandoneon/almacen.js",
+        "src/shared/bandoneon/csv.js",
+        "src/shared/bandoneon/Botones.jsx",
+        "src/shared/bandoneon/acordes-base.js"
+      ]
     },
     {
       "id": "armador-de-acordes",
@@ -129,7 +135,7 @@
       "que": "Armar un acorde sobre el teclado, dónde está disponible en cada fuelle y cómo se acomodan las manos.",
       "tramos": [
         [
-          "ACORDE_BASES",
+          "GRADO_LAB",
           "ControlesDisposicion"
         ]
       ],
@@ -142,14 +148,15 @@
       "fase": 2,
       "riesgo": "medio",
       "que": "El dibujo del teclado (cada botón, el lienzo, el mapa de alturas) y el editor para mover botones, guardar y cargar.",
-      "tramos": [
-        [
-          "BandBtn",
-          "BandEditor"
-        ]
-      ],
+      "tramos": [],
       "destino": "src/shared/bandoneon/",
-      "probar": "pestaña Bandoneón y Entrenador"
+      "probar": "pestaña Bandoneón y Entrenador",
+      "movida": "14-nov-2026 (fase 2)",
+      "archivos": [
+        "src/shared/bandoneon/Teclado.jsx",
+        "src/shared/bandoneon/Modales.jsx",
+        "src/shared/bandoneon/Editor.jsx"
+      ]
     },
     {
       "id": "analisis-cifrado-mic",
@@ -157,14 +164,17 @@
       "fase": 2,
       "riesgo": "medio",
       "que": "Cómo se escribe el nombre de un acorde (△7 o maj7, según el estilo), cómo se reconoce un acorde de las notas marcadas y la escucha por micrófono.",
-      "tramos": [
-        [
-          "RAIZ_NOM",
-          "GrupoCtl"
-        ]
-      ],
+      "tramos": [],
       "destino": "src/shared/teoria/cifrado.js, src/shared/audio/mic.js",
-      "probar": "Bandoneón → Escucha física"
+      "probar": "Bandoneón → Escucha física",
+      "movida": "14-nov-2026 (fase 2)",
+      "archivos": [
+        "src/shared/teoria/cifrado.js",
+        "src/shared/almacen/preferencias.js",
+        "src/shared/audio/mic.js",
+        "src/shared/ui/controles.jsx",
+        "src/shared/claves.js"
+      ]
     },
     {
       "id": "bandoneon-pestana",
@@ -189,7 +199,7 @@
       "que": "La rueda de los doce colores, los juegos para aprenderlos y las figuras de cada capítulo.",
       "tramos": [
         [
-          "CROM_SIMPLE",
+          "CROM_DOBLE",
           "TarjetasMuestra"
         ]
       ],
@@ -221,7 +231,7 @@
       "tramos": [
         [
           "ElCodigoTab",
-          "rutaCanal"
+          "HojaDeColor"
         ]
       ],
       "destino": "src/features/codigo/ElCodigoTab.jsx",
@@ -233,15 +243,19 @@
       "fase": 2,
       "riesgo": "medio",
       "que": "Lo que usa el Entrenador por debajo: el lienzo de pintar, los caminos de notas y escalas, el cuadro de formas, el selector de notas y las líneas. Incluye itemsMano, que cruza una nota con el botón que la toca.",
-      "tramos": [
-        [
-          "PaintCanvas",
-          "lineasDe"
-        ]
-      ],
+      "tramos": [],
       "destino": "src/shared/bandoneon/camino.js y src/features/entrenador/ayudas/",
       "probar": "Entrenador, cada modo",
-      "nota": "itemsMano pasó a shared/bandoneon/tablas.js en la fase 1 (lo usan las formas recomendadas)."
+      "nota": "itemsMano pasó a shared/bandoneon/tablas.js en la fase 1 (lo usan las formas recomendadas).",
+      "movida": "14-nov-2026 (fase 2)",
+      "archivos": [
+        "src/shared/bandoneon/camino.js",
+        "src/features/entrenador/ayudas/lienzo.jsx",
+        "src/features/entrenador/ayudas/controles.jsx",
+        "src/features/entrenador/ayudas/formas.jsx",
+        "src/shared/ui/Popover.jsx",
+        "src/shared/teoria/etiquetas.js"
+      ]
     },
     {
       "id": "formas-recomendadas",

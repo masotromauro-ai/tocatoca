@@ -1,0 +1,204 @@
+{
+  "archivo": "src/App.jsx",
+  "destinos": {
+    "src/shared/ui/teoria/notas.jsx": {
+      "cabecera": "Nota = círculo con el color de la nota y su nombre; TensionChip = etiqueta + círculo.",
+      "declaraciones": [
+        "fmtNota",
+        "NotaDot",
+        "Nota",
+        "TensionChip"
+      ]
+    },
+    "src/shared/ui/teoria/Piano.jsx": {
+      "cabecera": "Piano de tres octavas (C3-B5) con el color tonal de cada tecla.",
+      "declaraciones": [
+        "Piano"
+      ]
+    },
+    "src/shared/ui/teoria/Funciones.jsx": {
+      "cabecera": "Tarjeta de función armónica y tabla comparativa.",
+      "declaraciones": [
+        "FnCard",
+        "TablaComparativa"
+      ]
+    },
+    "src/shared/ui/teoria/Circulo.jsx": {
+      "cabecera": "El círculo de armonía.",
+      "declaraciones": [
+        "Circulo"
+      ]
+    },
+    "src/shared/bandoneon/layouts.js": {
+      "cabecera": "@datos\nPosiciones por defecto de los botones del bandoneón, tamaños y ajuste a la grilla.",
+      "declaraciones": [
+        "buildOctMaps",
+        "FALLBACK_OCT_R_OPEN",
+        "FALLBACK_OCT_R_CLOSE",
+        "FALLBACK_OCT_L_OPEN",
+        "FALLBACK_OCT_L_CLOSE",
+        "DEFS_L",
+        "DEFS_R",
+        "ALL_NOTES_LAT",
+        "BTN_SIZE",
+        "SNAP",
+        "snapV"
+      ]
+    },
+    "src/shared/bandoneon/almacen.js": {
+      "cabecera": "El teclado de cada uno, guardado en el teléfono.",
+      "declaraciones": [
+        "STORAGE_KEY_L",
+        "STORAGE_KEY_R",
+        "loadBtns",
+        "saveBtns",
+        "clearBtns"
+      ]
+    },
+    "src/shared/bandoneon/csv.js": {
+      "cabecera": "Importar y exportar el teclado como CSV y como CSS.",
+      "declaraciones": [
+        "btnsToCSV",
+        "downloadCSV",
+        "generateCSS",
+        "parseCSV"
+      ]
+    },
+    "src/shared/bandoneon/Botones.jsx": {
+      "cabecera": "Botón base y grilla de botones.",
+      "declaraciones": [
+        "BBtn",
+        "BGrid"
+      ]
+    },
+    "src/shared/bandoneon/Teclado.jsx": {
+      "cabecera": "El dibujo del teclado: botón, mapa de alturas y lienzo.",
+      "declaraciones": [
+        "BandBtn",
+        "MapaAlturas",
+        "BandCanvas"
+      ]
+    },
+    "src/shared/bandoneon/Modales.jsx": {
+      "cabecera": "Guardar y cargar teclados.",
+      "declaraciones": [
+        "SavedModal",
+        "ImportModal"
+      ]
+    },
+    "src/shared/bandoneon/Editor.jsx": {
+      "cabecera": "El editor para mover botones, guardar y cargar.",
+      "declaraciones": [
+        "BandEditor"
+      ]
+    },
+    "src/shared/almacen/preferencias.js": {
+      "cabecera": "Preferencias de cifrado guardadas en el teléfono.",
+      "declaraciones": [
+        "cifEstilo",
+        "cifPropios",
+        "cifGuardarPropios"
+      ]
+    },
+    "src/shared/teoria/cifrado.js": {
+      "cabecera": "Cómo se nombra un acorde y cómo se reconoce uno a partir de notas.",
+      "declaraciones": [
+        "RAIZ_NOM",
+        "CIF_ESTILOS",
+        "INTERVALOS_NOM",
+        "cifSufijo",
+        "analizarAcorde",
+        "nombreAcordePcs"
+      ]
+    },
+    "src/shared/audio/mic.js": {
+      "cabecera": "@motor\nEscucha por micrófono: estima la nota.",
+      "declaraciones": [
+        "micEstimar"
+      ]
+    },
+    "src/shared/ui/controles.jsx": {
+      "cabecera": "Controles comunes: panel de notas marcadas y grupos.",
+      "declaraciones": [
+        "PanelMarcadas",
+        "segS",
+        "GrupoCtl"
+      ]
+    },
+    "src/shared/bandoneon/camino.js": {
+      "cabecera": "Caminos de notas, escalas y arpegios sobre el teclado; armado de voces.",
+      "declaraciones": [
+        "ESC_ENT",
+        "rutaEscala",
+        "FIGURAS",
+        "caminoNotas",
+        "caminoEscala",
+        "caminoArpegio",
+        "octDeMidi",
+        "VOZ_RAICES",
+        "armarVoz",
+        "vozCifrar",
+        "vozLeer"
+      ]
+    },
+    "src/features/entrenador/ayudas/lienzo.jsx": {
+      "cabecera": "El lienzo de pintar del Entrenador.",
+      "declaraciones": [
+        "PaintCanvas",
+        "canalGrafo",
+        "rutaCanal"
+      ]
+    },
+    "src/features/entrenador/ayudas/controles.jsx": {
+      "cabecera": "Secciones y selectores del Entrenador.",
+      "declaraciones": [
+        "Seccion",
+        "SelectoresAcorde",
+        "GrupoMini",
+        "Desplegable",
+        "LeyendaCamino",
+        "NotaPicker"
+      ]
+    },
+    "src/features/entrenador/ayudas/formas.jsx": {
+      "cabecera": "El cuadro de formas y las líneas.",
+      "declaraciones": [
+        "FORMA_TOL",
+        "FORMA_NIVELES",
+        "matchForma",
+        "FormaCanvas",
+        "LIN_COLS",
+        "LIN_FILAS",
+        "LIN_TIPOS",
+        "LIN_TEXTO",
+        "lineasDe"
+      ]
+    },
+    "src/shared/bandoneon/acordes-base.js": {
+      "cabecera": "@datos\nLas piezas con que se arma un acorde en el teclado: base, séptima, novenas, oncenas, trecenas y raíces.",
+      "declaraciones": [
+        "ACORDE_BASES",
+        "ACORDE_SEPT",
+        "ACORDE_NOV",
+        "ACORDE_UND",
+        "ACORDE_TRE",
+        "ACORDE_INI",
+        "ACORDE_RAICES"
+      ]
+    },
+    "src/shared/teoria/etiquetas.js": {
+      "cabecera": "Rótulos de grados y notas, y el color de texto que se lee sobre un color de fondo.",
+      "declaraciones": [
+        "GRADO_LABEL",
+        "CROM_SIMPLE",
+        "txtSobre"
+      ]
+    },
+    "src/shared/ui/Popover.jsx": {
+      "cabecera": "Ventana chica anclada a una tecla.",
+      "declaraciones": [
+        "PopoverAnclado"
+      ]
+    }
+  }
+}

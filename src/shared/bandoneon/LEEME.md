@@ -4,6 +4,15 @@
 |---|---|
 | `tablas.js` | botones del bandoneón (izquierda y derecha, abre y cierra, octavas) e `itemsMano` (la altura real de cada botón) |
 | `voicings.js` | formas recomendadas: patrones por función de cada nota aplicados a los botones reales |
+| `layouts.js` | posiciones por defecto, tamaños y ajuste a la grilla de los botones |
+| `almacen.js` | cómo se guarda el teclado de cada uno en el teléfono |
+| `csv.js` | importar y exportar el teclado (CSV y CSS) |
+| `Botones.jsx` | `BBtn` y `BGrid`: el botón base y la grilla |
+| `Teclado.jsx` | el dibujo del teclado: botón, mapa de alturas y lienzo |
+| `Modales.jsx` | guardar y cargar teclados |
+| `Editor.jsx` | el editor para mover botones |
+| `acordes-base.js` | las piezas con que se arma un acorde en el teclado |
+| `camino.js` | caminos de notas, escalas y arpegios sobre el teclado, y armado de voces |
 
 Usa: `shared/teoria/notas.js`; `voicings.js` usa `tablas.js`.
 
