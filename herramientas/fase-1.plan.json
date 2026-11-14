@@ -1,0 +1,150 @@
+{
+ "archivo": "src/App.jsx",
+ "destinos": {
+  "src/shared/teoria/notas.js": {
+   "cabecera": "Notas: nombres, enarmónicos, escalas y cómo se escribe cada nota según la tonalidad. Lógica pura: sin React, sin pantalla, sin guardado.",
+   "declaraciones": [
+    "CHROMATIC",
+    "ENHARMONIC",
+    "enh",
+    "NAT_PC",
+    "LETRAS",
+    "LAT_NOMBRE",
+    "noteIdx",
+    "GRADO_DEF",
+    "GRADO_DEF_SOST",
+    "spell",
+    "fromRoot",
+    "buildScale",
+    "nombreLat",
+    "LAT",
+    "ENG_LAT"
+   ]
+  },
+  "src/shared/teoria/color.js": {
+   "cabecera": "Color de cada nota: la paleta oficial NC (la del manual) y las mezclas de luz. Lógica pura. Si NC cambia, cambia también public/gestos/musica.js.",
+   "declaraciones": [
+    "NC",
+    "nc",
+    "hexToRgb",
+    "rgbToHex",
+    "mixLuzRaizDominante"
+   ]
+  },
+  "src/shared/ui/tema.js": {
+   "cabecera": "Estilos compartidos de la interfaz (tipografía y botones). Sólo datos de estilo.",
+   "declaraciones": [
+    "UI_FONT",
+    "uiPill",
+    "uiPlay",
+    "uiMarcar",
+    "uiVista",
+    "uiTool",
+    "uiGhost",
+    "uiLabel"
+   ]
+  },
+  "src/shared/audio/audio.js": {
+   "cabecera": "@motor — el motor de sonido (Web Audio). Es lo único de shared/ que puede usar window.",
+   "declaraciones": [
+    "_ctx",
+    "getCtx",
+    "MIDI",
+    "playTone",
+    "playBand",
+    "playBandDur",
+    "playClick",
+    "playChord"
+   ]
+  },
+  "src/shared/teoria/escalas.js": {
+   "cabecera": "Modos, círculo de quintas y grados. Lógica pura.",
+   "declaraciones": [
+    "MODES",
+    "T_SEMI",
+    "T_DEG",
+    "tNote",
+    "MODE_BY_DEGREE",
+    "COF",
+    "MSI",
+    "DN",
+    "DQ",
+    "DL",
+    "getMSD"
+   ]
+  },
+  "src/shared/teoria/acordes.js": {
+   "cabecera": "Fórmulas de acordes, sus funciones y su escritura. Lógica pura.",
+   "declaraciones": [
+    "FORMULAS",
+    "HF",
+    "GRUPOS_ACORDE",
+    "QUAL_TXT",
+    "mkF",
+    "getFns",
+    "buildVoicing",
+    "CHORD_RULES",
+    "parseChord"
+   ]
+  },
+  "src/shared/teoria/progresiones.js": {
+   "cabecera": "Progresiones: grados romanos, familias de acordes, análisis y cálculo. Lógica pura.",
+   "declaraciones": [
+    "TONICAS_MAYOR",
+    "TONICAS_MENOR",
+    "FAMILIAS",
+    "ES_MENORQ",
+    "SUF_ES",
+    "SUF_CORTO",
+    "nombreAcordeEs",
+    "SUF_ROM7",
+    "romCaso",
+    "romTri",
+    "romSept",
+    "calTri",
+    "calSept",
+    "acordesDeNotas",
+    "acordesDiatonicos",
+    "tonicaCanonica",
+    "QBASE",
+    "ES_SEPT",
+    "tieneDobles",
+    "dondeVive",
+    "raizDefecto",
+    "REL_MAYOR",
+    "REL_MENOR",
+    "ROM_IDX",
+    "romanoRelativo",
+    "analizarProgresion",
+    "computeProg"
+   ]
+  },
+  "src/features/herramientas/biblioteca/datos.js": {
+   "cabecera": "@datos — la biblioteca de acordes y progresiones.",
+   "declaraciones": [
+    "BIBLIOTECA"
+   ]
+  },
+  "src/shared/bandoneon/tablas.js": {
+   "cabecera": "Tablas del teclado del bandoneón (botones, fuelle, octavas) y la altura real de cada botón. Lógica pura.",
+   "declaraciones": [
+    "BLO",
+    "BLC",
+    "BRO",
+    "BRC",
+    "OCT_C",
+    "itemsMano"
+   ]
+  },
+  "src/shared/bandoneon/voicings.js": {
+   "cabecera": "Formas recomendadas: patrones por función de cada nota (raíz, 3ª, 5ª, 7ª) aplicados a los botones reales. Lógica pura.",
+   "declaraciones": [
+    "PATRONES_VOZ",
+    "ROL_TXT",
+    "dispFisica",
+    "elegirVoicing",
+    "voicingsDe"
+   ]
+  }
+ }
+}

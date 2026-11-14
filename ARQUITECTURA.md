@@ -138,9 +138,9 @@ Los tamaños salen de `areas.json` (se pueden recalcular con `node pruebas/areas
 | Fase | Qué se mueve | Líneas | Queda | Riesgo | Lo que se gana |
 |---|---|---:|---|---|---|
 | **0** | **Nada del código** ✔ *hecha el 14-nov.* Se escribieron `humo`, `mover`, `arquitectura`; se decidió V8–V11; se borraron los 36 archivos viejos | 0 | la red de seguridad | ninguno | Se puede empezar a mover sin miedo |
-| **1** | Lo puro, sin pantalla: notas y color, estilos, sonido, teoría de acordes, biblioteca (datos), tablas del teclado, texto del manual, **formas recomendadas** | 997 | `shared/teoria`, `shared/audio`, `shared/ui/tema`, `shared/bandoneon/{tablas,voicings}.js` | bajo | **Las formas recomendadas se vuelven un archivo de ~50 líneas con su prueba**: se pueden rehacer con el criterio del profesor sin abrir el resto |
+| **1** ✔ *hecha el 14-nov* | Lo puro, sin pantalla: notas y color, estilos, sonido, teoría de acordes, biblioteca (datos), tablas del teclado, **formas recomendadas** (el texto del manual pasó a la fase 3, ver abajo) | 733 | `shared/teoria`, `shared/audio`, `shared/ui/tema`, `shared/bandoneon/{tablas,voicings}.js` | bajo | **Las formas recomendadas se vuelven un archivo de ~50 líneas con su prueba**: se pueden rehacer con el criterio del profesor sin abrir el resto |
 | **2** | Piezas compartidas con pantalla: dibujo y editor del teclado, guardado del teclado, piezas visuales de teoría, ayudas del Entrenador, cifrado y micrófono | 1.955 | `shared/bandoneon/*`, `shared/ui/teoria/*` | medio | Un cambio en el teclado se prueba en un lugar |
-| **3** | Pestañas chicas: El Código, Teoría, Quintas, Modos, Colores, Clases y registro | 1.882 | `features/codigo`, `teoria`, `herramientas/{quintas,modos,colores}`, `clases` | medio (clases: alto, toca datos de alumnos) | Cada pestaña es una carpeta que un chat gratuito abre entera |
+| **3** | Pestañas chicas: El Código (con su manual), Teoría, Quintas, Modos, Colores, Clases y registro | 1.882 | `features/codigo`, `teoria`, `herramientas/{quintas,modos,colores}`, `clases` | medio (clases: alto, toca datos de alumnos) | Cada pestaña es una carpeta que un chat gratuito abre entera |
 | **4** | La raíz y el armador de acordes: las tres herramientas de adentro de `BandoMapsApp` pasan a su carpeta; `App.jsx` queda como esquema | 866 | `App.jsx` ≤ 250 líneas, `features/herramientas/{acorde,progresion,biblioteca}` | alto (es el centro) | Se ve de un vistazo qué pestañas hay y qué estado comparten |
 | **5** | Pestaña Bandoneón | 491 | `features/bandoneon/` (4 archivos) | alto | Se toca la escucha física sin mover el mapa |
 | **6** | **Entrenador**: un hook `useEntrenador` con el estado y **un panel por modo** | 1.129 | `features/entrenador/` (~10 archivos) | alto | El archivo más grande del proyecto deja de existir; las formas recomendadas se enchufan en un panel |
@@ -221,4 +221,25 @@ No se tocó una línea de `App.jsx`. Entraron la red de seguridad y la limpieza:
 La prueba de humo usa Playwright del entorno del chat; no agrega nada a `package.json`.
 **Antes de publicar una fase, las tres pasan, más los bancos de siempre.**
 
-Mientras no esté el OK de la fase 1, **no se toca `App.jsx`**.
+## Fase 1: hecha (14-nov-2026)
+
+Mauro aprobó el plan y la fase 0; la fase 1 se hizo el mismo día. **`App.jsx` pasó de 7.322 a 6.586 líneas** y
+nacieron diez archivos (`src/shared/teoria/{notas,color,escalas,acordes,progresiones}.js`, `shared/ui/tema.js`,
+`shared/audio/audio.js`, `shared/bandoneon/{tablas,voicings}.js`, `features/herramientas/biblioteca/datos.js`),
+cada carpeta con su `LEEME.md`. Se hizo con `herramientas/partir.mjs`, que **mueve** las declaraciones de `App.jsx`
+(sólo agrega `export` donde otro archivo lo usa y los `import`), con el plan en `herramientas/fase-1.plan.json`.
+
+Comprobado: `herramientas/mover.mjs` dice «sólo se movió: 6.772 renglones, ninguno cambió»; la prueba de humo
+da **igual en las 11 pestañas** y sin errores; los bancos de siempre dan verde; y `pruebas/teoria.mjs` (9 casos)
+prueba por primera vez la teoría y las formas recomendadas sin pantalla.
+
+Dos cambios respecto del plan, y por qué:
+
+- **El texto del manual (`CAPITULOS`) no se movió.** No es sólo texto: usa componentes de la pestaña El Código
+  (`TiraCromatica`, `RuedaCromatica`, `MixFigure`…) que salen en la fase 3. Va con ella.
+- **`itemsMano` (8 líneas) pasó de las ayudas del Entrenador a `shared/bandoneon/tablas.js`**: las formas
+  recomendadas lo necesitan y `shared` no puede mirar hacia arriba. Es lo único que se movió fuera de su área.
+
+**Lo que se gana ya:** las formas recomendadas son un archivo de 55 líneas (`shared/bandoneon/voicings.js`) con
+su prueba; se pueden rehacer con el criterio del profesor (marcato y lleno, sin la 5ª) sin abrir el resto.
+**Sigue la fase 2** (piezas compartidas con pantalla: 1.955 líneas), que espera el OK de Mauro.

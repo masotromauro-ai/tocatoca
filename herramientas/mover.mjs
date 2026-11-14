@@ -16,9 +16,12 @@ export function renglones(texto) {
   const sinImports = String(texto)
     .replace(/^\s*import\s+(?:[\w*{}\s,$]+?\s+from\s+)?["'][^"']+["'];?[ \t]*$/gm, "")
     .replace(/^\s*import\s*\{[^}]*\}\s*from\s*["'][^"']+["'];?[ \t]*$/gm, "");
-  return sinImports.split(/\r?\n/)
+  // Un comentario no cambia lo que hace el código: los renglones que son sólo comentario no cuentan
+  // (así un archivo nuevo puede llevar su cabecera). Un comentario al final de un renglón de código sí viaja con él.
+  const sinComentarios = sinImports.replace(/\/\*[\s\S]*?\*\//g, (b) => b.replace(/[^\n]/g, ""));
+  return sinComentarios.split(/\r?\n/)
     .map((l) => l.trim().replace(/^export\s+default\s+(?=function|class|const|let)/, "").replace(/^export\s+(?=function|class|const|let|async)/, ""))
-    .filter((l) => l && !/^export\s*\{[^}]*\};?$/.test(l));
+    .filter((l) => l && !/^\/\//.test(l) && !/^export\s*\{[^}]*\};?$/.test(l));
 }
 
 const contar = (ls) => { const m = new Map(); for (const l of ls) m.set(l, (m.get(l) || 0) + 1); return m; };

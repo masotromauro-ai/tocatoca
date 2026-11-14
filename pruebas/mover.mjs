@@ -32,4 +32,8 @@ t("un renglón repetido tiene que seguir repetido: moverlo y perder una copia fa
 });
 t("el orden y la sangría no importan", () => assert.equal(comparar("  a();\n    b();", ["b();\na();"]).ok, true));
 t("agregar código nuevo (no sólo mover) falla", () => assert.equal(comparar("a();", ["a();\nb();"]).ok, false));
+t("los comentarios sueltos no cuentan, pero un comentario al final de un renglón de código viaja con él", () => {
+  assert.equal(comparar("a(); // uno\n/* dos\n tres */\nb();", ["// cabecera nueva\na(); // uno\nb();"]).ok, true);
+  assert.equal(comparar("a(); // uno", ["a(); // otro"]).ok, false);
+});
 console.log(`\n${ok} pasadas, ${mal} fallidas`); process.exit(mal ? 1 : 0);

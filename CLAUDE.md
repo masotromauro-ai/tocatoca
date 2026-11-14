@@ -163,17 +163,22 @@ vuelve a la rama.
 > quedan sin mergear, con el nombre exacto.** Contestada una vez, no se vuelve a
 > preguntar en esa sesión. Está en `PROTOCOLO-GENERAL.md` § 6.0.
 
-- **`src/App.jsx` es un monolito de 7.322 líneas** y es lo que efectivamente
-  corre: `src/main.jsx` importa `Puerta.jsx` y `App.jsx` y nada más. Hay un plan
-  aprobado para partirlo (`ARQUITECTURA.md`, fase por fase, **con el OK de Mauro en
-  cada una**). **Fase 0 hecha el 14-nov-2026**: se borraron los 36 archivos viejos
-  sin uso (`src/components`, `theory`, `audio`) y entró la red de seguridad. Antes
-  de publicar cualquier cambio a `src/` se corren `node pruebas/humo.mjs` (compila,
-  entra a las 11 pestañas y compara con la foto de `pruebas/humo/`),
+- **`src/App.jsx` está en proceso de partirse** (plan aprobado en `ARQUITECTURA.md`,
+  fase por fase, **con el OK de Mauro en cada una**). Hoy tiene 6.586 líneas y es lo
+  que efectivamente corre (`src/main.jsx` importa `Puerta.jsx` y `App.jsx`). **Fase 0
+  (14-nov-2026)**: red de seguridad y borrado de los 36 archivos viejos sin uso.
+  **Fase 1 (14-nov-2026)**: lo puro salió a `src/shared/` (`teoria/`, `audio/`, `ui/`,
+  `bandoneon/`) y `src/features/herramientas/biblioteca/`, cada carpeta con su
+  `LEEME.md`; las formas recomendadas son `shared/bandoneon/voicings.js`. Se movió, no
+  se reescribió (`herramientas/partir.mjs`, plan en `herramientas/fase-1.plan.json`).
+  Antes de publicar cualquier cambio a `src/` se corren `node pruebas/humo.mjs`
+  (compila, entra a las 11 pestañas y compara con la foto de `pruebas/humo/`),
   `node pruebas/arquitectura.mjs` y, si se movió código, `node herramientas/mover.mjs
   --base <rama> src/App.jsx <archivos>`. Si un cambio es a propósito, la foto se
-  rehace con `--guardar`, a la vista.
-- **La paleta oficial de colores tonales vive en `src/App.jsx`** (constante
+  rehace con `--guardar`, a la vista. **Mariano sube sus cambios directo a `main` con
+  su cuenta de colaborador**, siguiendo `GUIA-PARA-TU-CHAT.md` § 2; el chat de Mauro
+  los comprueba en la ronda.
+- **La paleta oficial de colores tonales vive en `src/shared/teoria/color.js`** (constante
   `NC`, la del *Manual de teoría musical a través del color*). Está **copiada**
   en `public/gestos/musica.js`, porque esa página no pasa por el build. Si
   cambia una, cambia la otra a mano — no hay nada que avise.
@@ -201,7 +206,7 @@ vuelve a la rama.
 - **Se corren los bancos de pruebas antes de subir**, cada uno con `node`, sin
   dependencias ni navegador: `pruebas/gestos.mjs` (teoría musical del instrumento),
   `pruebas/codigo.mjs` (60: el motor de color, la teoría y los ejercicios de «El
-  Código»), `medir`, `puerta`, `registro`, `usuarios`, `areas`, `mover` y
+  Código»), `medir`, `puerta`, `registro`, `usuarios`, `areas`, `mover`, `teoria` y
   `arquitectura`; más `node pruebas/humo.mjs`, que sí abre un navegador (el del chat
   de Claude) y compila la app. No hay un `npm run prueba`.
 - **El banco de «El Código» compara contra valores PUBLICADOS, no contra sí
