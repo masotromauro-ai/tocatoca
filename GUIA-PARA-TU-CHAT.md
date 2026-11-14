@@ -15,12 +15,12 @@ Hecha con React + Vite + Tailwind, con `localStorage` y una base en la nube (Fir
 Lo decidió Mauro el 14-nov: Mariano sigue haciendo modificaciones **él mismo**, directo en GitHub, con su cuenta de colaborador. Para que eso no vuelva a pisar el trabajo de nadie:
 
 1. **Bajá la versión de hoy de GitHub antes de editar.** Nunca partas de una copia que tenías guardada. El 9-nov se subió `App.jsx` entero desde una copia vieja y desapareció, sin que nadie lo notara, la medición de lo que practica cada alumno. Entrá al archivo en GitHub, tocá «Raw» o el ícono de descargar, y trabajá sobre eso.
-2. **Tocá sólo el archivo de lo que estás cambiando.** Ahora el código está en carpetas:
-   - `src/shared/teoria/` — notas, colores, escalas, acordes, progresiones
-   - `src/shared/bandoneon/` — las tablas del teclado y las **formas recomendadas** (`voicings.js`, 55 líneas)
-   - `src/shared/audio/` — el sonido
-   - `src/shared/ui/` — estilos
-   - `src/features/` — una carpeta por pestaña (por ahora sólo la Biblioteca; el resto sale de `App.jsx` en las próximas fases)
+2. **Tocá sólo el archivo de lo que estás cambiando.** Desde la fase 2 casi todo está en carpetas:
+   - `src/shared/teoria/` — notas, colores, escalas, acordes, progresiones, **cifrado** (cómo se nombra un acorde)
+   - `src/shared/bandoneon/` — las tablas del teclado, las **formas recomendadas** (`voicings.js`), el dibujo del teclado (`Teclado.jsx`), su editor (`Editor.jsx`), guardar y cargar (`almacen.js`, `csv.js`, `Modales.jsx`) y los caminos de notas (`camino.js`)
+   - `src/shared/ui/` — estilos, y las piezas visuales de teoría en `teoria/` (piano, círculo, tarjetas de función)
+   - `src/shared/audio/` — el sonido y la escucha por micrófono (`mic.js`)
+   - `src/features/` — una carpeta por pestaña (por ahora la Biblioteca y las ayudas del Entrenador; el resto sale de `App.jsx` en la fase 3)
 
    Cada carpeta tiene un `LEEME.md` que dice qué hay, qué usa y **qué no se toca**. Lo que todavía está en `src/App.jsx` (las pestañas) se va a ir pasando a carpetas; hasta entonces, si el cambio es ahí, **volvé a bajar `App.jsx` justo antes de editarlo**.
 3. **Subí por la web de GitHub, a `main`**: abrí el archivo → lápiz ✏️ (o «Add file → Upload files») → en el mensaje escribí una línea con lo que hiciste («Formas: agrego la forma lleno») → «Commit changes». **Una cosa por subida**, no cinco juntas. A `main` directo: es lo que decidió Mauro para todo el ecosistema mientras BandoMaps está en desarrollo.
@@ -32,7 +32,7 @@ Lo decidió Mauro el 14-nov: Mariano sigue haciendo modificaciones **él mismo**
 
 ## 3. Cómo trabaja tu chat (el gratuito)
 
-Dale **este archivo y el paquete de UN área** (lo bajás del panel, en «🤖 Trabajar con tu propio chat»), no el proyecto entero. Ahora hay dos formas:
+Dale **este archivo y el paquete de UN área** (lo bajás del panel, en «🤖 Trabajar con una sesión gratuita de Claude»), no el proyecto entero. Ahora hay dos formas:
 
 - **Para cambios chicos**: el chat te devuelve el archivo completo de la carpeta nueva (por ejemplo `voicings.js`, 55 líneas) y vos lo subés como en el paso 3.
 - **Para lo que sigue en `App.jsx`**: el paquete trae sólo el tramo de esa área. Pedile al chat que te devuelva **el código completo de cada función que cambia**, con su nombre exacto, nunca fragmentos con «…».
@@ -46,7 +46,7 @@ Respuesta que tiene que dar el chat:
 - **Un área, hasta 3 archivos, hasta 400 líneas tocadas.** Si hace falta más, que lo parta en dos intervenciones.
 - **La lógica pura** (teoría, formas, sonido) con una prueba chica de `node` (sin navegador ni npm), como las de `pruebas/` (`teoria.mjs` es el modelo).
 
-Si querés que Claude (el de Mauro) revise o aplique lo que armó tu chat, pegalo (o subí el archivo) en el panel, en «Trabajar con tu propio chat»: lo analiza contra el resto del proyecto antes de publicarlo.
+Si querés que Claude (el de Mauro) revise o aplique lo que armó tu chat, pegalo (o subí el archivo) en el panel, en «Trabajar con una sesión gratuita de Claude»: lo analiza contra el resto del proyecto antes de publicarlo.
 
 ## 4. Vocabulario del dominio
 
@@ -89,4 +89,4 @@ Si querés que Claude (el de Mauro) revise o aplique lo que armó tu chat, pegal
 
 ## 8. A dónde va tu respuesta
 
-Si subís vos a GitHub, seguí el apartado 2. Si querés que lo revise Claude antes, pegala (o subí el archivo) en el panel de Mariano, en **«Trabajar con tu propio chat»**. **Nada llega al sitio de los alumnos sin que Mauro lo pase del sitio de desarrollo al estable.**
+Si subís vos a GitHub, seguí el apartado 2 (para eso hace falta ser colaborador del repositorio). Si no usás GitHub, o querés que lo revise Claude antes, pegala (o subí el archivo) en el panel, en **«Trabajar con una sesión gratuita de Claude»**. **Nada llega al sitio de los alumnos sin que Mauro lo pase del sitio de desarrollo al estable.**
