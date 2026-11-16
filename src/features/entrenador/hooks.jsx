@@ -1,20 +1,20 @@
 // El estado del Entrenador y la lógica de sus ejercicios (teclado, escalas, líneas, práctica, notas y forma), sacados tal cual en la fase 6 para que ningún archivo pase de 400 líneas.
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { CHROMATIC, LAT, buildScale, nombreLat, noteIdx } from "./shared/teoria/notas.js";
-import { nc } from "./shared/teoria/color.js";
-import { getCtx, playBand, playBandDur } from "./shared/audio/audio.js";
-import { itemsMano } from "./shared/bandoneon/tablas.js";
-import { BTN_SIZE } from "./shared/bandoneon/layouts.js";
-import { loadBtns } from "./shared/bandoneon/almacen.js";
-import { ESC_ENT, armarVoz, caminoArpegio, caminoEscala, caminoNotas, rutaEscala } from "./shared/bandoneon/camino.js";
-import { FORMA_TOL, LIN_COLS, lineasDe, matchForma } from "./features/entrenador/ayudas/formas.jsx";
-import { CROM_SIMPLE, GRADO_LABEL, txtSobre } from "./shared/teoria/etiquetas.js";
-import { aRomano } from "./shared/teoria/romanos.js";
-import { useRomanos } from "./shared/almacen/romanos.js";
-import { ESCALAS_HERO } from "./shared/ui/codigo/paleta.jsx";
-import { useAcorde } from "./shared/bandoneon/armador.jsx";
-import { calcAnchos, useAnchoMedido, useDisposicion } from "./shared/bandoneon/disposicion.jsx";
+import { CHROMATIC, LAT, buildScale, nombreLat, noteIdx } from "../../shared/teoria/notas.js";
+import { nc } from "../../shared/teoria/color.js";
+import { getCtx, playBand, playBandDur } from "../../shared/audio/audio.js";
+import { itemsMano } from "../../shared/bandoneon/tablas.js";
+import { BTN_SIZE } from "../../shared/bandoneon/layouts.js";
+import { loadBtns } from "../../shared/bandoneon/almacen.js";
+import { ESC_ENT, armarVoz, caminoArpegio, caminoEscala, caminoNotas, rutaEscala } from "../../shared/bandoneon/camino.js";
+import { FORMA_TOL, LIN_COLS, lineasDe, matchForma } from "./ayudas/formas.jsx";
+import { CROM_SIMPLE, GRADO_LABEL, txtSobre } from "../../shared/teoria/etiquetas.js";
+import { aRomano } from "../../shared/teoria/romanos.js";
+import { useRomanos } from "../../shared/almacen/romanos.js";
+import { ESCALAS_HERO } from "../../shared/ui/codigo/paleta.jsx";
+import { useAcorde } from "../../shared/bandoneon/armador.jsx";
+import { calcAnchos, useAnchoMedido, useDisposicion } from "../../shared/bandoneon/disposicion.jsx";
 
 export function useEntrenador({ preset }) {
   const [leftBtns, setLeftBtns]   = useState([]);

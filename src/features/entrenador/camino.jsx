@@ -1,11 +1,11 @@
 // El camino sobre los teclados (escalas, arpegios y la distribución de voces con su cifrado): pintar, tocar con metrónomo y repartir notas, sacado tal cual en la fase 6.
 
-import { CHROMATIC, nombreLat } from "./shared/teoria/notas.js";
-import { nc } from "./shared/teoria/color.js";
-import { getCtx, playBandDur, playClick } from "./shared/audio/audio.js";
-import { BTN_SIZE } from "./shared/bandoneon/layouts.js";
-import { FIGURAS, octDeMidi, vozCifrar, vozLeer } from "./shared/bandoneon/camino.js";
-import { CROM_SIMPLE } from "./shared/teoria/etiquetas.js";
+import { CHROMATIC, nombreLat } from "../../shared/teoria/notas.js";
+import { nc } from "../../shared/teoria/color.js";
+import { getCtx, playBandDur, playClick } from "../../shared/audio/audio.js";
+import { BTN_SIZE } from "../../shared/bandoneon/layouts.js";
+import { FIGURAS, octDeMidi, vozCifrar, vozLeer } from "../../shared/bandoneon/camino.js";
+import { CROM_SIMPLE } from "../../shared/teoria/etiquetas.js";
 
 export function useCaminoEntrenador({ acorde, bellows, cam, camBpm, camBus, camFig, camMapa, camMetro, camParar, camSent, camSuena, camTimers, flechasModo, itemDe, modo, setCamElige, setCamSuena, setVoz, setVozMsg, tocarItem, view, voz, vozNotas, vozTxt }) {
   const camStateOf = (btn)=>{

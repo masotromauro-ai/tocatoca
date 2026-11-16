@@ -2,18 +2,18 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { CLAVES } from "../../shared/claves.js";
-import { CHROMATIC, buildScale, nombreLat, noteIdx, spell } from "./shared/teoria/notas.js";
-import { nc } from "./shared/teoria/color.js";
-import { uiPlay, uiTool } from "./shared/ui/tema.js";
-import { playBandDur } from "./shared/audio/audio.js";
-import { FORMULAS } from "./shared/teoria/acordes.js";
-import { ES_MENORQ, FAMILIAS, TONICAS_MAYOR, TONICAS_MENOR, acordesDeNotas, nombreAcordeEs, raizDefecto, romSept, romTri } from "./shared/teoria/progresiones.js";
-import { itemsMano } from "./shared/bandoneon/tablas.js";
-import { PATRONES_VOZ, ROL_TXT, voicingsDe } from "./shared/bandoneon/voicings.js";
-import { cifGuardarPropios, cifPropios } from "./shared/almacen/preferencias.js";
-import { RAIZ_NOM, analizarAcorde } from "./shared/teoria/cifrado.js";
-import { ESC_ENT } from "./shared/bandoneon/camino.js";
-import { CROM_SIMPLE, GRADO_LABEL, txtSobre } from "./shared/teoria/etiquetas.js";
+import { CHROMATIC, buildScale, nombreLat, noteIdx, spell } from "../../shared/teoria/notas.js";
+import { nc } from "../../shared/teoria/color.js";
+import { uiPlay, uiTool } from "../../shared/ui/tema.js";
+import { playBandDur } from "../../shared/audio/audio.js";
+import { FORMULAS } from "../../shared/teoria/acordes.js";
+import { ES_MENORQ, FAMILIAS, TONICAS_MAYOR, TONICAS_MENOR, acordesDeNotas, nombreAcordeEs, raizDefecto, romSept, romTri } from "../../shared/teoria/progresiones.js";
+import { itemsMano } from "../../shared/bandoneon/tablas.js";
+import { PATRONES_VOZ, ROL_TXT, voicingsDe } from "../../shared/bandoneon/voicings.js";
+import { cifGuardarPropios, cifPropios } from "../../shared/almacen/preferencias.js";
+import { RAIZ_NOM, analizarAcorde } from "../../shared/teoria/cifrado.js";
+import { ESC_ENT } from "../../shared/bandoneon/camino.js";
+import { CROM_SIMPLE, GRADO_LABEL, txtSobre } from "../../shared/teoria/etiquetas.js";
 
 export function useAcordesEntrenador({ bellows, escRoot, escTipo, itemDe, leftBtns, rightBtns, setBellows, setModo, tocarItem }) {
   const [conSel,setConSel]=useState({abre:[],cierra:[]}), [conRaiz,setConRaiz]=useState(null), [conVer,setConVer]=useState(0), [conTxt,setConTxt]=useState(""), [conMsg,setConMsg]=useState("");

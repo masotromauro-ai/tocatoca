@@ -37,9 +37,9 @@ import { BandoneonTab } from "./features/bandoneon/BandoneonTab.jsx";
 import { AcordeTab } from "./features/herramientas/acorde/AcordeTab.jsx";
 import { ProgresionTab } from "./features/herramientas/progresion/ProgresionTab.jsx";
 import { BibliotecaTab } from "./features/herramientas/biblioteca/BibliotecaTab.jsx";
-import { useEntrenador, useEscalasEntrenador, useLineasEntrenador, usePracticaEscalas, useNotasYForma } from "./hooks.jsx";
-import { useAcordesEntrenador } from "./acordes.jsx";
-import { useCaminoEntrenador } from "./camino.jsx";
+import { useEntrenador, useEscalasEntrenador, useLineasEntrenador, usePracticaEscalas, useNotasYForma } from "./features/entrenador/hooks.jsx";
+import { useAcordesEntrenador } from "./features/entrenador/acordes.jsx";
+import { useCaminoEntrenador } from "./features/entrenador/camino.jsx";
 
 function EntrenadorTab({preset}={}){
   const { acoInvOk, acoUltimo, acorde, allButtons, an, bellows, cam, camBpm, camBus, camDef, camFig, camLey, camLong, camMapa, camMetro, camOctL, camOctR, camParar, camSent, camSuena, camTimers, checked, chordProps, closePicker, copied, correctOf, disp, dispo, erase, esCam, escDir, escMano, escModo, escRoot, escStart, escTimers, escTipo, escUltimo, faltanTones, formaGrid, formaPts, formaTol, guesses, info, isMobile, kbW, keyOf, lateral, leftBtns, modo, nTonosArp, notaGuess, notaPicker, openPicker, pedirOct, pickColor, picker, prog, reveal, rg, rightBtns, romano, selBad, selected, setAcoInv, setBellows, setCamBpm, setCamElige, setCamFig, setCamLey, setCamLong, setCamMetro, setCamOctL, setCamOctR, setCamSent, setCamSuena, setChecked, setChordSel, setCopied, setEscDir, setEscMano, setEscModo, setEscRoot, setEscStart, setEscTipo, setFormaGrid, setFormaPts, setFormaTol, setGuesses, setInfo, setModo, setNotaGuess, setNotaPicker, setPedirOct, setProg, setReveal, setRomano, setView, setVoz, setVozMsg, setVozTxt, toggleSel, view, vis, voz, vozMsg, vozNotas, vozTxt, wrapRef } = useEntrenador({ preset });
