@@ -1,0 +1,6 @@
+{
+  "archivo": "src/App.jsx",
+  "destinos": {
+    "src/features/entrenador/EntrenadorTab.jsx": { "cabecera": "La pestaña Entrenador: el esquema de la pantalla (cabecera, barra de modos, controles, marcador, teclados y ventanas). El estado vive en sus hooks y cada modo en paneles/.", "declaraciones": ["EntrenadorTab"] }
+  }
+}

@@ -143,7 +143,7 @@ Los tamaños salen de `areas.json` (se pueden recalcular con `node pruebas/areas
 | **3** | Pestañas chicas: El Código (con su manual), Teoría, Quintas, Modos, Colores, Clases y registro | 1.882 | `features/codigo`, `teoria`, `herramientas/{quintas,modos,colores}`, `clases` | medio (clases: alto, toca datos de alumnos) | Cada pestaña es una carpeta que un chat gratuito abre entera |
 | **4** | La raíz y el armador de acordes: las tres herramientas de adentro de `BandoMapsApp` pasan a su carpeta; `App.jsx` queda como esquema | 866 | `App.jsx` ≤ 250 líneas, `features/herramientas/{acorde,progresion,biblioteca}` | alto (es el centro) | Se ve de un vistazo qué pestañas hay y qué estado comparten |
 | **5** | Pestaña Bandoneón | 491 | `features/bandoneon/` (4 archivos) | alto | Se toca la escucha física sin mover el mapa |
-| **6** | **Entrenador**: un hook `useEntrenador` con el estado y **un panel por modo** | 1.129 | `features/entrenador/` (~10 archivos) | alto | El archivo más grande del proyecto deja de existir; las formas recomendadas se enchufan en un panel |
+| **6** ✔ *hecha el 16-nov* | **Entrenador**: un hook `useEntrenador` con el estado y **un panel por modo** | 1.129 | `features/entrenador/` (~10 archivos) | alto | El archivo más grande del proyecto deja de existir; las formas recomendadas se enchufan en un panel |
 | **7** | **La plataforma al día**: React 19 + React Compiler; app instalable que anda sin conexión (como el panel); escucha con AudioWorklet; caché persistente de la base | — | `vite.config.js`, `public/manifest`, `sw.js`, `shared/audio/mic.js` | medio | Menos código a mano, se practica sin señal, la escucha no se traba |
 
 **Unas 19 subidas chicas** en total (0: 2 · 1: 2 · 2: 2 · 3: 3 · 4: 2 · 5: 1 · 6: 4 · 7: 3). Se puede
@@ -308,4 +308,20 @@ Comprobado: `mover.mjs` marca sólo lo que cambió a propósito (4 renglones de 
 y los demás bancos en verde. **La prueba de humo ahora también toca**: después de las fotos aprieta hasta 40 botones de ocho
 pestañas (260 en total, con el sonido y el micrófono de Bandoneón) y falla si algo se rompe al usarlo.
 
-**Sigue la fase 6** (el Entrenador, 1.129 líneas: un hook y un panel por modo) y la 7 (la plataforma al día). Las dos esperan el OK de Mauro.
+## Fase 6: hecha (16-nov-2026, con el OK de Mauro en el chat)
+
+**`App.jsx` pasó de 1.390 a 263 líneas**: queda el esquema (`BandoMapsApp`, los imports y nada más del Entrenador). En cuatro subidas:
+1. Lo que el Entrenador compartía con otros features subió a `shared/` (`HojaDeColor`, `inpS`, `nomDedo`; regla 2).
+2. El estado y la lógica salieron a **siete hooks** con `hook.mjs` (`hooks.jsx`, `acordes.jsx`, `camino.jsx`); la clave
+   `bandomaps_mis_acordes` pasó a `shared/claves.js` (regla 4). Lección: `hook.mjs` escribía los `import` relativos a la
+   carpeta del destino, y la subida quedó unos minutos sin compilar en `main` — el humo lo avisó, pero su código de salida
+   quedó detrás de un pipe. Desde entonces el humo se corre mirando el exit de verdad.
+3. **Un panel por modo** con `vista.mjs` (`paneles/`: escalas, camino, arpegio, voz, construir y líneas) y las piezas
+   compartidas de pantalla a `piezas.jsx`; el estado les llega como props, como en la fase 4.
+4. `EntrenadorTab` (369 líneas, ≤ 400) a `features/entrenador/` con `partir.mjs`; `areas.json` pasó el área a `archivos`
+   y la prueba de áreas ahora exige que lo ÚNICO con tramos en `App.jsx` sea la raíz.
+
+Comprobado en cada subida: `mover.mjs` marca sólo lo agregado a propósito (hooks, llamadas y props); humo **igual en las
+11 pestañas**; arquitectura, nombres sin definir y los demás bancos en verde.
+
+**Sigue la fase 7** (la plataforma al día: React 19, instalable sin conexión, AudioWorklet, caché de la base). Espera el OK de Mauro.

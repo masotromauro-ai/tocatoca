@@ -279,15 +279,24 @@
       "titulo": "Pestaña Entrenador",
       "fase": 6,
       "riesgo": "alto",
-      "que": "Todo el Entrenador: Armar el teclado, Ubicar líneas, Poner las notas, Pintar colores, Escalas, Acordes, Construir y Armonizar. Hoy es un solo componente con 34 estados.",
-      "tramos": [
-        [
-          "EntrenadorTab",
-          "EntrenadorTab"
-        ]
-      ],
-      "destino": "src/features/entrenador/ (useEntrenador.js + un panel por modo)",
-      "probar": "Entrenador, cada modo"
+      "que": "Todo el Entrenador: Armar el teclado, Ubicar líneas, Poner las notas, Pintar colores, Escalas, Acordes, Construir y Armonizar. Desde la fase 6 el estado vive en sus hooks y cada modo en su panel.",
+      "tramos": [],
+      "destino": "hecho: src/features/entrenador/",
+      "probar": "Entrenador, cada modo",
+      "movida": "16-nov-2026 (fase 6)",
+      "archivos": [
+        "src/features/entrenador/EntrenadorTab.jsx",
+        "src/features/entrenador/hooks.jsx",
+        "src/features/entrenador/acordes.jsx",
+        "src/features/entrenador/camino.jsx",
+        "src/features/entrenador/piezas.jsx",
+        "src/features/entrenador/paneles/escalas.jsx",
+        "src/features/entrenador/paneles/camino.jsx",
+        "src/features/entrenador/paneles/arpegio.jsx",
+        "src/features/entrenador/paneles/voz.jsx",
+        "src/features/entrenador/paneles/construir.jsx",
+        "src/features/entrenador/paneles/lineas.jsx"
+      ]
     },
     {
       "id": "quintas",

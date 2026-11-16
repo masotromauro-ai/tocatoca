@@ -1,0 +1,12 @@
+{
+  "archivo": "src/App.jsx",
+  "componente": "EntrenadorTab",
+  "bloques": [
+    { "linea": 333, "nombre": "PanelEscalas", "destino": "src/features/entrenador/paneles/escalas.jsx", "cabecera": "El panel del modo Escalas · Practicar: la guía, la fila coloreada y el progreso (fase 6, movido tal cual)." },
+    { "linea": 369, "nombre": "PanelCamino", "destino": "src/features/entrenador/paneles/camino.jsx", "cabecera": "El panel del modo Escalas · Ver y escuchar: el camino sobre los teclados (fase 6, movido tal cual)." },
+    { "linea": 383, "nombre": "PanelArpegio", "destino": "src/features/entrenador/paneles/arpegio.jsx", "cabecera": "El panel del modo Acordes · Ver y escuchar: el arpegio con inversiones (fase 6, movido tal cual)." },
+    { "linea": 397, "nombre": "PanelVoz", "destino": "src/features/entrenador/paneles/voz.jsx", "cabecera": "El panel de la distribución de voces: repartir el acorde entre las manos, el cifrado y las doce tonalidades (fase 6, movido tal cual)." },
+    { "linea": 455, "nombre": "PanelConstruir", "destino": "src/features/entrenador/paneles/construir.jsx", "cabecera": "El panel de Armar acordes · Libre: tocar botones, nombrar el acorde, formas sugeridas y mis nombres (fase 6, movido tal cual)." },
+    { "linea": 533, "nombre": "PanelLineas", "destino": "src/features/entrenador/paneles/lineas.jsx", "cabecera": "El panel de Ubicar líneas: filas y diagonales del teclado, contadas y escuchadas (fase 6, movido tal cual)." }
+  ]
+}

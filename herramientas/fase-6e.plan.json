@@ -1,0 +1,10 @@
+{
+  "archivo": "src/App.jsx",
+  "componente": "EntrenadorTab",
+  "destino": "src/features/entrenador/piezas.jsx",
+  "cabecera": "Las piezas de pantalla que el Entrenador comparte entre modos (cabeceras, controles del camino, el panel Armonizar y «mis acordes»), sacadas tal cual en la fase 6.",
+  "hooks": [
+    { "nombre": "usePiezasEntrenador", "desde": 64, "hasta": 121 },
+    { "nombre": "usePanelesAcordes", "desde": 188, "hasta": 301 }
+  ]
+}

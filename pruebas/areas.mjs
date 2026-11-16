@@ -26,9 +26,9 @@ t("un tramo roto se detecta", () => {
 t("cada área tiene título, qué hace, destino, fase y cómo probarla", () => {
   for (const a of mapa.areas) for (const k of ["id", "titulo", "que", "destino", "fase", "riesgo", "probar"]) assert.ok(a[k], a.id + " sin " + k);
 });
-t("ningún área nueva pesa más que el Entrenador (que es la que hay que partir)", () => {
-  const mayor = mapa.areas.map((a) => ({ id: a.id, l: extraer(src, a, decls).lineas })).sort((x, y) => y.l - x.l)[0];
-  assert.equal(mayor.id, "entrenador-pestana", "la más grande es " + mayor.id);
+t("desde la fase 6 lo único que queda en App.jsx es la raíz (todo lo demás está movido)", () => {
+  const conTramos = mapa.areas.filter((a) => (a.tramos || []).length);
+  assert.deepEqual(conTramos.map((a) => a.id), ["raiz-app"], "quedan con tramos: " + conTramos.map((a) => a.id).join(", "));
 });
 const leer = (r) => fs.readFileSync(new URL("../" + r, import.meta.url), "utf8");
 t("las áreas ya movidas (fases 1 a 5) tienen sus archivos y ya no dejan nada en App.jsx", () => {
