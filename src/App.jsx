@@ -1,24 +1,22 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { CHROMATIC, LAT, buildScale, nombreLat, noteIdx, spell } from "./shared/teoria/notas.js";
+import { CHROMATIC, nombreLat, noteIdx } from "./shared/teoria/notas.js";
 import { nc } from "./shared/teoria/color.js";
 import { UI_FONT, inpS, uiGhost, uiLabel, uiPill, uiPlay, uiTool, uiVista } from "./shared/ui/tema.js";
-import { getCtx, playBand, playBandDur, playChord, playClick } from "./shared/audio/audio.js";
+import { playChord } from "./shared/audio/audio.js";
 import { FORMULAS, QUAL_TXT, getFns, parseChord } from "./shared/teoria/acordes.js";
-import { ES_MENORQ, FAMILIAS, SUF_ES, TONICAS_MAYOR, TONICAS_MENOR, acordesDeNotas, computeProg, nombreAcordeEs, raizDefecto, romSept, romTri } from "./shared/teoria/progresiones.js";
+import { SUF_ES, computeProg } from "./shared/teoria/progresiones.js";
 import { BIBLIOTECA } from "./features/herramientas/biblioteca/datos.js";
 import { itemsMano } from "./shared/bandoneon/tablas.js";
-import { PATRONES_VOZ, ROL_TXT, voicingsDe } from "./shared/bandoneon/voicings.js";
+import { PATRONES_VOZ } from "./shared/bandoneon/voicings.js";
 import { Nota } from "./shared/ui/teoria/notas.jsx";
-import { BTN_SIZE } from "./shared/bandoneon/layouts.js";
-import { loadBtns } from "./shared/bandoneon/almacen.js";
 import { cifEstilo, cifGuardarPropios, cifPropios } from "./shared/almacen/preferencias.js";
-import { RAIZ_NOM, analizarAcorde } from "./shared/teoria/cifrado.js";
-import { ESC_ENT, FIGURAS, VOZ_RAICES, armarVoz, caminoArpegio, caminoEscala, caminoNotas, octDeMidi, rutaEscala, vozCifrar, vozLeer } from "./shared/bandoneon/camino.js";
+import { RAIZ_NOM } from "./shared/teoria/cifrado.js";
+import { ESC_ENT, FIGURAS, VOZ_RAICES } from "./shared/bandoneon/camino.js";
 import { PaintCanvas } from "./features/entrenador/ayudas/lienzo.jsx";
 import { Desplegable, GrupoMini, LeyendaCamino, NotaPicker, Seccion, SelectoresAcorde } from "./shared/ui/ayudas.jsx";
-import { FORMA_NIVELES, FORMA_TOL, FormaCanvas, LIN_COLS, LIN_TEXTO, LIN_TIPOS, lineasDe, matchForma } from "./features/entrenador/ayudas/formas.jsx";
+import { FORMA_NIVELES, FormaCanvas, LIN_TEXTO, LIN_TIPOS } from "./features/entrenador/ayudas/formas.jsx";
 import { ACORDE_RAICES } from "./shared/bandoneon/acordes-base.js";
-import { CROM_SIMPLE, GRADO_LABEL, txtSobre } from "./shared/teoria/etiquetas.js";
+import { CROM_SIMPLE, txtSobre } from "./shared/teoria/etiquetas.js";
 import { PopoverAnclado } from "./shared/ui/Popover.jsx";
 import { ElCodigoTab } from "./features/codigo/ElCodigoTab.jsx";
 import { HojaDeColor } from "./shared/ui/hoja-de-color.jsx";
@@ -31,425 +29,32 @@ import { MisTareasTab } from "./features/clases/MisTareasTab.jsx";
 import { ModosTab } from "./features/herramientas/modos/ModosTab.jsx";
 import { ColoresTab } from "./features/herramientas/colores/ColoresTab.jsx";
 import { TeoriaTab } from "./features/teoria/TeoriaTab.jsx";
-import { aRomano } from "./shared/teoria/romanos.js";
-import { useRomanos } from "./shared/almacen/romanos.js";
 import { ESCALAS_HERO } from "./shared/ui/codigo/paleta.jsx";
-import { ArmadorAcordes, useAcorde } from "./shared/bandoneon/armador.jsx";
-import { ControlesDisposicion, calcAnchos, useAnchoMedido, useDisposicion } from "./shared/bandoneon/disposicion.jsx";
+import { ArmadorAcordes } from "./shared/bandoneon/armador.jsx";
+import { ControlesDisposicion } from "./shared/bandoneon/disposicion.jsx";
 import { AvisoInicial } from "./features/aviso/AvisoInicial.jsx";
 import { BandoneonTab } from "./features/bandoneon/BandoneonTab.jsx";
 import { AcordeTab } from "./features/herramientas/acorde/AcordeTab.jsx";
 import { ProgresionTab } from "./features/herramientas/progresion/ProgresionTab.jsx";
 import { BibliotecaTab } from "./features/herramientas/biblioteca/BibliotecaTab.jsx";
+import { useEntrenador, useEscalasEntrenador, useLineasEntrenador, usePracticaEscalas, useNotasYForma } from "./hooks.jsx";
+import { useAcordesEntrenador } from "./acordes.jsx";
+import { useCaminoEntrenador } from "./camino.jsx";
 
 function EntrenadorTab({preset}={}){
-  const [leftBtns, setLeftBtns]   = useState([]);
-  const [rightBtns, setRightBtns] = useState([]);
-  useEffect(()=>{ const {left,right}=loadBtns(); setLeftBtns(left); setRightBtns(right); },[]);
-
-  const [bellows, setBellows] = useState("abre");
-  const [view, setView]       = useState("ambas");
-  const [guesses, setGuesses] = useState({}); // `${id}|${bellows}` -> hex
-  const [checked, setChecked] = useState(false);
-  const [picker, setPicker]   = useState(null); // botón abierto en la hoja de color
-  const [copied, setCopied]   = useState(false);
-  const [modo, setModo]       = useState("forma");   // "colores" | "acordes" | "escalas" | "forma" | "notas" | "camino"
-  const [chordSel, setChordSel] = useState({});         // `${id}|${bellows}` -> true
-  const [reveal, setReveal]     = useState(false);
-  const [formaPts, setFormaPts] = useState({L:[],R:[]});   // círculos puestos de memoria (ejercicio "Armar el teclado")
-  const [formaGrid, setFormaGrid] = useState(true);
-  const [formaTol, setFormaTol] = useState(FORMA_TOL);   // margen de error al corregir
-  const [notaGuess, setNotaGuess] = useState({});          // `${id}|${bellows}` -> {pc, oct}   (ejercicio "Poner las notas")
-  const [notaPicker, setNotaPicker] = useState(null);
-  const [pedirOct, setPedirOct]   = useState(false);
-  const [romano,setRomano]=useRomanos();
-  const acorde = useAcorde(romano,setRomano);
-  useEffect(()=>{ setChecked(false); setReveal(false); },[acorde.key, modo]);
-  useEffect(()=>{ setNotaPicker(null); },[modo,bellows,view]);
-  useEffect(()=>{ if(modo==="notas"){ setChecked(false); setReveal(false); } },[bellows,pedirOct]);
-  // — Escalas —
-  const [escRoot,setEscRoot]=useState("C"), [escTipo,setEscTipo]=useState("mayor"), [escMano,setEscMano]=useState("der");
-  const [escDir,setEscDir]=useState("sube"), [escStart,setEscStart]=useState(-1), [escModo,setEscModo]=useState("ver");
-  // — Camino de las escalas —
-  const [camOctL,setCamOctL]=useState(3), [camOctR,setCamOctR]=useState(4), [camLong,setCamLong]=useState(1);
-  const [camFig,setCamFig]=useState("negra"), [camBpm,setCamBpm]=useState(80), [camSent,setCamSent]=useState("sube"), [camMetro,setCamMetro]=useState("negra");
-  const [camElige,setCamElige]=useState({}), [camSuena,setCamSuena]=useState(null), [camLey,setCamLey]=useState(false);
-  const esCam = modo==="camino" || modo==="arpegio" || modo==="voz";       // vistas "Ver y escuchar" (escalas y acordes)
-  const [acoInv,setAcoInv]=useState(0), [acoUltimo,setAcoUltimo]=useState("arpegio");   // inversión y última vista de la pestaña Acordes
-  useEffect(()=>{ if(modo==="arpegio"||modo==="acordes"||modo==="construir"||modo==="armonizar") setAcoUltimo(modo); },[modo]);
-  const nTonosArp=acorde.tones.filter(t=>!t.up).length, acoInvOk=Math.min(acoInv,Math.max(0,nTonosArp-1),3);
-  const [escUltimo,setEscUltimo]=useState("camino");   // última vista de la pestaña Escalas
-  useEffect(()=>{ if(modo==="camino"||modo==="escalas") setEscUltimo(modo); },[modo]);
-  useEffect(()=>{ if(modo==="escalas" && !ESC_ENT.some(e=>e.id===escTipo)) setEscTipo("mayor"); },[modo,escTipo]);   // Practicar solo tiene las escalas de 7 notas y la cromática
-  const camTimers=useRef([]), camBus=useRef(null);
-  const camDef=ESCALAS_HERO.find(e=>e.id===escTipo)||ESCALAS_HERO[0];
-  // octavas que realmente tiene cada mano (según la tabla del teclado)
-  const rg=useMemo(()=>{ if(!leftBtns.length||!rightBtns.length) return {L:[2,3,4],R:[3,4,5,6]};
-    const f=(btns)=>{ const m=[...itemsMano(btns,"abre"),...itemsMano(btns,"cierra")].map(i=>i.midi), a=Math.floor(Math.min(...m)/12)-1, b=Math.floor(Math.max(...m)/12)-1; return Array.from({length:b-a+1},(_,k)=>a+k); };
-    return {L:f(leftBtns),R:f(rightBtns)}; },[leftBtns,rightBtns]);
-  const [voz,setVoz]=useState({preset:"bajo",bajoOct:2,relOct:4,inv:0,man:{},soloLista:false}), [vozTxt,setVozTxt]=useState(""), [vozMsg,setVozMsg]=useState("");
-  const vozNotas=useMemo(()=>armarVoz(acorde,voz),[acorde.tones,acorde.rootIdx,voz]);
-  const dispo=useMemo(()=>{ const f=bel=>({L:new Set(itemsMano(leftBtns,bel).map(i=>i.midi)),R:new Set(itemsMano(rightBtns,bel).map(i=>i.midi))}); return {abre:f("abre"),cierra:f("cierra")}; },[leftBtns,rightBtns]);
-  const cam=useMemo(()=> !leftBtns.length ? null
-      : modo==="camino" ? caminoEscala(leftBtns,rightBtns,bellows,noteIdx(escRoot),camDef.ivs,escRoot,camOctL,camOctR,camLong,camElige)
-      : modo==="arpegio" ? caminoArpegio(leftBtns,rightBtns,bellows,acorde,acoInvOk,camOctL,camOctR,camLong,camElige)
-      : modo==="voz" ? caminoNotas(leftBtns,rightBtns,bellows,
-          vozNotas.filter(n=>n.mano==="L").map(n=>({midi:n.midi,name:n.name,lab:n.lab,deg:0})),
-          vozNotas.filter(n=>n.mano==="R").map(n=>({midi:n.midi,name:n.name,lab:n.lab,deg:0})),camElige) : null,
-                    [modo,leftBtns,rightBtns,bellows,escRoot,escTipo,camOctL,camOctR,camLong,camElige,acorde.tones,acoInvOk,vozNotas]);
-  const camMapa=useMemo(()=>{ const m={}; if(!cam) return m;
-    ["L","R"].forEach(h=>{ const nodos=cam.manos[h].nodos;
-      nodos.forEach(nd=>{ if(!nd.falta) m[nd.item.b.id]={t:"nodo",nd,hand:h}; });
-      nodos.forEach(nd=>{ if(!nd.falta) nd.alts.forEach(a=>{ if(!m[a.b.id]) m[a.b.id]={t:"alt",nd,hand:h}; }); }); });
-    return m; },[cam]);
-  const camParar=()=>{ camTimers.current.forEach(clearTimeout); camTimers.current=[]; setCamSuena(null);
-    const b=camBus.current; if(b){ try{ b.gain.setTargetAtTime(0,getCtx().currentTime,0.012); setTimeout(()=>{ try{ b.disconnect(); }catch(e){} },250); }catch(e){} camBus.current=null; } };
-  useEffect(()=>{ camParar(); },[modo,view,bellows,escRoot,escTipo,camOctL,camOctR,camLong,camSent,camFig,camBpm,camMetro,camElige,acorde.tones,acoInvOk,voz]);
-  useEffect(()=>()=>{ camTimers.current.forEach(clearTimeout); },[]);
-  const [prog,setProg]=useState({i:1,err:0,hint:false,wrong:null});
-  const escTimers=useRef([]);
-  const [info,setInfo]=useState(null);   // ventana de la tecla (escalas)
-  useEffect(()=>()=>escTimers.current.forEach(clearTimeout),[]);
-  // Ejercicio asignado por el profesor: deja el entrenador listo para practicarlo
-  useEffect(()=>{
-    if(!preset) return;
-    setBellows(preset.fuelle==="cierra"?"cierra":"abre");
-    if(preset.tipo==="escala"){
-      setModo("escalas"); setEscRoot(preset.root||"C"); setEscTipo(preset.escala||"mayor"); setEscMano(preset.mano==="izq"?"izq":"der");
-      setEscDir(preset.dir==="baja"?"baja":"sube"); setEscStart(preset.inicio===undefined?-1:preset.inicio); setEscModo(preset.modoEj==="practica"?"practica":"ver");
-      setView(preset.mano==="izq"?"izquierda":"derecha");
-    } else if(preset.tipo==="acorde"){
-      setModo("acordes"); acorde.setAll(preset.ac||{}); setView("ambas");
-    }
-  },[preset&&preset.nonce]);
-  useEffect(()=>{ setProg({i:1,err:0,hint:false,wrong:null}); setInfo(null); },[escRoot,escTipo,escMano,escDir,escStart,escModo,bellows,modo]);
-
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(()=>{
-    const check=()=>setIsMobile(window.innerWidth<640);
-    check(); window.addEventListener("resize",check);
-    return ()=>window.removeEventListener("resize",check);
-  },[]);
-
-  const [wrapRef, wrapMedido] = useAnchoMedido();
-  const wrapWidth = wrapMedido || 900;
-  const bothVisible = view==="ambas";
-  const maxW = wrapWidth; // cada teclado usa todo el ancho (apilados), así se ven lo más grandes posible
-  const disp = useDisposicion();
-  const an = calcAnchos(wrapWidth,leftBtns,rightBtns,view==="ambas",disp.lado,isMobile);
-  // Pantallas anchas con teclados apilados o de una mano: los controles pasan a los márgenes (izquierda: recorrido; derecha: escala y sonido)
-  const kbW = view==="ambas" ? Math.max(an.aL,an.aR) : view==="izquierda" ? an.aL : an.aR;
-  const sideW = Math.floor((wrapWidth-kbW-36)/2);
-  const lateral = !isMobile && !an.fila && sideW>=220 && (modo==="camino"||modo==="arpegio");
-
-  const keyOf = useCallback((id)=>`${id}|${bellows}`,[bellows]);
-  const correctOf = useCallback((btn)=>{
-    const noteLat = bellows==="abre" ? btn.abre : btn.cierra;
-    return nc(LAT[noteLat]||noteLat);
-  },[bellows]);
-
-  const openPicker = (btn, rect)=> setPicker({btn, rect});
-  const closePicker = useCallback(()=>setPicker(null),[]);
-  const pickColor = (hex)=>{
-    setGuesses(g=>({...g, [keyOf(picker.btn.id)]: hex}));
-    setPicker(null);
-  };
-  const erase = ()=>{
-    setGuesses(g=>{ const n={...g}; delete n[keyOf(picker.btn.id)]; return n; });
-    setPicker(null);
-  };
-
-  const allButtons = useMemo(()=>[...leftBtns, ...rightBtns],[leftBtns,rightBtns]);
-  const vis = [...(view!=="derecha"?leftBtns:[]), ...(view!=="izquierda"?rightBtns:[])];   // botones de las manos que se están viendo
-  const pcOf = (btn)=>{ const n = bellows==="abre" ? btn.abre : btn.cierra; return LAT[n]||n; };
-  const isSel = (btn)=>!!chordSel[keyOf(btn.id)];
-  const chordLabelOf = (btn)=>acorde.labelByPc[pcOf(btn)]||null;
-  const toggleSel = (btn)=>{ setChordSel(s=>{ const n={...s}; const k=keyOf(btn.id); if(n[k]) delete n[k]; else n[k]=true; return n; }); setChecked(false); };
-  const selected  = allButtons.filter(isSel);
-  const selOk     = selected.filter(b=>chordLabelOf(b));
-  const selBad    = selected.filter(b=>!chordLabelOf(b));
-  const coveredPcs = new Set(selOk.map(pcOf));
-  const faltanTones = acorde.tones.filter(tn=>!coveredPcs.has(tn.pc));
-  const faltanPcs = new Set(faltanTones.map(tn=>tn.pc));
-  const chordProps = modo==="acordes" ? { isSel, labelOf:chordLabelOf, isMissed:(btn)=>faltanPcs.has(pcOf(btn)), reveal } : null;
-  const escDef   = ESC_ENT.find(e=>e.id===escTipo)||ESC_ENT[0];
-  const escIvs   = (escTipo==="menorM" && escDir==="baja") ? ESC_ENT[1].ivs : escDef.ivs;   // melódica: baja como natural
-  const escRootPc = noteIdx(escRoot);
-  const escNombres = buildScale(escRoot, escIvs);
-  const escPcSet = new Set(escNombres.map(noteIdx));
-  const escDeletreo = {}; escNombres.forEach(n=>{ escDeletreo[noteIdx(n)] = nombreLat(n); });
-  const escBtns  = escMano==="izq" ? leftBtns : rightBtns;
-  const escR     = useMemo(()=> modo==="escalas" && escBtns.length ? rutaEscala(escBtns,bellows,escRootPc,escIvs,escDir,escStart) : {route:[],missing:[],tonics:[],items:[]},
-                           [modo,escBtns,bellows,escRootPc,escTipo,escDir,escStart]);
-  const escIdxById = {}; escR.route.forEach((r,i)=>{ escIdxById[r.item.b.id]=i; });
-  const itemDe = (btn)=> itemsMano([btn],bellows)[0];
-  const etiqueta = (it)=> (escDeletreo[it.pc]||CROM_SIMPLE[CHROMATIC[it.pc]]) + it.oct;
-  const tocarItem = (it)=> playBand(CHROMATIC[it.pc], it.oct);
+  const { acoInvOk, acoUltimo, acorde, allButtons, an, bellows, cam, camBpm, camBus, camDef, camFig, camLey, camLong, camMapa, camMetro, camOctL, camOctR, camParar, camSent, camSuena, camTimers, checked, chordProps, closePicker, copied, correctOf, disp, dispo, erase, esCam, escDir, escMano, escModo, escRoot, escStart, escTimers, escTipo, escUltimo, faltanTones, formaGrid, formaPts, formaTol, guesses, info, isMobile, kbW, keyOf, lateral, leftBtns, modo, nTonosArp, notaGuess, notaPicker, openPicker, pedirOct, pickColor, picker, prog, reveal, rg, rightBtns, romano, selBad, selected, setAcoInv, setBellows, setCamBpm, setCamElige, setCamFig, setCamLey, setCamLong, setCamMetro, setCamOctL, setCamOctR, setCamSent, setCamSuena, setChecked, setChordSel, setCopied, setEscDir, setEscMano, setEscModo, setEscRoot, setEscStart, setEscTipo, setFormaGrid, setFormaPts, setFormaTol, setGuesses, setInfo, setModo, setNotaGuess, setNotaPicker, setPedirOct, setProg, setReveal, setRomano, setView, setVoz, setVozMsg, setVozTxt, toggleSel, view, vis, voz, vozMsg, vozNotas, vozTxt, wrapRef } = useEntrenador({ preset });
+  const { escBtns, escDef, escDeletreo, escIdxById, escIvs, escNombres, escPcSet, escR, etiqueta, itemDe, tocarItem } = useEscalasEntrenador({ bellows, escDir, escMano, escRoot, escStart, escTipo, leftBtns, modo, rightBtns });
   // Construir un acorde directamente sobre el teclado
-  const [conSel,setConSel]=useState({abre:[],cierra:[]}), [conRaiz,setConRaiz]=useState(null), [conVer,setConVer]=useState(0), [conTxt,setConTxt]=useState(""), [conMsg,setConMsg]=useState("");
-  const conIds=conSel[bellows];
-  const conBy=useMemo(()=>Object.fromEntries([...leftBtns,...rightBtns].map(b=>[b.id,b])),[leftBtns,rightBtns]);
-  const conItems=useMemo(()=>conIds.map((id,k)=>conBy[id]?{...itemsMano([conBy[id]],bellows)[0],orden:k+1,mano:id.startsWith("L")?"Izq.":"Der."}:null).filter(Boolean),[conIds,conBy,bellows]);
-  const conPrimera=conItems.length?conItems[0].pc:null;
-  const conRaizUso=(conRaiz!=null&&conItems.some(i=>i.pc===conRaiz))?conRaiz:conPrimera;
-  const conAn=useMemo(()=>{ if(conItems.length<2) return null; const bajo=[...conItems].sort((a,b)=>a.midi-b.midi)[0].pc; return analizarAcorde(conItems.map(i=>i.pc),bajo,{raiz:conRaizUso}); },[conItems,conRaizUso,conVer]);
-  useEffect(()=>{ setConTxt(conAn&&!conAn.intervalo?conAn.suf:""); setConMsg(""); },[conAn&&conAn.key,conAn&&conAn.suf]);
-  // raíz, 3ª, 5ª y 7ª del acorde que se está armando (si las tiene) para sugerir formas
-  const conRoles=useMemo(()=>{
-    if(!conAn||conAn.intervalo) return null;
-    const r=conAn.rootPc, set=[...new Set(conItems.map(i=>i.pc))], iv=p=>(p-r+12)%12, de=(ivs)=>{ const h=set.find(p=>ivs.includes(iv(p))); return h===undefined?null:h; };
-    const t=de([3,4]), q=de([7,6,8]), sp=de([10,11,9]); if(t===null||q===null) return null;
-    const pcs=[r,t,q,...(sp!==null?[sp]:[])];
-    return {pcs,nombres:pcs.map(p=>(conAn.nombres&&conAn.nombres[p])||CROM_SIMPLE[CHROMATIC[p]])};
-  },[conAn,conItems]);
-  const conVoicings=useMemo(()=>conRoles?voicingsDe(conRoles.pcs,conRoles.nombres,leftBtns,rightBtns,bellows):null,[conRoles,leftBtns,rightBtns,bellows]);
-  const conStateOf=(btn)=>{
-    const it=itemDe(btn), nt=CHROMATIC[it.pc], col=nc(nt), k=conIds.indexOf(btn.id);
-    if(k<0) return {bg:col+"30",border:`2px solid ${col}70`,glow:"none",content:<span style={{fontSize:8.5,fontWeight:700,color:"#ffffffa0",textShadow:"0 1px 2px #000"}}>{CROM_SIMPLE[nt]}</span>};
-    const gr=conAn&&conAn.grados[(it.pc-conAn.rootPc+12)%12], nom=(conAn&&conAn.nombres&&conAn.nombres[it.pc])||nombreLat(RAIZ_NOM[it.pc]);
-    return {bg:col,border:"3px solid #fff",glow:`0 0 0 3px #ffffff55, 0 0 14px ${col}`,
-      content:<span style={{display:"flex",flexDirection:"column",alignItems:"center",lineHeight:1.05,color:"#fff",textShadow:"0 1px 3px rgba(0,0,0,.95)"}}>
-        <b style={{fontSize:nom.length>3?10.5:13}}>{nom}</b><span style={{fontSize:9.5,fontWeight:800,fontFamily:"monospace"}}>{gr||k+1}</span></span>};
-  };
-  const conTap=(btn)=>{ tocarItem(itemDe(btn)); setConSel(m=>{ const cur=m[bellows]; return {...m,[bellows]:cur.includes(btn.id)?cur.filter(x=>x!==btn.id):[...cur,btn.id]}; }); };
-  const conQuitar=(id)=>setConSel(m=>({...m,[bellows]:m[bellows].filter(x=>x!==id)}));
-  const conTocar=(arp)=>{ const o=[...conItems].sort((a,b)=>a.midi-b.midi); o.forEach((it,i)=>playBandDur(CHROMATIC[it.pc],it.oct,arp?0.38:1.8,arp?i*0.32:i*0.012)); };
-  const conGuardar=()=>{ if(!conAn||conAn.intervalo) return; const p={...cifPropios()}, t=conTxt.trim(); if(t===""||t===conAn.defaultSuf) delete p[conAn.key]; else p[conAn.key]=t; cifGuardarPropios(p); setConVer(v=>v+1); setConMsg(t===""||t===conAn.defaultSuf?"Volvió al nombre automático.":"Guardado. Se usará siempre que armes esta estructura, en cualquier tonalidad."); };
-  const conCopiar=()=>{ const p=cifPropios(), txt=Object.keys(p).map(k=>k+" = "+p[k]).join("\n"); try{ navigator.clipboard.writeText("Mis nombres de acordes (intervalos en semitonos desde la raíz = sufijo)\n"+txt); setConMsg("Copiado: pegalo para pasármelo."); }catch(e){ setConMsg("No se pudo copiar."); } };
-  const [flechasModo,setFlechasModo]=useState("recta");
-  // Armonizar una escala + Mis acordes (tarjetas guardadas en este dispositivo)
-  const [armGrado,setArmGrado]=useState(0), [armCuat,setArmCuat]=useState(false), [conNota,setConNota]=useState("");
-  const [vozSel,setVozSel]=useState(null), [armPatron,setArmPatron]=useState("cerrado"), [armMatriz,setArmMatriz]=useState(false);
-  const [misAcordes,setMisAcordes]=useState(()=>{ try{ const v=JSON.parse(localStorage.getItem("bandomaps_mis_acordes")||"[]"); return Array.isArray(v)?v:[]; }catch(e){ return []; } });
-  useEffect(()=>{ try{ localStorage.setItem("bandomaps_mis_acordes",JSON.stringify(misAcordes)); }catch(e){} },[misAcordes]);
-  const escTipo7 = ESC_ENT.slice(0,4).some(e=>e.id===escTipo) ? escTipo : "mayor";
-  const famArm = {mayor:"mayor",menor:"menor",menorA:"armonica",menorM:"melodica"}[escTipo7];
-  const armMenor = escTipo7!=="mayor";
-  const tonicasArm = armMenor ? TONICAS_MENOR : TONICAS_MAYOR;
-  const armTonica = tonicasArm.includes(escRoot) ? escRoot : tonicasArm[((noteIdx(escRoot)%12)+12)%12];   // tonalidades usuales: La mayor, Do♯ menor…
-  const armNotas = buildScale(armTonica, FAMILIAS.find(f=>f.id===famArm).ivs);
-  const armPcs = armNotas.map(noteIdx);
-  const armNombres = Object.fromEntries(armNotas.map(n=>[noteIdx(n),nombreLat(n)]));   // pc → nombre escrito según la tonalidad
-  const armAcordes = useMemo(()=>acordesDeNotas(buildScale(armTonica, FAMILIAS.find(f=>f.id===famArm).ivs)).map(d=>{
-    const q=armCuat?d.sq:d.tq, pcs=armCuat?d.pcs:d.pcs.slice(0,3), notas=armCuat?d.sept:d.tri;
-    return {i:d.i,pc:d.pc,pcs,notas,q,nombre:nombreAcordeEs(d.raiz,q),num:armCuat?romSept(d.i,d.sq):romTri(d.i,d.tq)};
-  }),[armTonica,famArm,armCuat]);
-  const armSel = armAcordes[Math.min(armGrado,6)];
-  const nombresRol = armSel.notas.map(nombreLat);
-  const armVoicings = useMemo(()=>voicingsDe(armSel.pcs,nombresRol,leftBtns,rightBtns,bellows),[armSel,leftBtns,rightBtns,bellows]);
-  const matrizFilas = useMemo(()=>{
-    if(!armMatriz||!FORMULAS[armSel.q]) return [];
-    const f=FORMULAS[armSel.q], menorQ=ES_MENORQ(armSel.q), pi=PATRONES_VOZ.findIndex(p=>p.id===armPatron);
-    return TONICAS_MAYOR.map((_,pc)=>{
-      const rootEng=raizDefecto(pc,menorQ), pcs=f.intervals.map(iv=>(pc+iv)%12), nombres=f.intervals.map((iv,k)=>nombreLat(spell(rootEng,iv,f.degs[k])));
-      return {pc,nombre:nombreAcordeEs(rootEng,armSel.q),nombres,pcs,v:voicingsDe(pcs,nombres,leftBtns,rightBtns,bellows)[pi]};
-    });
-  },[armMatriz,armSel.q,armPatron,leftBtns,rightBtns,bellows]);
-  const formasUI=(lista,{onVer,activoIds,btnVer,guardar})=>(
-<div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-          {lista.map(v=>{
-            const on=activoIds&&v.ids&&activoIds.join()===v.ids.join();
-            return (
-              <div key={v.id} style={{flex:"1 1 220px",maxWidth:340,padding:"9px 11px",borderRadius:12,background:on?"#1b1b20":"#0e0e10",border:`1px solid ${on?"#cfcfd4":"#2c2c30"}`}}>
-                <div style={{display:"flex",justifyContent:"space-between",gap:6,alignItems:"baseline"}}>
-                  <b style={{fontFamily:"'Libre Baskerville',serif",fontSize:14,color:"#ececec"}}>{v.nombre}</b>
-                  {v.fuelle&&<span style={{fontSize:10,color:"#7c7c82"}}>{v.fuelle==="abre"?"abriendo":"cerrando"}{v.fuelle!==bellows?" (cambia el fuelle)":""}</span>}
-                </div>
-                <div style={{fontSize:10.5,color:"#8a8a90",margin:"2px 0 6px"}}>{v.uso}</div>
-                {v.vacio ? <div style={{fontSize:11.5,color:"#c9a25a"}}>No hay botones para armarlo así en este teclado.</div> : (<>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:4}}>
-                    {v.notas.map(n=>{ const col=nc(CHROMATIC[n.pc]); return (<span key={n.id} style={{display:"inline-flex",alignItems:"center",gap:4,padding:"1px 7px 1px 3px",borderRadius:999,background:"#16161a",border:"1px solid #2c2c30",fontSize:11.5,color:"#ececec"}}>
-                      <span style={{width:16,height:16,borderRadius:"50%",background:col,color:txtSobre(col),fontSize:8.5,fontWeight:800,fontFamily:"monospace",display:"inline-flex",alignItems:"center",justifyContent:"center"}}>{ROL_TXT[n.rol]}</span>
-                      <span style={{fontFamily:"'Libre Baskerville',serif",fontWeight:700}}>{n.nombre}{n.oct}</span><span style={{fontSize:9,color:"#6a6a70"}}>{n.hand==="L"?"izq":"der"}</span></span>); })}
-                  </div>
-                  <div style={{fontSize:10,color:"#6a6a70",marginBottom:6}}>{v.manos.L?`${v.manos.L} en la izquierda`:""}{v.manos.L&&v.manos.R?" · ":""}{v.manos.R?`${v.manos.R} en la derecha`:""}</div>
-                  <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-                    <button style={uiPlay(false,{padding:"3px 11px",fontSize:11.5})} onClick={()=>tocarVoicing(v,false)}>▶</button>
-                    <button style={uiTool(on)} onClick={()=>onVer(v)}>{btnVer}</button>
-                    <button style={uiTool(false)} onClick={()=>guardar(v)}>★</button>
-                  </div>
-                </>)}
-              </div>);
-          })}
-        </div>
-  );
-  const verVoicing=(v,titulo,nombres)=>{ if(!v||v.vacio) return; setBellows(v.fuelle); setVozSel({ids:v.ids,fuelle:v.fuelle,titulo,nom:Object.fromEntries(v.notas.map(n=>[n.id,n.nombre])),rol:Object.fromEntries(v.notas.map(n=>[n.id,n.rol]))}); };
-  const vozItems=(v)=>v.notas.map(n=>conBy[n.id]).filter(Boolean).map(b=>itemsMano([b],v.fuelle)[0]);
-  const tocarVoicing=(v,arp)=>{ const o=vozItems(v).sort((a,b)=>a.midi-b.midi); o.forEach((it,i)=>playBandDur(CHROMATIC[it.pc],it.oct,arp?0.38:1.8,arp?i*0.32:i*0.012)); };
-  const guardarVoicing=(v,titulo)=>cardGuardar(titulo,"",v.ids,v.fuelle,Object.fromEntries(v.notas.map(n=>[n.pc,n.nombre])));
-  const armVoz = (pcs)=>{ const v=voicingsDe(pcs,[],leftBtns,rightBtns,bellows)[1]; return v&&!v.vacio?v.ids:[]; };   // por defecto: la forma «cerrado» sugerida
-  const armItems = (pcs)=>armVoz(pcs).map(id=>conBy[id]).filter(Boolean).map(b=>itemsMano([b],bellows)[0]);
-  const armTocar = (arp)=>{ const o=(vozSel?vozItems({fuelle:vozSel.fuelle,notas:vozSel.ids.map(id=>({id}))}):armItems(armSel.pcs)).sort((a,b)=>a.midi-b.midi); o.forEach((it,i)=>playBandDur(CHROMATIC[it.pc],it.oct,arp?0.38:1.8,arp?i*0.32:i*0.012)); };
-  const armRecorrer = ()=>{ armAcordes.forEach((a,k)=>{ armItems(a.pcs).sort((x,y)=>x.midi-y.midi).forEach(it=>playBandDur(CHROMATIC[it.pc],it.oct,1.1,k*1.25)); }); };
-  const armStateOf=(btn)=>{
-    const it=itemDe(btn), nt=CHROMATIC[it.pc], col=nc(nt), k=armSel.pcs.indexOf(it.pc), enEsc=armPcs.includes(it.pc);
-    if(vozSel){
-      if(vozSel.ids.includes(btn.id)) return {bg:col,border:"3px solid #fff",glow:`0 0 0 3px #ffffff66, 0 0 16px ${col}`,
-        content:<span style={{display:"flex",flexDirection:"column",alignItems:"center",lineHeight:1.05,color:"#fff",textShadow:"0 1px 3px rgba(0,0,0,.95)"}}><b style={{fontSize:12}}>{vozSel.nom[btn.id]}</b><span style={{fontSize:9,fontWeight:800,fontFamily:"monospace"}}>{ROL_TXT[vozSel.rol[btn.id]]}</span></span>};
-      return {bg:k>=0?col+"26":"#141416",border:`2px solid ${k>=0?col+"55":"#232326"}`,glow:"none",content:null};
-    }
-    if(k>=0) return {bg:col,border:"3px solid #fff",glow:`0 0 0 3px #ffffff55, 0 0 14px ${col}`,
-      content:<span style={{display:"flex",flexDirection:"column",alignItems:"center",lineHeight:1.05,color:"#fff",textShadow:"0 1px 3px rgba(0,0,0,.95)"}}>
-        <b style={{fontSize:12}}>{armNombres[it.pc]}</b><span style={{fontSize:9,fontWeight:800,fontFamily:"monospace"}}>{GRADO_LABEL[(it.pc-armSel.pc+12)%12]}</span></span>};
-    if(enEsc) return {bg:col+"55",border:`2px solid ${col}aa`,glow:"none",content:<span style={{fontSize:9,fontWeight:700,color:"#ffffffc0",textShadow:"0 1px 2px #000"}}>{armNombres[it.pc]}</span>};
-    return {bg:"#17171a",border:"2px solid #26262a",glow:"none",content:null};
-  };
-  const armTap=(btn)=>{ const it=itemDe(btn); tocarItem(it); const i=armPcs.indexOf(it.pc); if(i>=0){ setArmGrado(i); setVozSel(null); } };
-  const cardGuardar=(nombre,nota,ids,bel,nm)=>{ if(!ids||!ids.length) return; setMisAcordes(l=>[{id:Date.now().toString(36),nombre,nota:(nota||"").trim(),bellows:bel,ids:[...ids],nm:nm||null},...l]); };
-  const cardItems=(c)=>c.ids.map(id=>conBy[id]).filter(Boolean).map(b=>itemsMano([b],c.bellows)[0]);
-  const cardTocar=(c)=>{ cardItems(c).sort((a,b)=>a.midi-b.midi).forEach((it,i)=>playBandDur(CHROMATIC[it.pc],it.oct,1.8,i*0.012)); };
-  const cardAbrir=(c)=>{ setBellows(c.bellows); setConSel(m=>({...m,[c.bellows]:c.ids.filter(id=>conBy[id])})); setConRaiz(null); setModo("construir"); cardTocar(c); };
+  const { armAcordes, armCuat, armPatron, armRecorrer, armSel, armStateOf, armTap, armTocar, armTonica, armVoicings, armVoz, cardAbrir, cardGuardar, cardItems, cardTocar, conAn, conCopiar, conGuardar, conIds, conItems, conMsg, conNota, conPrimera, conQuitar, conRaiz, conStateOf, conTap, conTocar, conTxt, conVoicings, escTipo7, flechasModo, formasUI, guardarVoicing, matrizFilas, misAcordes, setArmCuat, setArmGrado, setArmMatriz, setArmPatron, setConNota, setConRaiz, setConSel, setConTxt, setConVer, setFlechasModo, setMisAcordes, setVozSel, tocarVoicing, tonicasArm, verVoicing, vozSel } = useAcordesEntrenador({ bellows, escRoot, escTipo, itemDe, leftBtns, rightBtns, setBellows, setModo, tocarItem });
   // Ubicar líneas
-  const [linTipo,setLinTipo]=useState("filas"), [linSel,setLinSel]=useState(-1), [linRot,setLinRot]=useState("pos");
-  const linL=useMemo(()=>lineasDe("L",leftBtns,linTipo,bellows),[leftBtns,linTipo,bellows]);
-  const linR=useMemo(()=>lineasDe("R",rightBtns,linTipo,bellows),[rightBtns,linTipo,bellows]);
-  const linMapa=useMemo(()=>{ const m={}; [linL,linR].forEach(ls=>ls.forEach((l,li)=>l.ids.forEach((id,pos)=>{ m[id]={li,pos,n:l.ids.length}; }))); return m; },[linL,linR]);
-  useEffect(()=>{ setLinSel(-1); },[linTipo]);
-  const linStateOf=(btn)=>{
-    const e=linMapa[btn.id]; if(!e) return {bg:"#1a1a1a",border:"2px solid #444",glow:"none",content:null};
-    const it=itemDe(btn), txt=linRot==="pos"?String(e.pos+1):linRot==="nota"?CROM_SIMPLE[CHROMATIC[it.pc]]:null;
-    const todas=linSel<0, esta=linSel===e.li, col=LIN_COLS[e.li%LIN_COLS.length];
-    if(!todas&&!esta) return {bg:"#151517",border:"2px solid #2c2c30",glow:"none",content:txt?<span style={{fontSize:10,fontWeight:700,color:"#55555b"}}>{txt}</span>:null};
-    const bg=todas?col:"#f2f2f2";
-    return {bg,border:esta?"3px solid #ffffff":"3px solid rgba(255,255,255,.35)",glow:esta?"0 0 0 3px #ffffff55, 0 0 16px #ffffffaa":"none",
-      content:txt?<span style={{fontSize:txt.length>2?10.5:14,fontWeight:800,color:txtSobre(bg),fontFamily:linRot==="pos"?"monospace":"inherit"}}>{txt}</span>:null};
-  };
-  const linTap=(btn)=>{ const e=linMapa[btn.id]; if(!e) return; tocarItem(itemDe(btn)); setLinSel(p=>p===e.li?-1:e.li); };
-  const linFlechas=(h)=>{ if(linSel<0||flechasModo==="no") return null; const l=(h==="L"?linL:linR)[linSel]; if(!l) return null; const by=Object.fromEntries((h==="L"?leftBtns:rightBtns).map(b=>[b.id,b])), out=[];
-    for(let i=0;i<l.ids.length-1;i++){ const a=by[l.ids[i]], b=by[l.ids[i+1]]; out.push({a:{x:a.x+BTN_SIZE/2,y:a.y+BTN_SIZE/2},b:{x:b.x+BTN_SIZE/2,y:b.y+BTN_SIZE/2},dash:false}); }
-    return out; };
-  const linEscuchar=(h)=>{ const l=(h==="L"?linL:linR)[linSel]; if(!l) return; const by=Object.fromEntries((h==="L"?leftBtns:rightBtns).map(b=>[b.id,b]));
-    l.ids.forEach((id,i)=>{ const it=itemDe(by[id]); playBandDur(CHROMATIC[it.pc],it.oct,0.4,i*0.38); }); };
+  const { linEscuchar, linFlechas, linL, linR, linRot, linSel, linStateOf, linTap, linTipo, setLinRot, setLinSel, setLinTipo } = useLineasEntrenador({ bellows, flechasModo, itemDe, leftBtns, rightBtns, tocarItem });
   // Digitación: viene dentro del ejercicio asignado (solo si la configuración sigue siendo la del ejercicio)
-  const sigAct = [escTipo,escRoot,escMano,escDir,bellows,escStart].join("|");
-  const sigPre = (preset&&preset.tipo==="escala") ? [preset.escala||"mayor",preset.root||"C",preset.mano==="izq"?"izq":"der",preset.dir==="baja"?"baja":"sube",preset.fuelle==="cierra"?"cierra":"abre",preset.inicio===undefined?-1:preset.inicio].join("|") : "";
-  const dedos  = (preset&&preset.dedos&&sigAct===sigPre) ? preset.dedos : (preset&&preset.ruta&&sigAct===sigPre ? preset.ruta.map(p=>p.d||"") : []);
-  const notaOct = (btn)=>{ const it=itemDe(btn); return CROM_SIMPLE[CHROMATIC[it.pc]]+it.oct; };
-  const funcionDe = (pc)=>{ const k=escNombres.findIndex(n=>noteIdx(n)===pc); if(k<0) return null; const lab=GRADO_LABEL[escIvs[k]]; return romano?aRomano(lab):lab; };
-  const verDedo = (i)=> escModo==="ver" || i<prog.i || (prog.hint && i===prog.i);
-  const gradoTxt = (r,i)=>{ const n=escIvs.length; const esOct = escR.route.length===n+1 && (escDir!=="baja" ? i===n : i===0); const lab = esOct ? "8" : GRADO_LABEL[escIvs[r.deg]]; return romano ? aRomano(lab) : lab; };
-  const escEscuchar = ()=>{
-    escTimers.current.forEach(clearTimeout); escTimers.current=[];
-    escR.route.forEach((r,i)=>escTimers.current.push(setTimeout(()=>tocarItem(r.item), i*430)));
-  };
-  const escTap = (btn, rect)=>{
-    const it = itemDe(btn); tocarItem(it);
-    if(escModo==="ver"){ setInfo({btn,rect}); return; }
-    if(escModo!=="practica" || prog.i>=escR.route.length) return;
-    const exp = escR.route[prog.i].item;
-    const enMano = escBtns.some(x=>x.id===btn.id);
-    if(enMano && it.midi===exp.midi){ setProg(p=>({...p,i:p.i+1,hint:false,wrong:null})); }
-    else {
-      setProg(p=>({...p,err:p.err+1,wrong:btn.id}));
-      escTimers.current.push(setTimeout(()=>setProg(p=>({...p,wrong:null})),700));
-    }
-  };
-  const escStateOf = (btn)=>{
-    const it = itemDe(btn), col = nc(CHROMATIC[it.pc]), ri = escIdxById[btn.id], enEsc = escPcSet.has(it.pc);
-    const num = (n,sub,bg,ded)=> <span style={{display:"flex",flexDirection:"column",alignItems:"center",lineHeight:1.05,color:txtSobre(bg)}}>
-        <b style={{fontSize:String(n).length>2?11:14}}>{n}</b><span style={{fontSize:8.5,fontWeight:800,fontFamily:"monospace"}}>{sub}</span>
-        {ded ? <span style={{position:"absolute",top:-8,right:-8,minWidth:18,height:18,padding:"0 3px",borderRadius:9,background:"#fff",color:"#111",fontSize:11,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 1px 4px rgba(0,0,0,.7)"}}>{ded}</span> : null}</span>;
-    if(escModo==="ver"){
-      if(ri!==undefined) return {bg:col, border:"3px solid #fff", glow:`0 0 14px ${col}cc`, content:num(gradoTxt(escR.route[ri],ri),etiqueta(it),col,verDedo(ri)?dedos[ri]:0)};
-      if(enEsc) return {bg:col+"55", border:`2px solid ${col}`, glow:"none", content:<span style={{fontSize:8.5,fontWeight:700,color:"#ddd",fontFamily:"monospace"}}>{etiqueta(it)}</span>};
-      return {bg:"#121212", border:"3px solid #262626", glow:"none", content:null};
-    }
-    // práctica: no se regalan los colores hasta acertar
-    if(ri!==undefined && ri<prog.i) return {bg:col, border:"3px solid #6b9c7c", glow:`0 0 12px ${col}aa`, content:num(gradoTxt(escR.route[ri],ri),etiqueta(it),col,verDedo(ri)?dedos[ri]:0)};
-    const esProx = prog.hint && escR.route[prog.i] && escR.route[prog.i].item.b.id===btn.id;
-    if(prog.wrong===btn.id) return {bg:"#3a1a1a", border:"3px solid #b5564f", glow:"0 0 10px #b5564f", content:<span style={{color:"#fff",fontWeight:800}}>✕</span>};
-    if(esProx) return {bg:"#1a1a1a", border:"3px dashed #fff", glow:"0 0 10px #ffffff88", content:null};
-    return {bg:"#1a1a1a", border:"3px solid #555", glow:"none", content:null};
-  };
+  const { dedos, escEscuchar, escStateOf, escTap, funcionDe, gradoTxt, notaOct, verDedo } = usePracticaEscalas({ bellows, escBtns, escDir, escIdxById, escIvs, escMano, escModo, escNombres, escPcSet, escR, escRoot, escStart, escTimers, escTipo, etiqueta, itemDe, preset, prog, romano, setInfo, setProg, tocarItem });
   // — Ejercicio "Poner las notas": círculos vacíos y se le dice a cada uno qué nota es —
-  const guessCompleto = (g)=> !!(g && g.pc && (!pedirOct || g.oct));
-  const guessOk = (b)=>{ const g=notaGuess[keyOf(b.id)], it=itemDe(b); return guessCompleto(g) && g.pc===CHROMATIC[it.pc] && (!pedirOct || g.oct===it.oct); };
-  const setNota = (patch)=>{
-    const k = keyOf(notaPicker.btn.id), nuevo = {...(notaGuess[k]||{}), ...patch};
-    setNotaGuess(g=>({...g,[k]:nuevo})); setChecked(false);
-    if(!pedirOct || (nuevo.pc && nuevo.oct)) setNotaPicker(null);
-  };
-  const borrarNota = ()=>{ const k=keyOf(notaPicker.btn.id); setNotaGuess(g=>{ const n={...g}; delete n[k]; return n; }); setChecked(false); setNotaPicker(null); };
-  const notaStateOf = (btn)=>{
-    const g = notaGuess[keyOf(btn.id)], it = itemDe(btn), real = CHROMATIC[it.pc];
-    const act = !!(notaPicker && notaPicker.btn.id===btn.id);
-    const lab = (pc,oct)=> CROM_SIMPLE[pc] + (pedirOct && oct ? oct : "");
-    const dot = (t,sub)=> <span style={{display:"flex",flexDirection:"column",alignItems:"center",lineHeight:1.05,color:"#fff",textShadow:"0 1px 3px rgba(0,0,0,.95)"}}>
-      <b style={{fontSize:t.length>4?9.5:t.length>3?11:13}}>{t}</b>{sub?<span style={{fontSize:8.5,fontWeight:800,fontFamily:"monospace"}}>{sub}</span>:null}</span>;
-    if(!g || !g.pc){
-      if(reveal) return {bg:nc(real)+"55", border:`2px dashed ${nc(real)}`, glow:"none", content:<span style={{fontSize:10,fontWeight:700,color:"#ddd",fontFamily:"monospace"}}>{lab(real,it.oct)}</span>};
-      return {bg:"#1a1a1a", border:act?"3px solid #fff":"3px solid #555", glow:act?"0 0 0 4px #e6e6e6":"none", content:null};
-    }
-    const col = nc(g.pc);
-    if(checked){
-      const ok = guessOk(btn);
-      return ok ? {bg:col, border:"3px solid #6b9c7c", glow:`0 0 10px ${col}99`, content:dot(lab(g.pc,g.oct),"✓")}
-                : {bg:col, border:"3px solid #b5564f", glow:"0 0 10px #b5564faa", content:dot(lab(g.pc,g.oct),"→ "+lab(real,it.oct))};
-    }
-    return {bg:col, border:act?"3px solid #fff":"3px solid rgba(255,255,255,.5)", glow:act?"0 0 0 4px #e6e6e6":`0 0 10px ${col}99`, content:dot(lab(g.pc,g.oct))};
-  };
-  const notaPuestas = vis.filter(b=>guessCompleto(notaGuess[keyOf(b.id)]));
-  const notaBien = notaPuestas.filter(guessOk);
-  // — Ejercicio "Armar el teclado" —
-  const setFormaH = (h,lista)=>{ setFormaPts(f=>({...f,[h]:lista})); setChecked(false); };
-  const formaStat = (modo==="forma") ? [["L",leftBtns,view!=="derecha"],["R",rightBtns,view!=="izquierda"]].filter(x=>x[2]).map(([h,real])=>({h,real,m:matchForma(real,formaPts[h],formaTol),n:formaPts[h].length})) : [];
-  const formaBien = formaStat.reduce((a,x)=>a+x.m.okB.size,0), formaTot = formaStat.reduce((a,x)=>a+x.real.length,0);
-  const formaExtra = formaStat.reduce((a,x)=>a+x.m.extra,0), formaFalta = formaStat.reduce((a,x)=>a+x.m.falta.length,0);
-  const formaPuestos = formaStat.reduce((a,x)=>a+x.n,0);
+  const { borrarNota, formaBien, formaExtra, formaFalta, formaPuestos, formaTot, notaBien, notaPuestas, notaStateOf, setFormaH, setNota } = useNotasYForma({ checked, formaPts, formaTol, itemDe, keyOf, leftBtns, modo, notaGuess, notaPicker, pedirOct, reveal, rightBtns, setChecked, setFormaPts, setNotaGuess, setNotaPicker, view, vis });
 
   // — Camino de las escalas: cada mano muestra su propio camino —
-  const camStateOf = (btn)=>{
-    const e=camMapa[btn.id];
-    if(!e){ const nt=CHROMATIC[itemDe(btn).pc], col=nc(nt);
-      return {bg:col+"30",border:`2px solid ${col}70`,glow:"none",content:<span style={{fontSize:8.5,fontWeight:700,color:"#ffffffa0",textShadow:"0 1px 2px #000"}}>{CROM_SIMPLE[nt]}</span>}; }
-    if(e.t==="alt") return {bg:"#3a3a3a",border:"3px dashed #9a9a9a",glow:"none",content:<span style={{fontSize:10,fontWeight:800,color:"#cfcfcf"}}>{e.nd.k}?</span>};
-    const col=nc(CHROMATIC[e.nd.item.pc]), suena=!!camSuena && camSuena.includes(btn.id), nom=nombreLat(e.nd.name);
-    return {bg:col,border:suena?"3px solid #fff":"3px solid rgba(255,255,255,.55)",glow:suena?"0 0 0 4px #fff, 0 0 18px #fff":`0 0 10px ${col}99`,
-      content:<span style={{display:"flex",flexDirection:"column",alignItems:"center",lineHeight:1.05,color:"#fff",textShadow:"0 1px 3px rgba(0,0,0,.95)"}}>
-        <b style={{fontSize:nom.length>3?10.5:13}}>{nom}</b><span style={{fontSize:9,fontWeight:800,fontFamily:"monospace"}}>{e.nd.lab!==undefined?e.nd.lab:e.nd.k}</span></span>};
-  };
-  const camTap = (btn)=>{
-    const e=camMapa[btn.id];
-    if(e && e.t==="alt"){ setCamElige(s=>({...s,[bellows+":"+e.hand+":"+e.nd.midi]:btn.id})); return; }
-    tocarItem(itemDe(btn));
-  };
-  const camCentro = (b)=>({x:b.x+BTN_SIZE/2,y:b.y+BTN_SIZE/2});
-  const camFlechas = (h)=>{ if(!cam||modo==="voz"||flechasModo==="no") return null; const nodos=cam.manos[h].nodos, out=[];
-    for(let i=0;i<nodos.length-1;i++){ const a=nodos[i], b=nodos[i+1]; if(a.falta||b.falta) continue;
-      out.push({a:camCentro(a.item.b),b:camCentro(b.item.b),dash:bellows==="cierra"}); }
-    return out; };
-  // Suena lo que está a la vista: IZQ o DER = esa mano; Ambas = las dos juntas, paso a paso
-  const camPasos = ()=>{ if(!cam) return [];
-    if(modo==="voz"){ const hs=view==="izquierda"?["L"]:view==="derecha"?["R"]:["L","R"];
-      return hs.flatMap(h=>cam.manos[h].nodos.filter(n=>!n.falta)).sort((a,b)=>a.midi-b.midi).map(nd=>({partes:[nd]})); } const hs=view==="izquierda"?["L"]:view==="derecha"?["R"]:["L","R"];
-    const n=Math.max(...hs.map(h=>cam.manos[h].nodos.length)), out=[];
-    for(let i=0;i<n;i++){ const partes=hs.map(h=>cam.manos[h].nodos[i]).filter(nd=>nd&&!nd.falta); if(partes.length) out.push({partes}); }
-    return out; };
-  const camSecuencia = ()=>{ const ok=camPasos();
-    return camSent==="baja" ? [...ok].reverse() : camSent==="ida" ? [...ok,...[...ok].reverse().slice(1)] : ok; };
-  // Reproduce pasos (cada paso = notas juntas). Sonido y metrónomo se programan en el reloj de audio: el tempo es exacto.
-  const camTocar = (sec,ms)=>{
-    camParar(); if(!sec.length) return; const ctx=getCtx(); if(!ctx) return;
-    if(ctx.state==="suspended") ctx.resume();
-    const bus=ctx.createGain(); bus.connect(ctx.destination); camBus.current=bus;
-    const a0=0.12, total=sec.length*ms/1000;
-    sec.forEach((p,i)=>{ p.partes.forEach(nd=>playBandDur(CHROMATIC[nd.item.pc],nd.item.oct,Math.min(ms/1000*0.94,6),a0+i*ms/1000,bus));
-      camTimers.current.push(setTimeout(()=>setCamSuena(p.partes.map(nd=>nd.item.b.id)),a0*1000+i*ms)); });
-    if(camMetro!=="no"){ const u=FIGURAS.find(f=>f.id===camMetro).beats, bm=u*60/camBpm, cada=Math.max(1,Math.round(4/u));
-      for(let j=0;j<Math.ceil(total/bm-1e-6);j++) playClick(a0+j*bm,j%cada===0,bus); }
-    camTimers.current.push(setTimeout(()=>setCamSuena(null),a0*1000+total*1000));
-  };
-  const camEscuchar = ()=>camTocar(camSecuencia(),FIGURAS.find(f=>f.id===camFig).beats*60000/camBpm);
-  const vozCfg=(patch)=>setVoz(v=>({...v,...patch,man:{},soloLista:false}));
-  const vozSet=(n,patch)=>setVoz(v=>{ const bass=12*(v.bajoOct+1)+acorde.rootIdx; return {...v,man:{...v.man,[n.key]:{mano:patch.mano??n.mano,ex:patch.ex??Math.round((n.midi-bass-n.key)/12)}}}; });
-  const vozAcorde=()=>{ if(!cam) return; const hs=view==="izquierda"?["L"]:view==="derecha"?["R"]:["L","R"];
-    const nds=hs.flatMap(h=>cam.manos[h].nodos.filter(n=>!n.falta)); if(nds.length) camTocar([{partes:nds}],2200); };
-  const vozCif=vozCifrar(acorde,voz,vozNotas);
-  const vozCopiar=()=>{ (navigator.clipboard?navigator.clipboard.writeText(vozCif):Promise.reject()).then(()=>setVozMsg("Copiado."),()=>setVozMsg("Seleccioná el texto y copialo.")); };
-  const vozCargar=()=>{ const c=vozLeer(vozTxt); if(!c){ setVozMsg("No pude leer ese cifrado: tiene que empezar con HM1|…"); return; }
-    const man={}; [["L",c.L],["R",c.R]].forEach(([h,l])=>l.forEach(d=>{ man[d%12]={mano:h,ex:Math.floor(d/12)}; }));
-    acorde.setAll(c.ac); setVoz(v=>({...v,bajoOct:c.bajoOct,man,soloLista:true})); setVozMsg("Cifrado cargado."); };
-  const camNotaTxt = (nd)=> nombreLat(nd.name)+octDeMidi(nd.midi);
+  const { camEscuchar, camFlechas, camNotaTxt, camStateOf, camTap, vozAcorde, vozCargar, vozCfg, vozCif, vozCopiar, vozSet } = useCaminoEntrenador({ acorde, bellows, cam, camBpm, camBus, camFig, camMapa, camMetro, camParar, camSent, camSuena, camTimers, flechasModo, itemDe, modo, setCamElige, setCamSuena, setVoz, setVozMsg, tocarItem, view, voz, vozNotas, vozTxt });
 
   // Cabecera compartida de la pestaña Escalas: vista (Ver y escuchar / Practicar), tónica y escala
   const escPills = (

@@ -1,0 +1,13 @@
+{
+  "archivo": "src/App.jsx",
+  "componente": "EntrenadorTab",
+  "destino": "src/features/entrenador/hooks.jsx",
+  "cabecera": "El estado del Entrenador y la lógica de sus ejercicios (teclado, escalas, líneas, práctica, notas y forma), sacados tal cual en la fase 6 para que ningún archivo pase de 400 líneas.",
+  "hooks": [
+    { "nombre": "useEntrenador", "desde": 46, "hasta": 174 },
+    { "nombre": "useEscalasEntrenador", "desde": 175, "hasta": 187 },
+    { "nombre": "useLineasEntrenador", "desde": 303, "hasta": 322 },
+    { "nombre": "usePracticaEscalas", "desde": 324, "hasta": 363 },
+    { "nombre": "useNotasYForma", "desde": 365, "hasta": 398 }
+  ]
+}

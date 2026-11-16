@@ -1,0 +1,9 @@
+{
+  "archivo": "src/App.jsx",
+  "componente": "EntrenadorTab",
+  "destino": "src/features/entrenador/acordes.jsx",
+  "cabecera": "Armar, armonizar y guardar acordes en el Entrenador (construir sobre el teclado, los grados de una escala, las formas sugeridas y «mis acordes»), sacado tal cual en la fase 6.",
+  "hooks": [
+    { "nombre": "useAcordesEntrenador", "desde": 47, "hasta": 159 }
+  ]
+}

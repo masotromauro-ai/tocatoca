@@ -1,0 +1,9 @@
+{
+  "archivo": "src/App.jsx",
+  "componente": "EntrenadorTab",
+  "destino": "src/features/entrenador/camino.jsx",
+  "cabecera": "El camino sobre los teclados (escalas, arpegios y la distribución de voces con su cifrado): pintar, tocar con metrónomo y repartir notas, sacado tal cual en la fase 6.",
+  "hooks": [
+    { "nombre": "useCaminoEntrenador", "desde": 57, "hasta": 108 }
+  ]
+}
