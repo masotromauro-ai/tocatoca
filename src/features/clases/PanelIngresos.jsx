@@ -1,7 +1,8 @@
 // Ingresos de los alumnos.
 
 import { useState } from "react";
-import { REG_CLAVE_KEY, REG_URL_RE, haceCuanto, inpS } from "./org.jsx";
+import { REG_CLAVE_KEY, REG_URL_RE, haceCuanto } from "./org.jsx";
+import { inpS } from "../../shared/ui/tema.js";
 import { uiPill } from "../../shared/ui/tema.js";
 
 export function PanelIngresos({org,guardar,card,peq}){

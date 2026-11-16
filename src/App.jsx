@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { CHROMATIC, LAT, buildScale, nombreLat, noteIdx, spell } from "./shared/teoria/notas.js";
 import { nc } from "./shared/teoria/color.js";
-import { UI_FONT, uiGhost, uiLabel, uiPill, uiPlay, uiTool, uiVista } from "./shared/ui/tema.js";
+import { UI_FONT, inpS, uiGhost, uiLabel, uiPill, uiPlay, uiTool, uiVista } from "./shared/ui/tema.js";
 import { getCtx, playBand, playBandDur, playChord, playClick } from "./shared/audio/audio.js";
 import { FORMULAS, QUAL_TXT, getFns, parseChord } from "./shared/teoria/acordes.js";
 import { ES_MENORQ, FAMILIAS, SUF_ES, TONICAS_MAYOR, TONICAS_MENOR, acordesDeNotas, computeProg, nombreAcordeEs, raizDefecto, romSept, romTri } from "./shared/teoria/progresiones.js";
@@ -20,10 +20,12 @@ import { FORMA_NIVELES, FORMA_TOL, FormaCanvas, LIN_COLS, LIN_TEXTO, LIN_TIPOS, 
 import { ACORDE_RAICES } from "./shared/bandoneon/acordes-base.js";
 import { CROM_SIMPLE, GRADO_LABEL, txtSobre } from "./shared/teoria/etiquetas.js";
 import { PopoverAnclado } from "./shared/ui/Popover.jsx";
-import { ElCodigoTab, HojaDeColor } from "./features/codigo/ElCodigoTab.jsx";
+import { ElCodigoTab } from "./features/codigo/ElCodigoTab.jsx";
+import { HojaDeColor } from "./shared/ui/hoja-de-color.jsx";
 import { CirculoQuintas } from "./features/herramientas/quintas/CirculoQuintas.jsx";
 import { medirLote } from "./shared/medicion.js";
-import { inpS, nomDedo, registrar } from "./features/clases/org.jsx";
+import { registrar } from "./features/clases/org.jsx";
+import { nomDedo } from "./shared/ui/dedos.js";
 import { OrganizadorTab } from "./features/clases/OrganizadorTab.jsx";
 import { MisTareasTab } from "./features/clases/MisTareasTab.jsx";
 import { ModosTab } from "./features/herramientas/modos/ModosTab.jsx";

@@ -30,3 +30,6 @@ export const uiTool=(on,extra={})=>({fontFamily:UI_FONT,fontSize:11,fontWeight:6
 export const uiGhost={fontFamily:UI_FONT,fontSize:11,fontWeight:600,padding:"4px 8px",borderRadius:7,cursor:"pointer",lineHeight:1.2,border:"1px solid transparent",background:"transparent",color:"#85858d"};
 
 export const uiLabel = {fontFamily:UI_FONT,fontSize:10,letterSpacing:"0.18em",color:"#7c7c82",textTransform:"uppercase",fontWeight:600};
+
+// El estilo de los campos de texto y selects (vivía en features/clases/org.jsx; subió acá en la fase 6: lo usan clases y el Entrenador).
+export const inpS = {background:"#0e0e10",border:"1px solid #2a2a2e",borderRadius:9,padding:"7px 10px",color:"#ececec",fontSize:13,fontFamily:UI_FONT,minWidth:0};

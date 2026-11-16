@@ -3,7 +3,8 @@
 import { useState, useMemo } from "react";
 import { aRomano } from "../../shared/teoria/romanos.js";
 import { useRomanos } from "../../shared/almacen/romanos.js";
-import { DEDO_OPC, EJ_NUEVO, OPT_DIR, OPT_FUELLE, OPT_MANO, OPT_MODO, ORG_KEY, Sel, cargarOrg, descEj, fmtHz, idn, inpS, rutaDeEjercicio } from "./org.jsx";
+import { DEDO_OPC, EJ_NUEVO, OPT_DIR, OPT_FUELLE, OPT_MANO, OPT_MODO, ORG_KEY, Sel, cargarOrg, descEj, fmtHz, idn, rutaDeEjercicio } from "./org.jsx";
+import { inpS } from "../../shared/ui/tema.js";
 import { PanelIngresos } from "./PanelIngresos.jsx";
 import { CHROMATIC, nombreLat } from "../../shared/teoria/notas.js";
 import { nc } from "../../shared/teoria/color.js";

@@ -2,7 +2,7 @@
 
 import { calcAcorde } from "../../shared/bandoneon/acorde.js";
 import { CHROMATIC, buildScale, nombreLat, noteIdx } from "../../shared/teoria/notas.js";
-import { UI_FONT } from "../../shared/ui/tema.js";
+import { inpS } from "../../shared/ui/tema.js";
 import { ESC_ENT, rutaEscala } from "../../shared/bandoneon/camino.js";
 import { ACORDE_INI } from "../../shared/bandoneon/acordes-base.js";
 import { CROM_SIMPLE, GRADO_LABEL } from "../../shared/teoria/etiquetas.js";
@@ -48,17 +48,11 @@ export function haceCuanto(ms, ahora){
 
 export const EJ_NUEVO = {tipo:"escala",root:"C",escala:"mayor",mano:"der",dir:"sube",fuelle:"abre",modoEj:"ver",inicio:-1,dedos:[],ac:ACORDE_INI,texto:"",indic:""};
 
-export const inpS = {background:"#0e0e10",border:"1px solid #2a2a2e",borderRadius:9,padding:"7px 10px",color:"#ececec",fontSize:13,fontFamily:UI_FONT,minWidth:0};
-
 export const Sel = ({v,set,opts,w})=>(<select style={{...inpS,width:w}} value={v} onChange={e=>set(e.target.value)}>{opts.map(o=>(<option key={String(o[0])} value={o[0]}>{o[1]}</option>))}</select>);
 
 export const OPT_MANO=[["der","Mano derecha"],["izq","Mano izquierda"]], OPT_DIR=[["sube","Sube"],["baja","Baja"]], OPT_FUELLE=[["abre","Abriendo"],["cierra","Cerrando"]], OPT_MODO=[["ver","Ver la escala"],["practica","Practicar"]];
 
 export const DEDO_OPC=[["","—"],["1","1"],["2","2"],["3","3"],["4","4"],["1/2","1 o 2"],["2/3","2 o 3"],["3/4","3 o 4"]];
-
-const NOM_DEDO_1={1:"índice",2:"medio",3:"anular",4:"meñique"};
-
-export const nomDedo = (d)=>String(d).split("/").map(x=>NOM_DEDO_1[x]||x).join(" o ");
 
 export const fmtHz = (h)=>h.toFixed(2).replace(".",",");
 
