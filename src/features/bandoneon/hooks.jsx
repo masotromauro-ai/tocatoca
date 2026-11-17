@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { LAT, nombreLat } from "../../shared/teoria/notas.js";
 import { getCtx, playBandDur } from "../../shared/audio/audio.js";
 import { RAIZ_NOM, analizarAcorde } from "../../shared/teoria/cifrado.js";
-import { micEstimar } from "../../shared/audio/mic.js";
+import { micEstimar, fuenteWorklet } from "../../shared/audio/mic.js";
 
 export function useSonidoBandoneon({  }) {
   const activeAudioRef = useRef({}); // { [btnId]: {gainMain, oscs[]} }
@@ -68,9 +68,22 @@ export function useEscuchaBandoneon({ LAT, bellows, getOct, heardMidis, isListen
     if(micMano!=="der") add(leftBtns); if(micMano!=="izq") add(rightBtns); return set;
   },[leftBtns,rightBtns,bellows,micMano,micOct,getOct]);
   const micRef=useRef({}); micRef.current={modo:micModo,cands:micCandsH,shift:micOct};
+  // Fase 7: el worklet de la escucha recibe las notas candidatas cada vez que cambian.
+  const nodoRef=useRef(null);
+  useEffect(()=>{ if(nodoRef.current) nodoRef.current.port.postMessage({cands:[...micCandsH],maxN:micModo==="nota"?1:5}); },[micCandsH,micModo]);
   useEffect(()=>{
     if(!isListening){ setHeardMidis([]); return; }
-    let audioCtx=null, stream=null, rafId=null, alive=true, ultimo=0; const hist=[];
+    let audioCtx=null, stream=null, rafId=null, alive=true, ultimo=0, nodo=null; const hist=[];
+    // Lo que se estimó en un cuadro: se confirma con los últimos 6 (igual con worklet o sin él)
+    const recibir=(est)=>{
+      if(!alive) return;
+      hist.push(est); if(hist.length>6) hist.shift();
+      const {shift}=micRef.current;
+      const cuenta=new Map(); hist.forEach(a=>a.forEach(m=>cuenta.set(m,(cuenta.get(m)||0)+1)));
+      const necesito=Math.min(4,Math.ceil(hist.length*0.6));
+      const fin=[...cuenta].filter(([,c])=>c>=necesito).map(([m])=>m+12*shift).sort((x,y)=>x-y);
+      setHeardMidis(prev=>(prev.length===fin.length&&prev.every((v,i)=>v===fin[i]))?prev:fin);
+    };
     async function start(){
       try{
         // sin control automático de ganancia, supresión de ruido ni cancelación de eco: alteran el sonido sostenido
@@ -79,7 +92,24 @@ export function useEscuchaBandoneon({ LAT, bellows, getOct, heardMidis, isListen
         const AC=window.AudioContext||window.webkitAudioContext; audioCtx=new AC();
         if(audioCtx.state==="suspended") await audioCtx.resume();
         if(!alive){ audioCtx.close(); stream.getTracks().forEach(t=>t.stop()); return; }
-        const src=audioCtx.createMediaStreamSource(stream), analyser=audioCtx.createAnalyser();
+        const src=audioCtx.createMediaStreamSource(stream);
+        // Fase 7 (17-nov-2026): la escucha corre en un AudioWorklet, el hilo del audio, y no espera a que la
+        // pantalla termine de dibujar. Si el navegador no lo tiene, sigue el camino de antes (más abajo).
+        if(audioCtx.audioWorklet&&window.AudioWorkletNode){
+          try{
+            const url=URL.createObjectURL(new Blob([fuenteWorklet()],{type:"text/javascript"}));
+            try{ await audioCtx.audioWorklet.addModule(url); } finally { URL.revokeObjectURL(url); }
+            if(!alive) return;
+            nodo=new AudioWorkletNode(audioCtx,"escucha-bandomaps",{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]});
+            const mudo=audioCtx.createGain(); mudo.gain.value=0;
+            src.connect(nodo); nodo.connect(mudo); mudo.connect(audioCtx.destination);   // conectado para que corra; no suena
+            nodo.port.onmessage=(e)=>recibir(Array.isArray(e.data)?e.data:[]);
+            const {modo,cands}=micRef.current; nodo.port.postMessage({cands:[...cands],maxN:modo==="nota"?1:5});
+            nodoRef.current=nodo;
+            return;
+          }catch(e){ nodo=null; console.warn("Sin AudioWorklet, la escucha va por el camino de antes:",e); }
+        }
+        const analyser=audioCtx.createAnalyser();
         analyser.fftSize=16384; analyser.smoothingTimeConstant=0.3; analyser.minDecibels=-110; analyser.maxDecibels=-5;
         src.connect(analyser);
         const N=analyser.fftSize, db=new Float32Array(N/2), mag=new Float32Array(N/2);
@@ -89,12 +119,8 @@ export function useEscuchaBandoneon({ LAT, bellows, getOct, heardMidis, isListen
           if(t-ultimo<70) return; ultimo=t;
           analyser.getFloatFrequencyData(db);
           for(let i=0;i<db.length;i++) mag[i]=Math.pow(10,db[i]/20);
-          const {modo,cands,shift}=micRef.current;
-          hist.push(micEstimar(mag,audioCtx.sampleRate,N,cands,modo==="nota"?1:5)); if(hist.length>6) hist.shift();
-          const cuenta=new Map(); hist.forEach(a=>a.forEach(m=>cuenta.set(m,(cuenta.get(m)||0)+1)));
-          const necesito=Math.min(4,Math.ceil(hist.length*0.6));
-          const fin=[...cuenta].filter(([,c])=>c>=necesito).map(([m])=>m+12*shift).sort((x,y)=>x-y);
-          setHeardMidis(prev=>(prev.length===fin.length&&prev.every((v,i)=>v===fin[i]))?prev:fin);
+          const {modo,cands}=micRef.current;
+          recibir(micEstimar(mag,audioCtx.sampleRate,N,cands,modo==="nota"?1:5));
         }
         rafId=requestAnimationFrame(tick);
       }catch(err){
@@ -102,7 +128,7 @@ export function useEscuchaBandoneon({ LAT, bellows, getOct, heardMidis, isListen
       }
     }
     start();
-    return()=>{ alive=false; if(rafId) cancelAnimationFrame(rafId); if(stream) stream.getTracks().forEach(t=>t.stop()); if(audioCtx&&audioCtx.state!=="closed") audioCtx.close(); };
+    return()=>{ alive=false; nodoRef.current=null; if(nodo){ nodo.port.onmessage=null; try{ nodo.disconnect(); }catch(e){} } if(rafId) cancelAnimationFrame(rafId); if(stream) stream.getTracks().forEach(t=>t.stop()); if(audioCtx&&audioCtx.state!=="closed") audioCtx.close(); };
   },[isListening]);
   const heardPcs=useMemo(()=>new Set(heardMidis.map(m=>((m%12)+12)%12)),[heardMidis]);
   const heardIdsDe=(btns)=>{

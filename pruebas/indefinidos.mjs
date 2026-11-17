@@ -17,7 +17,10 @@ const GLOBALES = new Set(("window document localStorage sessionStorage navigator
   "parseInt parseFloat isNaN isFinite NaN Infinity undefined setTimeout clearTimeout setInterval clearInterval requestAnimationFrame cancelAnimationFrame URL Blob FileReader " +
   "Float32Array Float64Array Uint8Array Int16Array Uint16Array Int32Array Uint32Array ArrayBuffer AudioContext MediaStream Image Audio fetch alert confirm prompt performance " +
   "encodeURIComponent decodeURIComponent escape unescape RegExp Intl TextEncoder TextDecoder ResizeObserver IntersectionObserver MutationObserver Event CustomEvent KeyboardEvent " +
-  "MouseEvent screen location history atob btoa structuredClone queueMicrotask globalThis HTMLElement Element Node getComputedStyle matchMedia process React").split(" "));
+  "MouseEvent screen location history atob btoa structuredClone queueMicrotask globalThis HTMLElement Element Node getComputedStyle matchMedia process React " +
+  // Fase 7 (17-nov-2026): la escucha en un AudioWorklet. Los tres últimos son del hilo del audio (AudioWorkletGlobalScope):
+  // existen adentro del worklet, que es donde corre `procesadorEscucha` de shared/audio/mic.js.
+  "AudioWorkletNode AudioWorkletProcessor sampleRate registerProcessor").split(" "));
 
 export function indefinidos(codigo, nombre) {
   const ast = parse(codigo, { sourceType: "module", plugins: ["jsx"] });

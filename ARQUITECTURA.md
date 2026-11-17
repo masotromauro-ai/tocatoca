@@ -144,7 +144,7 @@ Los tamaños salen de `areas.json` (se pueden recalcular con `node pruebas/areas
 | **4** | La raíz y el armador de acordes: las tres herramientas de adentro de `BandoMapsApp` pasan a su carpeta; `App.jsx` queda como esquema | 866 | `App.jsx` ≤ 250 líneas, `features/herramientas/{acorde,progresion,biblioteca}` | alto (es el centro) | Se ve de un vistazo qué pestañas hay y qué estado comparten |
 | **5** | Pestaña Bandoneón | 491 | `features/bandoneon/` (4 archivos) | alto | Se toca la escucha física sin mover el mapa |
 | **6** ✔ *hecha el 16-nov* | **Entrenador**: un hook `useEntrenador` con el estado y **un panel por modo** | 1.129 | `features/entrenador/` (~10 archivos) | alto | El archivo más grande del proyecto deja de existir; las formas recomendadas se enchufan en un panel |
-| **7** | **La plataforma al día**: React 19 + React Compiler; app instalable que anda sin conexión (como el panel); escucha con AudioWorklet; caché persistente de la base | — | `vite.config.js`, `public/manifest`, `sw.js`, `shared/audio/mic.js` | medio | Menos código a mano, se practica sin señal, la escucha no se traba |
+| **7** ✔ *hecha el 17-nov* | **La plataforma al día**: React 19 + React Compiler; app instalable que anda sin conexión (como el panel); escucha con AudioWorklet; caché persistente de la base | — | `vite.config.js`, `public/manifest`, `sw.js`, `shared/audio/mic.js` | medio | Menos código a mano, se practica sin señal, la escucha no se traba |
 
 **Unas 19 subidas chicas** en total (0: 2 · 1: 2 · 2: 2 · 3: 3 · 4: 2 · 5: 1 · 6: 4 · 7: 3). Se puede
 frenar entre fases sin perder nada: después de la fase 1 el proyecto ya anda mejor que hoy.
@@ -324,4 +324,22 @@ pestañas (260 en total, con el sonido y el micrófono de Bandoneón) y falla si
 Comprobado en cada subida: `mover.mjs` marca sólo lo agregado a propósito (hooks, llamadas y props); humo **igual en las
 11 pestañas**; arquitectura, nombres sin definir y los demás bancos en verde.
 
-**Sigue la fase 7** (la plataforma al día: React 19, instalable sin conexión, AudioWorklet, caché de la base). Espera el OK de Mauro.
+## Fase 7: hecha (17-nov-2026, Mauro: «sí, dale con la fase 7»)
+
+**La plataforma al día**, en tres subidas:
+1. **React 19 con el React Compiler** (`vite.config.js`): memoriza solo lo que se hacía a mano con `useMemo`/`useCallback`
+   (256 piezas en la compilación). El humo dio las 11 pestañas iguales; sólo cambió el orden de dos atributos de un
+   `<input>` (React 19 los escribe distinto) y se rehízo esa foto.
+2. **Instalable y sin conexión**: `public/manifest.webmanifest` con los íconos (la rueda de la paleta `NC`) y
+   `public/sw.js` (`bandomaps-sw-1`): las páginas con red primero, `/assets/` y el SDK de Firebase de la copia, y lo de la
+   primera visita guardado (al instalarse y con la lista que le pasa la app). La base no pasa por el service worker:
+   `public/cuenta/firebase.js` (`cuenta-init-2`) usa la **caché persistente de Firestore**. Probado en un navegador:
+   con la red cortada, la app vuelve a abrir. Banco `pruebas/plataforma.mjs` (10).
+3. **La escucha en un AudioWorklet** (`shared/audio/mic.js`, `features/bandoneon/hooks.jsx`): el espectro y la estimación
+   corren en el hilo del audio y ya no esperan a que la pantalla dibuje. El espectro es EL MISMO del AnalyserNode
+   (Blackman, |X|/N y el suavizado de la especificación): comparado en Chromium, 0,0000 dB de diferencia. El código del
+   worklet se arma con las mismas funciones (una copia). Sin AudioWorklet, sigue el camino de antes. Probado con la app
+   compilada y un micrófono falso que toca Re–Fa♯–La: «Re4 · Fa♯4 · La4 → Re mayor» por los dos caminos. Banco
+   `pruebas/escucha.mjs` (8).
+
+**El plan de arquitectura está completo.** Lo que sigue es el carril de producto (arriba), en el orden que decida el profesor.
