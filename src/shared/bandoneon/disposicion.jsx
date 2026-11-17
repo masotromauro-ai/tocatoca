@@ -1,7 +1,7 @@
 // Dónde cae el acorde en cada mano: disponibilidad, anchos y disposición.
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { octLista } from "./armador.jsx";
+import { octLista, rellenoIzq } from "./armador.jsx";
 import { CHROMATIC } from "../teoria/notas.js";
 import { UI_FONT, uiMarcar, uiPill, uiPlay, uiVista } from "../ui/tema.js";
 import { playBand } from "../audio/audio.js";
@@ -47,7 +47,7 @@ export function DisponibilidadAcorde({ tones, leftBtns, rightBtns, bellows, voz 
           <button style={peq(voz.mano==="der")} onClick={()=>{voz.setMano("der");voz.setInv(0);}}>Derecha</button>
           <span style={{width:10}}/>
           <span style={{fontSize:11,color:"#8a8a8a",marginRight:4}}>Inversión</span>
-          {["Fundamental","1ª","2ª","3ª"].slice(0,Math.max(2,Math.min(4,tones.length))).map((l,i)=>(<button key={i} style={peq(voz.inv===i)} onClick={()=>voz.setInv(i)}>{l}</button>))}
+          {["Fundamental","1ª","2ª","3ª"].slice(0,Math.max(1,Math.min(4,voz.mano==="izq"?rellenoIzq(tones).length:tones.length))).map((l,i)=>(<button key={i} style={peq(voz.inv===i)} onClick={()=>voz.setInv(i)}>{l}</button>))}
         </div>
         {voz.res.notas.length>0 ? (
           <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:8}}>
@@ -68,7 +68,7 @@ export function DisponibilidadAcorde({ tones, leftBtns, rightBtns, bellows, voz 
           {voz.onMarcar && voz.res.notas.length>0 && <button style={uiMarcar(false)} onClick={voz.onMarcar} title="Pasa estas notas a Notas marcadas, para escucharlas y modificarlas sobre el teclado">◎ Marcar estas teclas</button>}
         </div>
         <p style={{fontSize:10.5,color:"#6a6a70",margin:"8px 0 0",lineHeight:1.5}}>
-          {voz.mano==="izq" ? "Mano izquierda: el bajo es la fundamental más grave; la séptima va justo encima y el resto del acorde desde el Do3. Ejemplo: La menor = La1 (bajo) + Do3 + Mi3; con séptima, Sol2 entre el bajo y el Do3."
+          {voz.mano==="izq" ? "Mano izquierda: el bajo es la fundamental (de preferencia en la octava 2) y arriba va un relleno cerrado desde el Re4, sin la quinta cuando hay séptima o sexta. Ejemplos: Do△7 = Do2 + Mi + Si; Sol7 = Sol2 + Fa + Si; Do = Do2 + Mi + Sol + Do. La inversión cambia qué nota del relleno va abajo."
                             : "Mano derecha: las notas del acorde de abajo hacia arriba desde el Do3. Cada inversión pone una nota distinta en la base."}
         </p>
       </>)}
