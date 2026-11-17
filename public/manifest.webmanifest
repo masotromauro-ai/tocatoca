@@ -1,0 +1,16 @@
+{
+  "name": "BandoMaps",
+  "short_name": "BandoMaps",
+  "description": "Diccionario armónico, entrenador de improvisación y sistema de colores tonales para el bandoneón.",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#09090a",
+  "theme_color": "#09090a",
+  "icons": [
+    { "src": "/icono-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icono-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icono-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
