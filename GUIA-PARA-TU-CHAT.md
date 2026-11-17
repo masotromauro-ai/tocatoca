@@ -1,92 +1,87 @@
-# Guía para tu chat y para subir cambios — BandoMaps
+# Guía para trabajar con tu chat — BandoMaps
 
-Esta guía es para **Mariano** y para su asistente (el chat de IA que usa). Está escrita para que una persona que no programa la entienda, y para que el chat sepa cómo trabajar sin romper nada.
+Para **Mariano** y para su chat gratuito de Claude (claude.ai). La primera parte es para la persona; la segunda, para el chat.
 
-> **Actualizada el 14-nov-2026.** Cambió lo más importante: **Mariano sube sus cambios directo a GitHub con su cuenta**, y ahora el proyecto está partido en archivos chicos, así que ya no hay que tocar un archivo de 7.000 líneas.
+> **Actualizada el 17-nov-2026.** Un solo camino, en pasos cortos. Reemplaza los procedimientos anteriores (copias guardadas, pegar código en el panel, «App.jsx» entero): ya no hacen falta. El código está partido en archivos chicos, una carpeta por parte.
 
-## 1. Qué es BandoMaps
+---
 
-Una web para que alumnos de bandoneón aprendan la **mecánica y la topografía de los teclados**. La música, el fraseo y el aire los guía el profesor. **El usuario que te pide cosas es ese profesor** (Mariano); los usuarios finales son sus alumnos. Respondé en castellano rioplatense (voseo) y sin jerga: el profesor no programa.
+## Parte 1 · Para Mariano: cómo se hace un cambio
 
-Hecha con React + Vite + Tailwind, con `localStorage` y una base en la nube (Firebase) para cuentas y avance. Repositorio público: `masotromauro-ai/tocatoca`.
+1. **Elegí qué querés cambiar.** En el panel, entrá a BandoMaps → pestaña **«Ahora»** → **«🤖 Trabajar con tu chat gratuito»** y tocá el botón de esa parte (por ejemplo «Formas recomendadas»). Se baja un **.zip** con los archivos de esa parte, un `LEEME.md` para tu chat y esta guía.
+2. **Abrí un chat nuevo en claude.ai** (gratis), subí el .zip y contale el cambio con tus palabras.
+3. **Tu chat te devuelve el archivo entero, ya cambiado.** Bajalo. Si te pide un archivo que no está en el .zip, bajá del panel el paquete de esa otra parte y dáselo.
+4. **Subilo a GitHub** con tu cuenta de colaborador:
+   - entrá a `github.com/masotromauro-ai/tocatoca` y a la carpeta del archivo (la ruta es la misma que tiene dentro del .zip);
+   - «**Add file**» → «**Upload files**» → arrastrá el archivo (con el mismo nombre: reemplaza al viejo);
+   - abajo, en una línea, qué cambiaste («Formas: agrego la forma lleno») → «**Commit changes**».
+5. **Mirá el sitio de desarrollo** a los 2 minutos. Si algo no anda, avisá en el panel («Ahora» → «Hacer un pedido») antes de subir otra cosa.
 
-## 2. Cómo se sube un cambio (el procedimiento, en 6 pasos)
+**Tres reglas que evitan todos los problemas:**
 
-Lo decidió Mauro el 14-nov: Mariano sigue haciendo modificaciones **él mismo**, directo en GitHub, con su cuenta de colaborador. Para que eso no vuelva a pisar el trabajo de nadie:
+- **Bajá el .zip de nuevo antes de cada cambio.** Así trabajás siempre sobre la versión de hoy (el 9-nov una copia vieja borró, sin que nadie lo notara, la medición del avance de los alumnos).
+- **Un cambio por subida**, y sólo los archivos de ese cambio.
+- **Si dudás, preguntá** en el panel («❓ Preguntar»). Es mejor una pregunta que una subida que hay que deshacer.
 
-1. **Bajá la versión de hoy de GitHub antes de editar.** Nunca partas de una copia que tenías guardada. El 9-nov se subió `App.jsx` entero desde una copia vieja y desapareció, sin que nadie lo notara, la medición de lo que practica cada alumno. Entrá al archivo en GitHub, tocá «Raw» o el ícono de descargar, y trabajá sobre eso.
-2. **Tocá sólo el archivo de lo que estás cambiando.** Desde la fase 2 casi todo está en carpetas:
-   - `src/shared/teoria/` — notas, colores, escalas, acordes, progresiones, **cifrado** (cómo se nombra un acorde)
-   - `src/shared/bandoneon/` — las tablas del teclado, las **formas recomendadas** (`voicings.js`), el dibujo del teclado (`Teclado.jsx`), su editor (`Editor.jsx`), guardar y cargar (`almacen.js`, `csv.js`, `Modales.jsx`) y los caminos de notas (`camino.js`)
-   - `src/shared/ui/` — estilos, y las piezas visuales de teoría en `teoria/` (piano, círculo, tarjetas de función)
-   - `src/shared/audio/` — el sonido y la escucha por micrófono (`mic.js`)
-   - `src/features/` — una carpeta por pestaña: `codigo/`, `teoria/`, `clases/` (Organizador y Mis tareas) y `herramientas/` (Acorde, Progresión, Biblioteca, Quintas, Modos, Colores), `bandoneon/` y `aviso/`. Queda en `App.jsx` el Entrenador (fase 6) y la raíz con el menú
+Cada subida la revisa la ronda del chat de Mauro: que la app abra con sus 11 pestañas, las reglas de arquitectura y los bancos de pruebas. Si algo falla, te avisa con el nombre del archivo y se arregla o se deshace (con GitHub no se pierde nada). **Nada llega a los alumnos sin que Mauro lo pase del sitio de desarrollo al estable.**
 
-   Cada carpeta tiene un `LEEME.md` que dice qué hay, qué usa y **qué no se toca**. Lo que todavía está en `src/App.jsx` (las pestañas) se va a ir pasando a carpetas; hasta entonces, si el cambio es ahí, **volvé a bajar `App.jsx` justo antes de editarlo**.
-3. **Subí por la web de GitHub, a `main`**: abrí el archivo → lápiz ✏️ (o «Add file → Upload files») → en el mensaje escribí una línea con lo que hiciste («Formas: agrego la forma lleno») → «Commit changes». **Una cosa por subida**, no cinco juntas. A `main` directo: es lo que decidió Mauro para todo el ecosistema mientras BandoMaps está en desarrollo.
-4. **Mirá el sitio de desarrollo** a los 1–2 minutos (Vercel lo publica solo). Si algo no anda, avisá en el panel **antes** de seguir subiendo cosas encima.
-5. **El control lo hace el chat de Mauro**, no vos: cada día (y cuando se lo pidan) corre tres comprobaciones sobre lo último que se subió —que la app abra y dibuje las 11 pestañas igual que antes, que se cumplan las reglas de arquitectura, y los bancos de pruebas— y le avisa a Mauro. Si algo falla, Mauro te lo dice con el nombre del archivo y se arregla o se deshace esa subida (con Git no se pierde nada).
-6. **Si tu cambio cambia lo que se ve a propósito** (un color, un botón nuevo), está bien: el control lo va a marcar como «cambió» y Mauro/Claude lo revisan y actualizan la foto de referencia. Por eso conviene decirlo en el mensaje de la subida.
+Si no querés usar GitHub, en el paso 4 subí el archivo en el panel («Trabajar con tu chat gratuito» → «Subir el archivo que te devolvió») y lo sube Claude.
 
-**Si en algún momento no sabés si algo es seguro, preguntá en el panel** («Pedido» o tu chat propio). Es mejor una pregunta que una subida que hay que deshacer.
+---
 
-## 3. Cómo trabaja tu chat (el gratuito)
+## Parte 2 · Para el chat: cómo trabajar sin romper nada
 
-Dale **este archivo y el paquete de UN área** (lo bajás del panel, en «🤖 Trabajar con una sesión gratuita de Claude»), no el proyecto entero. Ahora hay dos formas:
+### Qué es BandoMaps
 
-- **Para cambios chicos**: el chat te devuelve el archivo completo de la carpeta nueva (por ejemplo `voicings.js`, 55 líneas) y vos lo subés como en el paso 3.
-- **Para lo que sigue en `App.jsx`**: el paquete trae sólo el tramo de esa área. Pedile al chat que te devuelva **el código completo de cada función que cambia**, con su nombre exacto, nunca fragmentos con «…».
+Una web para que alumnos de bandoneón aprendan la **mecánica y la topografía de los teclados**. La música, el fraseo y el aire los guía el profesor. **Quien te pide cosas es el profesor** (Mariano), que no programa: respondé en castellano rioplatense (voseo) y sin jerga. Hecha con React + Vite + Tailwind, con `localStorage` y una base en la nube (Firebase) para cuentas y avance.
 
-Respuesta que tiene que dar el chat:
+### Cómo responder
 
-- **Qué cambia y por qué** (3 renglones, sin jerga).
-- **El código completo** de cada archivo o función que cambia. **Nunca** «…» ni «el resto igual»: se pega tal cual y el resto se pierde.
-- **Cómo probarlo**: qué pestaña abrir, qué tocar y qué debería verse.
-- **Qué NO tocó.**
-- **Un área, hasta 3 archivos, hasta 400 líneas tocadas.** Si hace falta más, que lo parta en dos intervenciones.
-- **La lógica pura** (teoría, formas, sonido) con una prueba chica de `node` (sin navegador ni npm), como las de `pruebas/` (`teoria.mjs` es el modelo).
+- **Devolvé cada archivo que cambies COMPLETO**, con el mismo nombre y la misma ruta que tiene en el .zip. **Nunca** fragmentos, «…» ni «el resto queda igual»: se sube tal cual y lo que falte se pierde.
+- Antes del código: **qué cambia y por qué**, en 3 renglones sin jerga.
+- Después: **cómo probarlo** (qué pestaña abrir, qué tocar, qué debería verse) y **qué no tocaste**.
+- **Una parte, hasta 3 archivos, ningún archivo de más de 400 líneas.** Si hace falta más, proponé partirlo en dos cambios.
+- **Si te falta un archivo, no lo inventes**: decí cuál, y la persona te baja el paquete de esa parte.
+- La lógica pura (teoría, formas, sonido) va con una prueba chica de `node`, sin navegador ni npm, como las de `pruebas/` (`teoria.mjs` es el modelo).
 
-Si querés que Claude (el de Mauro) revise o aplique lo que armó tu chat, pegalo (o subí el archivo) en el panel, en «Trabajar con una sesión gratuita de Claude»: lo analiza contra el resto del proyecto antes de publicarlo.
+### Dónde está cada cosa
 
-## 4. Vocabulario del dominio
+`src/App.jsx` es sólo la raíz (el menú, 263 líneas). Todo lo demás está en carpetas, cada una con su `LEEME.md` que dice qué hay, qué usa y qué no se toca:
 
-- **Bandoneón bisonoro**: cada botón da **una nota al abrir y otra al cerrar el fuelle**. 71 botones: **33 en la mano izquierda, 38 en la derecha** (sistema Rheinische).
-- **No es isomórfico**: la misma forma **no** se transporta a otra tonalidad. Por eso las formas se guardan como **reglas por función de cada nota** (R raíz, 3, 5, 7), registro, mano y fuelle, y se resuelven contra el teclado real.
-- **pc** (clase de nota, 0–11), **midi** y **oct** (octava): cómo se identifica una nota en el código.
-- **Voicing / «forma»**: cómo se arma un acorde en el teclado. **Marcato**: acompañamiento en la izquierda, cerrado y con inversiones. **Lleno**: para el solo, tenido: bajo + notas guía.
-- **Cifrado**: «jazz» (△7, m7, ø7, °7) o «americano» (maj7, m7, m7♭5, dim7). Las notas se escriben **según la tonalidad** (La mayor → Do♯, no Re♭): nunca con una tabla fija.
-- **Paleta**: la **oficial** vive en `NC` (`src/shared/teoria/color.js`) y es la única fuente del color de cada nota. Está **copiada** en `public/gestos/musica.js`: si cambia una, cambia la otra.
-- **Rol del usuario**: administrador, docente o alumno. La app no se abre sin cuenta.
+- `src/shared/teoria/` — notas, colores, escalas, acordes, progresiones, **cifrado**.
+- `src/shared/bandoneon/` — las tablas del teclado, las **formas recomendadas** (`voicings.js`), el dibujo del teclado y su editor, guardar y cargar, los caminos de notas.
+- `src/shared/ui/` — estilos y piezas visuales (piano, círculo, tarjetas).
+- `src/shared/audio/` — el sonido y el micrófono.
+- `src/features/` — una carpeta por pestaña: `entrenador/`, `codigo/`, `teoria/`, `clases/`, `herramientas/` (Acorde, Progresión, Biblioteca, Quintas, Modos, Colores), `bandoneon/` y `aviso/`.
 
-## 5. Lo que cuida la experiencia del alumno
+### Vocabulario
 
-- **Menos opciones, más claridad.** Ante la duda, mostrar menos; lo avanzado, plegado.
-- **Nunca sólo color**: cada nota lleva también su nombre o una marca (hay quien no distingue bien algunos colores).
-- **Sesiones cortas** y respuesta inmediata: el alumno sabe al instante si estuvo bien.
-- **Pensado para tableta y teléfono**: el teclado grande y legible, también apaisado.
-- **Metas del docente antes que puntos.** Nada de rankings entre alumnos.
-- Las tendencias y las apps parecidas que se tomaron como referencia están en `TENDENCIAS.md`.
+- **Bandoneón bisonoro**: cada botón da **una nota al abrir y otra al cerrar**. 71 botones: **33 a la izquierda, 38 a la derecha** (sistema Rheinische).
+- **No es isomórfico**: la misma forma **no** se transporta. Las formas se guardan como **reglas por función** (R, 3, 5, 7), registro, mano y fuelle, y se resuelven contra el teclado real.
+- **pc** (clase de nota, 0–11), **midi** y **oct** (octava).
+- **Forma (voicing)**: cómo se arma un acorde en el teclado. **Marcato**: acompañamiento en la izquierda, cerrado y con inversiones. **Lleno**: para el solo, tenido.
+- **Cifrado**: «jazz» (△7, m7, ø7, °7) o «americano» (maj7, m7, m7♭5, dim7). Las notas se escriben **según la tonalidad** (La mayor → Do♯, no Re♭).
+- **Paleta**: la oficial vive en `NC` (`src/shared/teoria/color.js`), copiada en `public/gestos/musica.js`: si cambia una, cambia la otra.
+- **Roles**: administrador, docente, alumno. La app no se abre sin cuenta.
 
-## 6. Lo que no se toca (rompe cosas que ya andan)
+### Lo que cuida la experiencia del alumno
 
-- Las claves de guardado `bandomaps_*` en `localStorage`: **no se renombran** (los alumnos perderían lo suyo). No existe ninguna `harmonia_*`: si aparece, es un error.
-- `medir()`, `medirLote()`, `window.__tab`, `window.__ALUMNO`, `window.__USUARIO`: son lo que mide el avance de cada alumno. Sacarlos no da error: **sólo deja de medirse**. (Los vigila `pruebas/arquitectura.mjs`.)
-- Los `import` del principio de `App.jsx`, `src/Puerta.jsx`, `public/cuenta/` y `firestore.rules`.
+Menos opciones y más claridad (lo avanzado, plegado) · **nunca sólo color**: cada nota con su nombre o una marca · sesiones cortas, con respuesta inmediata · pensado para tableta y teléfono · metas del docente antes que puntos, sin rankings. Referencias en `TENDENCIAS.md`.
+
+### Lo que no se toca
+
+- Las claves `bandomaps_*` de `localStorage` (los alumnos perderían lo suyo).
+- `medir()`, `medirLote()`, `window.__tab`, `window.__ALUMNO`, `window.__USUARIO`: miden el avance de cada alumno; sacarlos no da error, **sólo deja de medirse**.
+- `src/Puerta.jsx`, `public/cuenta/` y `firestore.rules`.
 - Contraseñas, claves o datos de alumnos: **nunca** en una respuesta ni en un archivo.
-- El nombre de las declaraciones que están en `areas.json` (el mapa las usa para armar los paquetes). Si agregás o renombrás una, decilo para que se actualice el mapa.
-- **No subas un archivo de más de 400 líneas** ni mezcles dos temas en un archivo: el control de arquitectura lo marca.
+- El nombre de un archivo o de una pieza que usan otras partes (las de `solo-leer/` del .zip). Si hace falta renombrar o agregar uno, decilo para que se actualice el mapa (`areas.json`).
 
-## 7. Lo que el profesor ya decidió
+### Lo que el profesor ya decidió
 
-**Formas recomendadas (9-nov, contestado en su panel):**
-- **Dos por acorde.** *Marcato* (acompañamiento) y *lleno* (para el solo).
-- **Se puede omitir la 5ª.** Ejemplos: **Do △7 = Do2 + Mi4 + Si4**; **Sol 7 = Sol2 + Fa4 + Si4** (bajo abajo y las dos notas guía, 3ª y 7ª, en la octava 4).
-- **Una regla por tipo de acorde, repetida en las doce tonalidades.** Ajustar las reglas que ya existen (`PATRONES_VOZ`, `elegirVoicing`, `voicingsDe`, ahora en `src/shared/bandoneon/voicings.js`), no reescribir.
-- El fuelle: **no son dos fuentes de datos**, es el mismo acorde abriendo o cerrando, y no cambia. Bajo a la izquierda y voces abiertas a la derecha.
-- Dónde viven las formas: en la **base de datos de BandoMaps**, con una pantalla para editarlas (se planea aparte, toca reglas de Firestore).
-
-**El plan de partir `App.jsx` (14-nov):** aprobado por Mauro, **una fase por vez con su OK**. Fase 0 (red de seguridad), fase 1 (lo puro: teoría, audio, estilos, tablas y formas) fase 2 (las piezas con pantalla: piano, círculo, teclado y su editor, cifrado, micrófono, ayudas del Entrenador) fase 3 (las pestañas El Código, Quintas, Modos, Colores, Teoría, Organizador y Mis tareas), fase 4 (el armador de acordes y las pestañas Acorde, Progresión y Biblioteca) y fase 5 (la pestaña Bandoneón) **hechas**. Sigue la fase 6 (el Entrenador). Detalle y estado en `ARQUITECTURA.md`.
-
-## 8. A dónde va tu respuesta
-
-Si subís vos a GitHub, seguí el apartado 2 (para eso hace falta ser colaborador del repositorio). Si no usás GitHub, o querés que lo revise Claude antes, pegala (o subí el archivo) en el panel, en **«Trabajar con una sesión gratuita de Claude»**. **Nada llega al sitio de los alumnos sin que Mauro lo pase del sitio de desarrollo al estable.**
+- **Formas recomendadas:** dos por acorde, *marcato* y *lleno*; se puede omitir la 5ª (Do △7 = Do2 + Mi4 + Si4; Sol 7 = Sol2 + Fa4 + Si4); una regla por tipo de acorde, repetida en las doce tonalidades, ajustando las que ya existen en `voicings.js`.
+- **El fuelle:** el mismo acorde abriendo o cerrando, no cambia (es el mismo aire, inspirando o espirando). Conviene un apartado con recomendaciones para el uso del aire.
+- **El lleno:** bajo a la izquierda y voces abiertas a la derecha.
+- **Dónde viven las formas:** en la base de BandoMaps, con una pantalla para editarlas (se planea aparte).
+- **Lo primero que van a notar los alumnos:** la práctica del día, 5 a 10 minutos con lo que más le sirve a cada uno.
+- **«El Código»:** las dos correcciones al manual esperan que Mariano las vea antes.
+- **Los alumnos pasan a la app con cuenta** cuando esté la pestaña «Alumnos» para seguir su avance.
