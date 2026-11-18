@@ -112,7 +112,7 @@ export function BandoneonTab() {
   // juntas hasta que se sueltan. Acá guardamos los nodos de audio activos por
   // botón (id) en un ref: se crean al presionar y se apagan (con una rampa
   // corta para evitar clicks) al soltar.
-  const { startNote, stopAllNotes, stopNote } = useSonidoBandoneon({  });
+  const { startNote, stopAllNotes, stopNote } = useSonidoBandoneon({ bellows });
 
   // ─── Escucha física: varias notas a la vez, acotadas a lo que el teclado puede producir ───
   const { heardAcorde, heardIdsL, heardIdsR, heardNotas, heardTxt } = useEscuchaBandoneon({ LAT, bellows, getOct, heardMidis, isListening, leftBtns, micExacta, micMano, micModo, micOct, noteIdxB, rightBtns, setErrorAudio, setHeardMidis, setIsListening });
