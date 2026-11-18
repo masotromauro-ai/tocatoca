@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { LAT, nombreLat } from "../../shared/teoria/notas.js";
-import { getCtx, playBandDur } from "../../shared/audio/audio.js";
+import { getCtx, playBandDur, buscarMuestra, fuenteMuestra, precargarMuestras } from "../../shared/audio/audio.js";
 import { RAIZ_NOM, analizarAcorde } from "../../shared/teoria/cifrado.js";
 import { micEstimar, fuenteWorklet } from "../../shared/audio/mic.js";
 
-export function useSonidoBandoneon({  }) {
+export function useSonidoBandoneon({ bellows }) {
   const activeAudioRef = useRef({}); // { [btnId]: {gainMain, oscs[]} }
+  const fuelleRef = useRef(bellows); fuelleRef.current = bellows;   // el fuelle de ahora, sin recrear startNote
+  useEffect(()=>{ precargarMuestras(); },[]);                          // baja las muestras reales una sola vez
   const MIDI_B={C:60,"C#":61,D:62,"D#":63,E:64,F:65,"F#":66,G:67,"G#":68,A:69,"A#":70,B:71};
 
   const startNote = useCallback((id, eng, oct)=>{
@@ -22,7 +24,14 @@ export function useSonidoBandoneon({  }) {
       gainMain.gain.setValueAtTime(0,ctx.currentTime);
       gainMain.gain.linearRampToValueAtTime(1,ctx.currentTime+0.012); // ataque breve, sin click
       gainMain.connect(ctx.destination);
-      // En las notas graves se refuerzan los armónicos para que se oigan también en parlantes chicos
+      // Si la nota tiene muestra real (mano + fuelle + altura), suena esa y se sostiene mientras el botón esté apretado
+      const muestra=buscarMuestra(id.startsWith("L")?"izq":"der",fuelleRef.current,midi);
+      if(muestra){
+        const src=fuenteMuestra(ctx,muestra);src.connect(gainMain);
+        activeAudioRef.current[id]={gainMain,oscs:[src]};
+        return;
+      }
+      // Sin muestra: el sintetizador de siempre. En las notas graves se refuerzan los armónicos para que se oigan también en parlantes chicos
       const grave = freq<140;
       const parciales = grave ? [1,2,3,4,5,6] : [1,2,3];
       const ganancias = grave ? [0.20,0.16,0.12,0.09,0.06,0.04] : [0.22,0.10,0.05];
@@ -161,6 +170,6 @@ export function useMarcasBandoneon({ LAT, bellows, getOct, leftBtns, noteIdxB, r
     }).filter(x=>x&&x.pc>=0);
   },[marksB,bellows,leftBtns,rightBtns,getOct]);
   const markIds=useMemo(()=>marksB.length?Object.fromEntries(marksB.map((id,k)=>[id,k+1])):null,[marksB]);
-  const marcarTecla=(btn)=>{ const note=bellows==="abre"?btn.abre:btn.cierra; playBandDur(note,getOct(btn,bellows),0.6); toggleMark(btn); };
+  const marcarTecla=(btn)=>{ const note=bellows==="abre"?btn.abre:btn.cierra; playBandDur(note,getOct(btn,bellows),0.6,0,null,{mano:btn.id.startsWith("L")?"izq":"der",fuelle:bellows}); toggleMark(btn); };
   return { marcadas, marcar, marcarTecla, markIds, marksB, quitarMark, setMarcar, setMarks, toggleMark };
 }
