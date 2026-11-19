@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { LAT, nombreLat } from "../../shared/teoria/notas.js";
-import { getCtx, playBandDur, buscarMuestra, muestraVale, fuenteMuestra, precargarMuestras } from "../../shared/audio/audio.js";
+import { getCtx, playBandDur, buscarMuestra, muestraVale, muestraPorAltura, desfaseTimbre, fuenteMuestra, precargarMuestras } from "../../shared/audio/audio.js";
 import { RAIZ_NOM, analizarAcorde } from "../../shared/teoria/cifrado.js";
 import { micEstimar, fuenteWorklet } from "../../shared/audio/mic.js";
 
@@ -19,14 +19,15 @@ export function useSonidoBandoneon({ bellows }) {
       if(activeAudioRef.current[id]) return; // ya está sonando (evita doble-disparo)
       // Altura científica: Do4 = 60 (Do central). midi = 12·(octava+1) + semitono
       const midi=(MIDI_B[eng]??60)+(oct-4)*12;
-      const freq=440*Math.pow(2,(midi-69)/12);
+      const freq=440*Math.pow(2,(midi+desfaseTimbre()-69)/12);   // altura real: una octava sobre lo escrito, igual que las muestras
       const gainMain=ctx.createGain();
       gainMain.gain.setValueAtTime(0,ctx.currentTime);
       gainMain.gain.linearRampToValueAtTime(1,ctx.currentTime+0.012); // ataque breve, sin click
       gainMain.connect(ctx.destination);
-      // Si el botón tiene muestra real (mano + fuelle + botón), suena esa y se sostiene mientras el botón esté apretado
-      const muestra=buscarMuestra(id.startsWith("L")?"izq":"der",fuelleRef.current,id);
-      if(muestraVale(muestra,midi)){
+      // Si el botón tiene muestra real (mano + fuelle + botón), suena esa; si no, la más cercana por altura. Se sostiene mientras el botón esté apretado
+      const propia=buscarMuestra(id.startsWith("L")?"izq":"der",fuelleRef.current,id);
+      const muestra=muestraVale(propia,midi)?propia:muestraPorAltura(midi);
+      if(muestra){
         const src=fuenteMuestra(ctx,muestra);src.connect(gainMain);
         activeAudioRef.current[id]={gainMain,oscs:[src]};
         return;
