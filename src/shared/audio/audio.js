@@ -8,15 +8,18 @@ let _ctx=null;
 export const getCtx=()=>{if(!_ctx)try{_ctx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}return _ctx;};
 
 // ─── MUESTRAS REALES (el bandoneón del profesor) ──────────────────────────────
-// Los .wav viven en public/muestras/ con un indice.json que dice, para cada nota, de qué mano y fuelle es
-// y qué tramo se repite para sostenerla. Si a una nota todavía le falta la muestra (o no terminó de cargar),
+// Los .wav viven en public/muestras/ con un indice.json que dice, para cada BOTÓN del teclado (R01, L01…) y fuelle,
+// qué muestra le toca y qué tramo se repite para sostenerla. Se busca por botón y no por el nombre de la octava,
+// así no importa cómo tenga guardadas las octavas cada teclado. Si a una nota todavía le falta la muestra (o no terminó de cargar),
 // suena el sintetizador de siempre: agregar muestras nunca rompe nada.
 const BASE=(import.meta.env&&import.meta.env.BASE_URL)||"/";
-const _muestras=new Map();   // "mano|fuelle|midi" → {buf, loopStart, loopEnd}
+const _muestras=new Map();   // "mano|fuelle|botón" → {buf, loopStart, loopEnd, pc}
 let _carga=null;
 
-export const claveMuestra=(mano,fuelle,midi)=>mano+"|"+fuelle+"|"+midi;
-export const buscarMuestra=(mano,fuelle,midi)=>_muestras.get(claveMuestra(mano,fuelle,midi))||null;
+export const claveMuestra=(mano,fuelle,boton)=>mano+"|"+fuelle+"|"+boton;
+export const buscarMuestra=(mano,fuelle,boton)=>_muestras.get(claveMuestra(mano,fuelle,boton))||null;
+// Control de seguridad: la muestra sólo vale si el botón sigue siendo la misma nota (pc 0–11) que cuando se grabó
+export const muestraVale=(m,midi)=>!!m&&m.pc===((midi%12)+12)%12;
 
 // Baja y decodifica todas las muestras una sola vez (la primera llamada). Nunca lanza error.
 export function precargarMuestras(){
@@ -29,7 +32,7 @@ export function precargarMuestras(){
         try{
           const ab=await (await fetch(BASE+"muestras/"+m.archivo)).arrayBuffer();
           const buf=await ctx.decodeAudioData(ab);
-          _muestras.set(claveMuestra(m.mano,m.fuelle,m.midi),{buf,loopStart:m.loopStart,loopEnd:m.loopEnd});
+          _muestras.set(claveMuestra(m.mano,m.fuelle,m.boton),{buf,loopStart:m.loopStart,loopEnd:m.loopEnd,pc:m.pc});
         }catch(e){}
       }));
     }catch(e){_carga=null;}   // si falló, la próxima vez reintenta; mientras tanto suena el sintetizador
@@ -81,15 +84,15 @@ export const playBand=(noteLat,octave)=>{
 };
 
 // Nota de bandoneón con duración controlada (para escuchar recorridos con una figura y una velocidad)
-// «origen» ({mano:"izq"|"der", fuelle:"abre"|"cierra"}) es opcional: si viene y la nota tiene muestra real, suena esa.
+// «origen» ({mano:"izq"|"der", fuelle:"abre"|"cierra", boton:"R05"}) es opcional: si viene y el botón tiene muestra real, suena esa.
 export const playBandDur=(noteLat,octave,dur,at=0,dest=null,origen=null)=>{
   const eng=LAT[noteLat]||noteLat, d=Math.max(0.08,dur);
   if(origen){
     try{
       const ctx=getCtx();
       const midi=(noteIdx(eng)>=0?60+noteIdx(eng):60)+(octave-4)*12;
-      const m=ctx&&buscarMuestra(origen.mano,origen.fuelle,midi);
-      if(m){
+      const m=ctx&&buscarMuestra(origen.mano,origen.fuelle,origen.boton);
+      if(m&&muestraVale(m,midi)){
         if(ctx.state==="suspended")ctx.resume();
         const t0=ctx.currentTime+at, gain=ctx.createGain();
         gain.gain.setValueAtTime(0.0001,t0);
