@@ -21,12 +21,40 @@ export const buscarMuestra=(mano,fuelle,boton)=>_muestras.get(claveMuestra(mano,
 // Control de seguridad: la muestra sólo vale si el botón sigue siendo la misma nota (pc 0–11) que cuando se grabó
 export const muestraVale=(m,midi)=>!!m&&m.pc===((midi%12)+12)%12;
 
+// ─── TIMBRES: con qué sonido toca la app una nota cuando sólo se sabe su altura (entrenador, acordes, recorridos…) ───
+// «bandoneon» = las muestras reales; «sintetizador» = el sonido electrónico de antes. Para sumar un timbre nuevo (violín, piano)
+// se agrega su id en TIMBRES y su banco en _bancos, y se llena en precargarMuestras().
+export const TIMBRES=["bandoneon","sintetizador"];
+let _timbre="bandoneon";
+export const setTimbre=(t)=>{if(TIMBRES.includes(t))_timbre=t;};
+export const getTimbre=()=>_timbre;
+
+// El bandoneón grabado suena una octava más agudo que como lo escribe el teclado de BandoMaps (el botón La2 suena como el La3
+// del video). Todo lo que se toca por altura suena en altura real, igual que los botones. Con 0 suena tal cual está escrito.
+export const OCTAVA_REAL=12;
+// Cuántos semitonos se permite estirar una muestra para llegar a otra nota; más allá suena el sintetizador.
+export const MAX_TRANSPOSICION=7;
+const _bancos={bandoneon:new Map()};   // timbre → Map(altura real, Do4=60 → muestra)
+
+// Pura: elige la muestra más cercana a la altura pedida (midi como la escribe el teclado) y cuánto estirarla, o null.
+export function elegirMuestraPorAltura(banco,midi,octavaReal=OCTAVA_REAL,maxSemis=MAX_TRANSPOSICION){
+  if(!banco||!banco.size)return null;
+  const real=midi+octavaReal;let mejor=null,dist=Infinity;
+  for(const k of banco.keys()){const d=Math.abs(real-k);if(d<dist||(d===dist&&k<mejor)){dist=d;mejor=k;}}
+  if(mejor===null||dist>maxSemis)return null;
+  const m=banco.get(mejor);
+  return {...m,rate:(m.rate||1)*Math.pow(2,(real-mejor)/12)};
+}
+export const muestraPorAltura=(midi)=>elegirMuestraPorAltura(_bancos[_timbre],midi);
+// Cuánto se sube el sintetizador de reserva para que suene en la misma altura que las muestras
+export const desfaseTimbre=()=>_timbre==="bandoneon"?OCTAVA_REAL:0;
+
 // Baja y decodifica todas las muestras una sola vez (la primera llamada). Nunca lanza error.
 export function precargarMuestras(){
   if(_carga)return _carga;
   _carga=(async()=>{
     try{
-      const ctx=getCtx();if(!ctx||typeof fetch==="undefined")return;
+      const ctx=getCtx();if(!ctx||typeof fetch==="undefined"){_carga=null;return;}
       const idx=await (await fetch(BASE+"muestras/indice.json")).json();
       const bufs=new Map();   // archivo → audio decodificado (varios botones pueden compartir el mismo archivo)
       const bajar=(a)=>{ if(!bufs.has(a))bufs.set(a,fetch(BASE+"muestras/"+a).then(r=>r.arrayBuffer()).then(ab=>ctx.decodeAudioData(ab))); return bufs.get(a); };
@@ -34,6 +62,8 @@ export function precargarMuestras(){
         try{
           const buf=await bajar(m.archivo);
           _muestras.set(claveMuestra(m.mano,m.fuelle,m.boton),{buf,loopStart:m.loopStart,loopEnd:m.loopEnd,pc:m.pc,rate:m.velocidad||1});
+          // Banco por altura: las muestras de la derecha abriendo, tal como se grabaron (sin estirar), para tocar cualquier nota
+          if(m.mano==="der"&&m.fuelle==="abre"&&!m.velocidad&&typeof m.midi_referencia==="number")_bancos.bandoneon.set(m.midi_referencia,{buf,loopStart:m.loopStart,loopEnd:m.loopEnd,pc:m.pc,rate:1});
         }catch(e){}
       }));
     }catch(e){_carga=null;}   // si falló, la próxima vez reintenta; mientras tanto suena el sintetizador
@@ -49,14 +79,38 @@ export function fuenteMuestra(ctx,m,t0=0){
   src.start(t0);return src;
 }
 
+const VOL_NOTA=0.7;   // volumen de una nota suelta por altura (deja margen para acordes de 4 o 5 notas)
+
+// Toca una muestra con la duración pedida: entra rápido, se sostiene y se apaga sin clic
+function tocarMuestraDur(ctx,m,d,at,dest,vol){
+  if(ctx.state==="suspended")ctx.resume();
+  const t0=ctx.currentTime+at, gain=ctx.createGain();
+  gain.gain.setValueAtTime(0.0001,t0);
+  gain.gain.linearRampToValueAtTime(vol,t0+0.015);
+  gain.gain.setValueAtTime(vol,t0+Math.max(0.03,d-0.05));
+  gain.gain.exponentialRampToValueAtTime(0.001,t0+d+0.06);
+  gain.connect(dest||ctx.destination);
+  const src=fuenteMuestra(ctx,m,t0);src.connect(gain);src.stop(t0+d+0.08);
+}
+
+// Toca la nota (midi como la escribe el teclado) con el timbre elegido. Devuelve true si sonó una muestra; si no, suena el sintetizador.
+function tocarPorAltura(midi,d,at,dest){
+  try{
+    const ctx=getCtx();if(!ctx)return false;
+    const m=muestraPorAltura(midi);if(!m)return false;
+    tocarMuestraDur(ctx,m,d,at,dest,VOL_NOTA);return true;
+  }catch(e){return false;}
+}
+
 const MIDI={C:60,"C#":61,"Db":61,D:62,"D#":63,"Eb":63,E:64,F:65,"F#":66,"Gb":66,G:67,"G#":68,"Ab":68,A:69,"A#":70,"Bb":70,B:71};
 
 export const playTone=(note,octave=4,dur=0.7)=>{
   try{
     const ctx=getCtx();if(!ctx)return;
     if(ctx.state==="suspended")ctx.resume();
-    const midi=(noteIdx(note)>=0?60+noteIdx(note):60)+(octave-4)*12;
-    const freq=440*Math.pow(2,(midi-69)/12);
+    const midi0=(noteIdx(note)>=0?60+noteIdx(note):60)+(octave-4)*12;
+    if(tocarPorAltura(midi0,dur,0,null))return;
+    const freq=440*Math.pow(2,(midi0+desfaseTimbre()-69)/12);
     const osc=ctx.createOscillator(),gain=ctx.createGain();
     osc.connect(gain);gain.connect(ctx.destination);
     osc.type="triangle";osc.frequency.value=freq;
@@ -68,11 +122,12 @@ export const playTone=(note,octave=4,dur=0.7)=>{
 
 export const playBand=(noteLat,octave)=>{
   const eng=LAT[noteLat]||noteLat;
+  if(tocarPorAltura((noteIdx(eng)>=0?60+noteIdx(eng):60)+(octave-4)*12,1.0,0,null))return;
   [1,2,3].forEach((h,i)=>{
     try{
       const ctx=getCtx();if(!ctx)return;
       if(ctx.state==="suspended")ctx.resume();
-      const midi=(noteIdx(eng)>=0?60+noteIdx(eng):60)+(octave-4)*12;
+      const midi=(noteIdx(eng)>=0?60+noteIdx(eng):60)+(octave-4)*12+desfaseTimbre();
       const freq=440*Math.pow(2,(midi-69)/12)*h;
       const osc=ctx.createOscillator(),gain=ctx.createGain();
       osc.connect(gain);gain.connect(ctx.destination);
@@ -94,24 +149,15 @@ export const playBandDur=(noteLat,octave,dur,at=0,dest=null,origen=null)=>{
       const ctx=getCtx();
       const midi=(noteIdx(eng)>=0?60+noteIdx(eng):60)+(octave-4)*12;
       const m=ctx&&buscarMuestra(origen.mano,origen.fuelle,origen.boton);
-      if(m&&muestraVale(m,midi)){
-        if(ctx.state==="suspended")ctx.resume();
-        const t0=ctx.currentTime+at, gain=ctx.createGain();
-        gain.gain.setValueAtTime(0.0001,t0);
-        gain.gain.linearRampToValueAtTime(1,t0+0.015);
-        gain.gain.setValueAtTime(1,t0+Math.max(0.03,d-0.05));
-        gain.gain.exponentialRampToValueAtTime(0.001,t0+d+0.06);
-        gain.connect(dest||ctx.destination);
-        const src=fuenteMuestra(ctx,m,t0);src.connect(gain);src.stop(t0+d+0.08);
-        return;
-      }
+      if(m&&muestraVale(m,midi)){tocarMuestraDur(ctx,m,d,at,dest,1);return;}
     }catch(e){}
   }
+  if(tocarPorAltura((noteIdx(eng)>=0?60+noteIdx(eng):60)+(octave-4)*12,d,at,dest))return;
   [1,2,3].forEach((h,i)=>{
     try{
       const ctx=getCtx();if(!ctx)return;
       if(ctx.state==="suspended")ctx.resume();
-      const midi=(noteIdx(eng)>=0?60+noteIdx(eng):60)+(octave-4)*12;
+      const midi=(noteIdx(eng)>=0?60+noteIdx(eng):60)+(octave-4)*12+desfaseTimbre();
       const freq=440*Math.pow(2,(midi-69)/12)*h, t0=ctx.currentTime+at, v=[0.22,0.10,0.05][i];
       const osc=ctx.createOscillator(),gain=ctx.createGain();
       osc.connect(gain);gain.connect(dest||ctx.destination);
@@ -138,3 +184,6 @@ export const playClick=(at=0,acc=false,dest=null)=>{
 };
 
 export const playChord=(notes)=>notes.forEach((n,i)=>setTimeout(()=>playTone(n,4,1.2),i*20));
+
+// La descarga de las muestras arranca sola, en segundo plano, poco después de abrir la app (así la primera nota ya suena real)
+if(typeof window!=="undefined")setTimeout(precargarMuestras,2000);
