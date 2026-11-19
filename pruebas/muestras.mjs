@@ -1,6 +1,6 @@
 // Prueba de las muestras reales del bandoneón (sin navegador ni npm): node pruebas/muestras.mjs
 // Controla que el índice esté bien armado, que cada .wav exista y dure lo que dice, que los bucles caigan dentro
-// de la muestra, y que a cada botón del teclado le corresponda una muestra (lo que falta se informa, no falla).
+// de la muestra, y que a cada botón del teclado (R01…, L01…) le corresponda una muestra, y que siga siendo la misma nota (lo que falta se informa, no falla).
 
 import { readFileSync, existsSync } from "node:fs";
 import { DEFS_L, DEFS_R } from "../src/shared/bandoneon/layouts.js";
@@ -14,10 +14,14 @@ const idx = JSON.parse(readFileSync(new URL("indice.json", carpeta), "utf8"));
 const claves = new Set();
 
 for (const m of idx.muestras) {
-  const c = `${m.mano}|${m.fuelle}|${m.midi}`;
+  const c = `${m.mano}|${m.fuelle}|${m.boton}`;
   if (claves.has(c)) falla(`muestra repetida: ${c}`);
   claves.add(c);
   if (!["izq", "der"].includes(m.mano) || !["abre", "cierra"].includes(m.fuelle)) falla(`${c}: mano o fuelle desconocidos`);
+  const defs = m.mano === "der" ? DEFS_R : DEFS_L;
+  const d = defs.find((x) => x.id === m.boton);
+  if (!d) falla(`${c}: el botón ${m.boton} no existe en el teclado de fábrica`);
+  else if (PC[m.fuelle === "abre" ? d.abre : d.cierra] !== m.pc) falla(`${c}: el botón de fábrica es otra nota (pc ${PC[m.fuelle === "abre" ? d.abre : d.cierra]}, la muestra es pc ${m.pc})`);
   const arch = new URL(m.archivo, carpeta);
   if (!existsSync(arch)) { falla(`${c}: falta el archivo ${m.archivo}`); continue; }
   const b = readFileSync(arch);
@@ -29,15 +33,9 @@ for (const m of idx.muestras) {
   else if (m.loopEnd - m.loopStart < 0.5) falla(`${c}: bucle demasiado corto (se oiría como zumbido)`);
 }
 
-// Cobertura contra el teclado real (Do4 = 60)
-const midiDe = (nota, oct) => 12 * (Number(oct) + 1) + PC[nota];
+// Cobertura contra el teclado de fábrica: cada botón tiene que tener su muestra
 function cobertura(defs, mano, fuelle) {
-  const falta = [];
-  for (const d of defs) {
-    const midi = fuelle === "abre" ? midiDe(d.abre, d.oct_abre) : midiDe(d.cierra, d.oct_cierra);
-    if (!claves.has(`${mano}|${fuelle}|${midi}`)) falta.push(d.id);
-  }
-  return falta;
+  return defs.filter((d) => !claves.has(`${mano}|${fuelle}|${d.id}`)).map((d) => d.id);
 }
 for (const [defs, mano] of [[DEFS_R, "der"], [DEFS_L, "izq"]]) {
   for (const fuelle of ["abre", "cierra"]) {
