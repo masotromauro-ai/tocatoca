@@ -28,11 +28,12 @@ export function precargarMuestras(){
     try{
       const ctx=getCtx();if(!ctx||typeof fetch==="undefined")return;
       const idx=await (await fetch(BASE+"muestras/indice.json")).json();
+      const bufs=new Map();   // archivo → audio decodificado (varios botones pueden compartir el mismo archivo)
+      const bajar=(a)=>{ if(!bufs.has(a))bufs.set(a,fetch(BASE+"muestras/"+a).then(r=>r.arrayBuffer()).then(ab=>ctx.decodeAudioData(ab))); return bufs.get(a); };
       await Promise.all((idx.muestras||[]).map(async m=>{
         try{
-          const ab=await (await fetch(BASE+"muestras/"+m.archivo)).arrayBuffer();
-          const buf=await ctx.decodeAudioData(ab);
-          _muestras.set(claveMuestra(m.mano,m.fuelle,m.boton),{buf,loopStart:m.loopStart,loopEnd:m.loopEnd,pc:m.pc});
+          const buf=await bajar(m.archivo);
+          _muestras.set(claveMuestra(m.mano,m.fuelle,m.boton),{buf,loopStart:m.loopStart,loopEnd:m.loopEnd,pc:m.pc,rate:m.velocidad||1});
         }catch(e){}
       }));
     }catch(e){_carga=null;}   // si falló, la próxima vez reintenta; mientras tanto suena el sintetizador
@@ -43,6 +44,7 @@ export function precargarMuestras(){
 // Fuente de audio lista para una muestra: se repite el tramo del bucle hasta que alguien la detenga.
 export function fuenteMuestra(ctx,m,t0=0){
   const src=ctx.createBufferSource();src.buffer=m.buf;
+  if(m.rate&&m.rate!==1)src.playbackRate.value=m.rate;   // velocidad 0.5 = una octava más grave
   if(m.loopEnd>m.loopStart){src.loop=true;src.loopStart=m.loopStart;src.loopEnd=m.loopEnd;}
   src.start(t0);return src;
 }
