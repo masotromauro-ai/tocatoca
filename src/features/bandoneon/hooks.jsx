@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { LAT, nombreLat } from "../../shared/teoria/notas.js";
-import { getCtx, playBandDur, buscarMuestra, fuenteMuestra, precargarMuestras } from "../../shared/audio/audio.js";
+import { getCtx, playBandDur, buscarMuestra, muestraVale, fuenteMuestra, precargarMuestras } from "../../shared/audio/audio.js";
 import { RAIZ_NOM, analizarAcorde } from "../../shared/teoria/cifrado.js";
 import { micEstimar, fuenteWorklet } from "../../shared/audio/mic.js";
 
@@ -24,9 +24,9 @@ export function useSonidoBandoneon({ bellows }) {
       gainMain.gain.setValueAtTime(0,ctx.currentTime);
       gainMain.gain.linearRampToValueAtTime(1,ctx.currentTime+0.012); // ataque breve, sin click
       gainMain.connect(ctx.destination);
-      // Si la nota tiene muestra real (mano + fuelle + altura), suena esa y se sostiene mientras el botón esté apretado
-      const muestra=buscarMuestra(id.startsWith("L")?"izq":"der",fuelleRef.current,midi);
-      if(muestra){
+      // Si el botón tiene muestra real (mano + fuelle + botón), suena esa y se sostiene mientras el botón esté apretado
+      const muestra=buscarMuestra(id.startsWith("L")?"izq":"der",fuelleRef.current,id);
+      if(muestraVale(muestra,midi)){
         const src=fuenteMuestra(ctx,muestra);src.connect(gainMain);
         activeAudioRef.current[id]={gainMain,oscs:[src]};
         return;
@@ -170,6 +170,6 @@ export function useMarcasBandoneon({ LAT, bellows, getOct, leftBtns, noteIdxB, r
     }).filter(x=>x&&x.pc>=0);
   },[marksB,bellows,leftBtns,rightBtns,getOct]);
   const markIds=useMemo(()=>marksB.length?Object.fromEntries(marksB.map((id,k)=>[id,k+1])):null,[marksB]);
-  const marcarTecla=(btn)=>{ const note=bellows==="abre"?btn.abre:btn.cierra; playBandDur(note,getOct(btn,bellows),0.6,0,null,{mano:btn.id.startsWith("L")?"izq":"der",fuelle:bellows}); toggleMark(btn); };
+  const marcarTecla=(btn)=>{ const note=bellows==="abre"?btn.abre:btn.cierra; playBandDur(note,getOct(btn,bellows),0.6,0,null,{mano:btn.id.startsWith("L")?"izq":"der",fuelle:bellows,boton:btn.id}); toggleMark(btn); };
   return { marcadas, marcar, marcarTecla, markIds, marksB, quitarMark, setMarcar, setMarks, toggleMark };
 }
