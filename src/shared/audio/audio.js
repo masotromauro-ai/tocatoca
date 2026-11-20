@@ -62,8 +62,10 @@ export function precargarMuestras(){
         try{
           const buf=await bajar(m.archivo);
           _muestras.set(claveMuestra(m.mano,m.fuelle,m.boton),{buf,loopStart:m.loopStart,loopEnd:m.loopEnd,pc:m.pc,rate:m.velocidad||1});
-          // Banco por altura: las muestras de la derecha abriendo, tal como se grabaron (sin estirar), para tocar cualquier nota
-          if(m.mano==="der"&&m.fuelle==="abre"&&!m.velocidad&&typeof m.midi_referencia==="number")_bancos.bandoneon.set(m.midi_referencia,{buf,loopStart:m.loopStart,loopEnd:m.loopEnd,pc:m.pc,rate:1});
+          // Banco por altura: las muestras de abriendo, tal como se grabaron (sin estirar), para tocar cualquier nota.
+          // Donde hay las dos manos manda la derecha; la izquierda completa lo grave.
+          if(m.fuelle==="abre"&&!m.velocidad&&typeof m.midi_referencia==="number"&&(m.mano==="der"||!_bancos.bandoneon.has(m.midi_referencia)))
+            _bancos.bandoneon.set(m.midi_referencia,{buf,loopStart:m.loopStart,loopEnd:m.loopEnd,pc:m.pc,rate:1});
         }catch(e){}
       }));
     }catch(e){_carga=null;}   // si falló, la próxima vez reintenta; mientras tanto suena el sintetizador
