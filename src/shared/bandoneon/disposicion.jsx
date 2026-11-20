@@ -10,6 +10,11 @@ import { Nota, NotaDot } from "../ui/teoria/notas.jsx";
 import { BTN_SIZE } from "./layouts.js";
 import { CLAVES } from "../claves.js";
 
+// Un color por función, para distinguir de un vistazo qué es cada grupo de botones
+export const COLORES={ fuelle:"#38bdf8", vista:"#9aa3ad", marcar:"#f472b6", acorde:"#2dd4bf", voicing:"#f5b14c", escuchar:"#a78bfa", mapa:"#60a5fa", teclado:"#9aa3ad" };
+// Pinta de «color» un botón activo; el que no está activo queda como estaba
+export const acento=(estilo,color,on)=>on?{...estilo,background:color+"2b",borderColor:color,color:"#fff"}:estilo;
+
 // El voicing sugerido para el acorde (una sola forma, según con qué mano y de qué manera se quiera tocar) y, plegado,
 // dónde está cada nota del acorde en el teclado. Sin «voz» (otras pantallas) muestra solo dónde está cada nota.
 export function DisponibilidadAcorde({ tones, leftBtns, rightBtns, bellows, voz }){
@@ -17,7 +22,7 @@ export function DisponibilidadAcorde({ tones, leftBtns, rightBtns, bellows, voz 
   const itemsDe={}; cols.forEach(c=>{ itemsDe[c[0]+c[1]]=itemsMano(c[3],c[1]); });
   const sec={fontSize:10,letterSpacing:"0.14em",color:"#8a8a8a",textTransform:"uppercase",marginBottom:8,fontWeight:600,fontFamily:UI_FONT};
   const lbl={fontSize:11,color:"#8a8a8a",marginRight:2};
-  const peq=(on,extra)=>uiPill(on,{padding:"5px 12px",fontSize:12,...extra});
+  const peq=(on,extra)=>acento(uiPill(on,{padding:"5px 12px",fontSize:12,...extra}),COLORES.voicing,on);
   const tabla=(
     <div>
       <div className="overflow-x-auto">
@@ -50,7 +55,7 @@ export function DisponibilidadAcorde({ tones, leftBtns, rightBtns, bellows, voz 
 
   const res=voz.res, ambas=voz.mano==="ambas", forma=voz.forma||"cerrada", nv=res.variantes||1;
   const chip=(n,i)=>(
-    <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,minWidth:58,padding:"6px 6px 5px",borderRadius:10,background:"#0e0e10",border:"1px solid #26262a"}}>
+    <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,minWidth:58,padding:"6px 6px 5px",borderRadius:10,background:"#0e0e10",border:`1px solid ${COLORES.voicing}55`}}>
       <NotaDot note={n.esc} size={30}/>
       <span style={{fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:13,color:"#ececec"}}>{n.nombre}{n.oct}</span>
       <span style={{fontSize:10,color:"#a0a0a6"}}>{n.rol}</span>
@@ -64,8 +69,8 @@ export function DisponibilidadAcorde({ tones, leftBtns, rightBtns, bellows, voz 
     </div>
   ));
   return(
-    <div className="mt-3" style={{borderTop:"1px solid #2a2a2a",paddingTop:10}}>
-      <p style={{...sec,color:"#e6e6e6"}}>Voicing sugerido</p>
+    <div className="mt-3" style={{borderTop:`3px solid ${COLORES.voicing}`,paddingTop:10}}>
+      <p style={{...sec,color:COLORES.voicing}}>● Voicing sugerido</p>
       <div className="flex flex-wrap gap-x-5 gap-y-2 mb-3 items-center">
         <div className="flex flex-wrap gap-1.5 items-center">
           <span style={lbl}>Tocar con</span>
