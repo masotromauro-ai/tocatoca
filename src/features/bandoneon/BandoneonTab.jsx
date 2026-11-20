@@ -1,7 +1,9 @@
 // La pestaña Bandoneón.
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { ArmadorAcordes, armarVoicing, useAcorde } from "../../shared/bandoneon/armador.jsx";
+import { ArmadorAcordes, useAcorde } from "../../shared/bandoneon/armador.jsx";
+import { sugerirVoicing } from "../../shared/bandoneon/acorde.js";
+import { itemsMano } from "../../shared/bandoneon/tablas.js";
 import { ControlesDisposicion, DisponibilidadAcorde, calcAnchos, useAnchoMedido, useDisposicion } from "../../shared/bandoneon/disposicion.jsx";
 import { CHROMATIC, LAT } from "../../shared/teoria/notas.js";
 import { nc } from "../../shared/teoria/color.js";
@@ -112,7 +114,7 @@ export function BandoneonTab() {
   // juntas hasta que se sueltan. Acá guardamos los nodos de audio activos por
   // botón (id) en un ref: se crean al presionar y se apagan (con una rampa
   // corta para evitar clicks) al soltar.
-  const { startNote, stopAllNotes, stopNote } = useSonidoBandoneon({ bellows });
+  const { startNote, stopAllNotes, stopNote } = useSonidoBandoneon({  });
 
   // ─── Escucha física: varias notas a la vez, acotadas a lo que el teclado puede producir ───
   const { heardAcorde, heardIdsL, heardIdsR, heardNotas, heardTxt } = useEscuchaBandoneon({ LAT, bellows, getOct, heardMidis, isListening, leftBtns, micExacta, micMano, micModo, micOct, noteIdxB, rightBtns, setErrorAudio, setHeardMidis, setIsListening });
@@ -173,8 +175,8 @@ export function BandoneonTab() {
   const bothVisible = view==="ambas";
   const [romano,setRomano]=useRomanos();
   const acorde = useAcorde(romano,setRomano);
-  const [vozMano,setVozMano]=useState("izq"), [vozInv,setVozInv]=useState(0), [vozSolo,setVozSolo]=useState(false);
-  const vozRes = useMemo(()=> acorde.open && leftBtns.length ? armarVoicing(vozMano==="izq"?leftBtns:rightBtns, bellows, acorde.tones, vozMano, vozInv) : {notas:[],faltan:[]}, [acorde.open,acorde.key,acorde.romano,leftBtns,rightBtns,bellows,vozMano,vozInv]);
+  const [vozMano,setVozMano]=useState("izq"), [vozForma,setVozForma]=useState("cerrada"), [vozInv,setVozInv]=useState(0), [vozSolo,setVozSolo]=useState(false);
+  const vozRes = useMemo(()=> acorde.open && leftBtns.length ? sugerirVoicing({izq:itemsMano(leftBtns,bellows),der:itemsMano(rightBtns,bellows)}, acorde.tones, {mano:vozMano,forma:vozForma,inv:vozInv}) : {notas:[],faltan:[],opcional:[],variantes:1,forma:"cerrada",texto:""}, [acorde.open,acorde.key,acorde.romano,leftBtns,rightBtns,bellows,vozMano,vozForma,vozInv]);
   const chordIds = (acorde.open && vozSolo) ? Object.fromEntries(vozRes.notas.map(n=>[n.b,n.lab])) : null;
   const chordMap = acorde.open ? acorde.labelByPc : null;
   const canvasMaxWidth = wrapWidth; // cada teclado usa todo el ancho (apilados) para verse lo más grande posible
@@ -188,7 +190,7 @@ export function BandoneonTab() {
   );
 
   const cardS={background:"#121214",border:"1px solid #26262a",borderRadius:12,padding:"12px 14px"};
-  const vozProp={mano:vozMano,setMano:setVozMano,inv:vozInv,setInv:setVozInv,solo:vozSolo,setSolo:setVozSolo,res:vozRes,
+  const vozProp={mano:vozMano,setMano:(m)=>{setVozMano(m);setVozInv(0);if(m!=="ambas")setVozForma("cerrada");},forma:vozForma,setForma:(f)=>{setVozForma(f);setVozInv(0);},inv:vozInv,setInv:setVozInv,solo:vozSolo,setSolo:setVozSolo,res:vozRes,
     onMarcar:()=>setMarks(m=>({...m,[bellows]:vozRes.notas.map(n=>n.b)}))};
 
   const bPM = (<PanelMarcadas marcadas={marcadas} marcar={marcar} onRemove={quitarMark} onClear={()=>setMarks(m=>({...m,[bellows]:[]}))}/>);
