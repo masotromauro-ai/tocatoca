@@ -8,25 +8,26 @@ let fallos = 0;
 const igual = (a, b, msg) => { if (Math.abs(a - b) > 1e-9) { fallos++; console.log(`✗ ${msg}: dio ${a}, esperaba ${b}`); } };
 const sea = (cond, msg) => { if (!cond) { fallos++; console.log("✗ " + msg); } };
 
-// Banco como el real: derecha abriendo, alturas reales 57–95 (el 94 no existe en el teclado)
+// Banco como el real: abriendo, izquierda y derecha juntas, alturas reales 36–95 (el 37 y el 94 no existen en el teclado)
 const banco = new Map();
-for (let m = 57; m <= 95; m++) if (m !== 94) banco.set(m, { id: m, pc: m % 12, rate: 1 });
+for (let m = 36; m <= 95; m++) if (m !== 37 && m !== 94) banco.set(m, { id: m, pc: m % 12, rate: 1 });
 
 sea(OCTAVA_REAL === 12, "la altura real es una octava sobre lo escrito");
 const una = (midi) => elegirMuestraPorAltura(banco, midi);
 
-// Nota escrita La2 (45) → La3 real (57): exacta y sin estirar
-let r = una(45); sea(r && r.id === 57, "La2 usa la muestra 57"); igual(r.rate, 1, "La2 sin estirar");
-// Nota escrita Si5 (83) → Si6 real (95)
+// Nota escrita Do1 (24), la más grave de la izquierda → Do2 real (36): exacta y sin estirar
+let r = una(24); sea(r && r.id === 36, "Do1 usa la muestra 36"); igual(r.rate, 1, "Do1 sin estirar");
+// Nota escrita Si5 (83), la más aguda de la derecha → Si6 real (95)
 r = una(83); sea(r && r.id === 95, "Si5 usa la muestra 95"); igual(r.rate, 1, "Si5 sin estirar");
-// Todas las notas del teclado derecho (45–83, menos La♯5) suenan exactas
-for (let m = 45; m <= 83; m++) { if (m === 82) continue; r = una(m); sea(r && r.id === m + 12 && r.rate === 1, `nota ${m} exacta`); }
-// La♯5 escrita (82) → 94 real, que no se grabó: usa la vecina más grave y la sube un semitono
+// Todas las notas escritas de 24 a 83 suenan exactas, salvo las dos que no existen en el teclado
+for (let m = 24; m <= 83; m++) { if (m === 25 || m === 82) continue; r = una(m); sea(r && r.id === m + 12 && r.rate === 1, `nota ${m} exacta`); }
+// Do♯1 escrita (25) → 37 real, que no existe: usa la vecina más grave y la sube un semitono
+r = una(25); sea(r && r.id === 36, "Do♯1 sale de la 36"); igual(r.rate, Math.pow(2, 1 / 12), "Do♯1 sube un semitono");
+// La♯5 escrita (82) → 94 real, que no existe: usa la 93 y la sube un semitono
 r = una(82); sea(r && r.id === 93, "La♯5 sale de la 93"); igual(r.rate, Math.pow(2, 1 / 12), "La♯5 sube un semitono");
-// Un poco más grave que lo grabado: se estira hacia abajo hasta el límite
-r = una(45 - MAX_TRANSPOSICION); sea(r && r.id === 57, "en el límite grave usa la 57"); igual(r.rate, Math.pow(2, -MAX_TRANSPOSICION / 12), "estirada hacia abajo");
-sea(una(45 - MAX_TRANSPOSICION - 1) === null, "más allá del límite grave no usa muestra (suena el sintetizador)");
-// Un poco más agudo
+// Más grave o más agudo que lo grabado: se estira hasta el límite
+r = una(24 - MAX_TRANSPOSICION); sea(r && r.id === 36, "en el límite grave usa la 36"); igual(r.rate, Math.pow(2, -MAX_TRANSPOSICION / 12), "estirada hacia abajo");
+sea(una(24 - MAX_TRANSPOSICION - 1) === null, "más allá del límite grave no usa muestra (suena el sintetizador)");
 r = una(83 + MAX_TRANSPOSICION); sea(r && r.id === 95, "en el límite agudo usa la 95");
 sea(una(83 + MAX_TRANSPOSICION + 1) === null, "más allá del límite agudo no usa muestra");
 // Si la muestra ya viene con velocidad propia, se multiplica
