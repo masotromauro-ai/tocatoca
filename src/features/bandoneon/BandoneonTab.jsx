@@ -243,9 +243,11 @@ export function BandoneonTab() {
           </details>
   );
   const bKbW = view==="ambas" ? Math.max(an.aL,an.aR) : view==="izquierda" ? an.aL : an.aR;
-  const bSideW = Math.floor((wrapWidth-bKbW-36)/2);
-  const bLateral = !isMobile && !an.fila && bSideW>=220;
-  const bAsideS = {flex:"1 1 0",minWidth:0};
+  // Teclados apilados: el teclado en el medio, a la izquierda Marcadas y Escucha, a la derecha el armador (que se desplaza solo)
+  const bSideT = wrapWidth-bKbW-38, bSideL = Math.floor(bSideT*0.4);
+  const bLateral = !isMobile && !an.fila && bSideT>=500;
+  const bAsideL = {flex:"0 0 auto",width:bSideL,minWidth:0};
+  const bAsideR = {flex:"0 0 auto",width:bSideT-bSideL,minWidth:0,alignSelf:"stretch"};
   // Armador: debajo de los teclados, a todo el ancho; abierto queda fijo abajo de la pantalla (o arriba, si va al costado)
   const bArm = (
     <ArmadorCompacto a={acorde} pegado={bLateral?"arriba":"abajo"}>
@@ -323,7 +325,7 @@ export function BandoneonTab() {
         alignItems: an.fila ? "flex-start" : "center",
         paddingBottom: 8,
       }}>
-        {bLateral && <aside style={bAsideS}><div style={{display:"flex",flexDirection:"column",gap:12}}>{bPM}{bMic}</div></aside>}
+        {bLateral && <aside style={bAsideL}><div style={{display:"flex",flexDirection:"column",gap:12}}>{bPM}{bMic}</div></aside>}
         <div style={bLateral?{display:"flex",flexDirection:disp.invertir?"column-reverse":"column",gap:an.gap,alignItems:"center",width:bKbW,flexShrink:0}:{display:"contents"}}>
         {(view==="ambas"||view==="izquierda")&&(
           <div style={{width: an.aL, flexShrink:0}}>
@@ -352,7 +354,7 @@ export function BandoneonTab() {
           </div>
         )}
         </div>
-        {bLateral && <aside style={{...bAsideS,alignSelf:"stretch"}}>{bArm}</aside>}
+        {bLateral && <aside style={bAsideR}>{bArm}</aside>}
       </div>
 
       {/* Paneles: al costado del teclado si hay lugar; si no, debajo en dos columnas */}
