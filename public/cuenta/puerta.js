@@ -10,7 +10,11 @@
    y la contraseña de /registro.html; el ROL de la ficha decide qué se ve
    (BASE.md, «La migración», paso 5).
    ═══════════════════════════════════════════════════════════ */
-export const VERSION = "puerta-1";
+export const VERSION = "puerta-2";
+
+/** Una solicitud que espera al admin: ficha inactiva con «pidio» y sin rechazar.
+    (Al aprobarla, el admin deja activo=true y pidio vacío.) */
+export const esperando = (ficha) => !!ficha && ficha.activo !== true && !!ficha.pidio && !ficha.rechazado;
 
 /** En qué paso está la persona.
     · cargando      todavía no se sabe
@@ -18,14 +22,15 @@ export const VERSION = "puerta-1";
     · entrar        sin sesión
     · verificar     con sesión pero el mail sin confirmar
     · sin-ficha     mail confirmado y sin ficha: falta pasar por el registro
-    · suspendido    ficha con activo != true
+    · pendiente     pidió acceso con el link de alumnos o de profesores y espera al admin
+    · suspendido    ficha con activo != true (o solicitud rechazada)
     · app           adentro */
 export function fase({ listo, firebase, usuario, verificado, ficha }) {
   if (!listo) return "cargando";
   if (!firebase) return "sin-firebase";
   if (!usuario) return "entrar";
   if (ficha && ficha.activo === true) return "app";
-  if (ficha) return "suspendido";
+  if (ficha) return esperando(ficha) ? "pendiente" : "suspendido";
   if (!verificado) return "verificar";
   return "sin-ficha";
 }
