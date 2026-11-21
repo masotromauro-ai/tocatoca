@@ -161,8 +161,9 @@ export function ArmadorCompacto({ a, pegado=null, children }){
 //   o sexta (Do△7 = Do2 + Mi4 + Si4; Sol7 = Sol2 + Fa4 + Si4); una tríada no repite la fundamental arriba (Do = Do2 + Mi4 + Sol4:
 //   el Do de la octava siguiente es de arpegio, no de acorde). La inversión rota qué nota
 //   del relleno va abajo. Si el teclado no llega, el relleno baja de octava.
-// Ambas manos: el bajo en la izquierda y todo lo demás en la derecha (con 7ª o tensiones, sin la quinta, que queda como
-//   opcional; las tensiones 9, 11 y 13 van arriba de las notas del acorde). Se pasa la mano derecha en «btnsDer».
+// Ambas manos: el bajo en la izquierda y todo lo demás en la derecha, con la misma altura que tiene con la izquierda (si la
+//   derecha no llega, en su octava más baja que sirva). Con 7ª o tensiones, sin la quinta, que queda como opcional; las
+//   tensiones 9, 11 y 13 van arriba de las notas del acorde. Se pasa la mano derecha en «btnsDer».
 // Mano derecha: las notas del acorde en orden ascendente desde el Do3; la inversión rota qué nota va abajo.
 const BAJO_REG=[36,47];   // Do2..Si2: donde prefiere caer el bajo
 const RELLENO_PISO=62;    // Re4: el relleno arranca con la primera nota del acorde que esté a partir de acá
@@ -196,17 +197,30 @@ export function armarVoicing(btns, bellows, tones, mano, inv, btnsDer){
       if(mano==="ambas") anillo=[...anillo.filter(t=>!esTension(t)),...anillo.filter(esTension).sort((x,y)=>(x.iv+(x.up?12:0))-(y.iv+(y.up?12:0)))];   // tensiones arriba
       const k=inv%anillo.length, orden=[...anillo.slice(k),...anillo.slice(0,k)];
       const suelo=bajo?bajo.midi:-1;
-      let mejor=null;
-      for(let j=0;j<4;j++){                         // j = cuántas octavas bajamos si el teclado no llega
-        const desde=RELLENO_PISO+mod12(noteIdx(orden[0].pc)-RELLENO_PISO)-12*j;
-        const notas=[], falta=[]; let prev=Math.max(desde-1,suelo);
-        orden.forEach(t=>{ const hit=occArriba(t.pc).find(i=>i.midi>prev);
-          if(hit){ notas.push(mk(hit,t,t.lab,mano==="ambas"?"der":"izq")); prev=hit.midi; } else falta.push(t.nombre+" ("+t.lab+")"); });
-        const ancho=notas.length?notas[notas.length-1].midi-notas[0].midi:0;
-        const sc=[falta.length,ancho,j];
-        if(!mejor||sc[0]<mejor.sc[0]||(sc[0]===mejor.sc[0]&&(sc[1]<mejor.sc[1]||(sc[1]===mejor.sc[1]&&sc[2]<mejor.sc[2])))) mejor={notas,falta,sc};
+      const colocar=(buscar)=>{                    // el relleno apilado hacia arriba sobre las teclas de «buscar»
+        let mejor=null;
+        for(let j=0;j<4;j++){                       // j = cuántas octavas bajamos si el teclado no llega
+          const desde=RELLENO_PISO+mod12(noteIdx(orden[0].pc)-RELLENO_PISO)-12*j;
+          const puestas=[], falta=[]; let prev=Math.max(desde-1,suelo);
+          orden.forEach(t=>{ const hit=buscar(t.pc).find(i=>i.midi>prev);
+            if(hit){ puestas.push([hit,t]); prev=hit.midi; } else falta.push(t.nombre+" ("+t.lab+")"); });
+          const ancho=puestas.length?puestas[puestas.length-1][0].midi-puestas[0][0].midi:0;
+          const sc=[falta.length,ancho,j];
+          if(!mejor||sc[0]<mejor.sc[0]||(sc[0]===mejor.sc[0]&&(sc[1]<mejor.sc[1]||(sc[1]===mejor.sc[1]&&sc[2]<mejor.sc[2])))) mejor={puestas,falta,sc};
+        }
+        return mejor;
+      };
+      const conIzq=colocar(occ);                    // la altura que tiene cada nota tocando solo con la izquierda
+      if(mano==="izq"){ out.push(...conIzq.puestas.map(([h,t])=>mk(h,t,t.lab,"izq"))); faltan.push(...conIzq.falta); }
+      else {
+        // Ambas: cada nota pasa a la derecha con la MISMA altura que tiene con la izquierda. Si la derecha no llega a esa altura,
+        // va a la octava más baja de la derecha que quede arriba de la nota anterior (la primera octava de la derecha).
+        const objetivo=Object.fromEntries(conIzq.puestas.map(([h,t])=>[t.lab,h.midi]));
+        let prev=suelo;
+        orden.forEach(t=>{ const c=occArriba(t.pc), obj=objetivo[t.lab];
+          const hit=(obj!=null&&c.find(i=>i.midi===obj&&i.midi>prev))||c.find(i=>i.midi>prev);
+          if(hit){ out.push(mk(hit,t,t.lab,"der")); prev=hit.midi; } else faltan.push(t.nombre+" ("+t.lab+")"); });
       }
-      out.push(...mejor.notas); faltan.push(...mejor.falta);
     }
   } else {
     let T=[...tones]; const k=T.length?inv%T.length:0; T=[...T.slice(k),...T.slice(0,k)];
