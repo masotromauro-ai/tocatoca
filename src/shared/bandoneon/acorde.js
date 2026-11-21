@@ -36,13 +36,14 @@ export function calcAcorde(ac,romano){
 // Una sola forma recomendada, según qué quiera tocar la persona: mano izquierda, mano derecha o las dos, cerrada o abierta.
 // Lógica pura (sin pantalla). Las reglas salen de la partitura «Práctica Armónica 1» y de las que ya había definido el profesor:
 //  · Izquierda, cerrada (marcato): el bajo es la fundamental más grave del teclado; arriba, las voces que definen el acorde
-//    (séptima y tercera) juntas, dentro de una zona fija: de Sol2 a Fa3 con el teclado actual. Con 7ª mayor o dominante no va la
-//    quinta; con 7ª menor se la deja. Una tríada lleva quinta y tercera (Do = Do1 + Sol2 + Mi3).
+//    (séptima y tercera) juntas, dentro de una zona fija: de Sol2 a Fa3 con el teclado actual. Con séptima no va la quinta (La m7 =
+//    La1 Sol2 Do3); se puede sumar después, como relleno, en otra forma. Una tríada lleva quinta y tercera (Do = Do1 + Sol2 + Mi3).
+//    El bajo puede ser la fundamental más grave o la de la octava siguiente (La1 o La2). Las extensiones (9, 11, 13) van mejor a la derecha.
 //  · Las dos manos, cerrada: bajo en la izquierda y, en la derecha, tercera y séptima juntas (zona Do3 a Do4). La quinta ♭ de un ø7 es opcional.
 //  · Las dos manos, abierta: bajo y quinta en la izquierda; tercera y séptima en la derecha, en la misma zona que la cerrada.
 //  · Derecha sola: todas las notas del acorde de abajo hacia arriba desde el Do3.
 // Todas las zonas se miden desde el Do más grave de cada teclado, así no dependen de cómo esté numerado.
-export const REGLAS_VOICING = { quintaEnMenor7: true };   // false = como la partitura (Dm7 = solo tercera y séptima)
+export const REGLAS_VOICING = { quintaEnMenor7: false };   // false = como la partitura y como lo definió el profesor (La m7 = La1 Sol2 Do3); true = con la quinta
 
 const NOM_ALT=["Do","Do♯","Re","Re♯","Mi","Fa","Fa♯","Sol","Sol♯","La","La♯","Si"];
 export const nombreAltura=(midi)=>NOM_ALT[((midi%12)+12)%12]+(Math.floor(midi/12)-1);
@@ -62,8 +63,8 @@ export function analizarAcorde(tones){
   return {raiz,terc,quin,sept,ext,color,mantiene,opcional:(hemi&&quin)?quin:null};
 }
 // Voces de arriba, de la más grave a la más aguda, para la izquierda sola
-const ordenIzq=(a)=>{ const q=a.mantiene?[a.quin]:[];
-  return (a.sept?[a.sept,a.terc,...q,...a.ext]:a.color?[a.terc,...q,...a.ext]:[a.quin,a.terc]).filter(Boolean); };
+const ordenIzq=(a,conQuinta=false)=>{ const q=(a.mantiene||conQuinta)&&a.quin?[a.quin]:[];
+  return (a.sept?[a.sept,a.terc,...q]:a.color?[a.terc,...q]:[a.quin,a.terc]).filter(Boolean); };
 // Voces guía para la derecha: tercera y séptima (y extensiones); una tríada lleva tercera y quinta
 const ordenGuia=(a)=>(a.sept?[a.sept,a.terc,...a.ext]:a.color?[a.terc,...a.ext]:[a.terc,a.quin]).filter(Boolean);
 
@@ -104,7 +105,7 @@ export function sugerirVoicing(items,tones,{mano="izq",forma="cerrada",inv=0}={}
   const abierta=mano==="ambas"&&forma==="abierta";
   const mk=(it,t,rol,m)=>({pc:it.pc,oct:it.oct,midi:it.midi,b:it.b.id,esc:t.esc,nombre:t.nombre,lab:t.lab,rol,mano:m});
   const nf=(t)=>`${t.nombre} (${t.lab})`;
-  const opcional=a.opcional&&mano!=="der"?[`${a.opcional.nombre} (${a.opcional.lab})`]:[];
+  const opcional=mano==="der"?[]:[...(a.opcional?[`${a.opcional.nombre} (${a.opcional.lab})`]:[]),...(mano==="izq"?a.ext.map(t=>`${t.nombre} (${t.lab}): va mejor en la derecha`):[])];
   // el bajo: la fundamental más grave, o la de la octava siguiente
   const bajosPosibles=()=>{ const l=teclas(IZQ,a.raiz); if(!l.length) return []; const sig=l.find(i=>i.midi>=l[0].midi+12); return sig?[l[0],sig]:[l[0]]; };
   const unir=(partes)=>partes.filter(Boolean).join(" · ");
@@ -114,12 +115,15 @@ export function sugerirVoicing(items,tones,{mano="izq",forma="cerrada",inv=0}={}
 
   if(mano==="izq"){
     const base=baseDe(IZQ), bs=bajosPosibles(), orden=ordenIzq(a);
-    [[0,""],[1,"más aguda"],[2,"todavía más aguda"]].forEach(([z,dz])=>{
-      (bs.length?bs:[null]).forEach((b,bi)=>{
-        variantes(orden,IZQ,Math.max(base+18+12*z,b?b.midi+1:0),base+30+12*z).forEach((v,vi)=>{
-          cands.push({notas:[...(b?[mk(b,a.raiz,"Bajo","izq")]:[]),...nota(v,"izq")],faltan:[...(b?[]:[`${a.raiz.nombre} (bajo)`]),...v.falta.map(nf)],desc:unir([dz,bi?"bajo una octava arriba":"",vi?"otra inversión":""])});
-        });
+    const hacer=(ord,z,dz,extra)=>(bs.length?bs:[null]).forEach((b,bi)=>{
+      variantes(ord,IZQ,base+18+12*z,base+30+12*z).forEach((v,vi)=>{
+        cands.push({notas:[...(b?[mk(b,a.raiz,"Bajo","izq")]:[]),...nota(v,"izq")],faltan:[...(b?[]:[`${a.raiz.nombre} (bajo)`]),...v.falta.map(nf)],desc:unir([dz,extra,bi?"bajo una octava arriba":"",vi?"otra inversión":""])});
       });
+    });
+    [[0,""],[1,"más aguda"],[2,"todavía más aguda"]].forEach(([z,dz])=>{
+      hacer(orden,z,dz,"");
+      // relleno: la quinta, que la regla deja afuera, se suma en otra forma (las más cercanas primero)
+      if(z===0&&a.quin&&!orden.includes(a.quin)) hacer(ordenIzq(a,true),0,"","con la quinta");
     });
   } else if(mano==="der"){
     const base=baseDe(DER); texto=TEXTO.der;
@@ -149,5 +153,6 @@ export function sugerirVoicing(items,tones,{mano="izq",forma="cerrada",inv=0}={}
   const completas=lista.filter(c=>!c.faltan.length);
   const usar=(completas.length?completas:lista.slice(0,1)).slice(0,MAX_FORMAS);
   const e=usar[((inv%usar.length)+usar.length)%usar.length]||{notas:[],faltan:[],desc:""};
+  e.notas=[...e.notas].sort((x,y)=>(x.mano===y.mano?0:(x.mano==="izq"?-1:1))||x.midi-y.midi);
   return {notas:e.notas,faltan:e.faltan,opcional,variantes:usar.length,forma:abierta?"abierta":"cerrada",texto,desc:e.desc||""};
 }
