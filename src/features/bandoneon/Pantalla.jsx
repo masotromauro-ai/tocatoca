@@ -42,7 +42,7 @@ export function PantallaBandoneon({ barra, notas, teclados, kbRef, paneles }) {
   const act = paneles.find((p) => p.id === tab) || paneles[0];
 
   const bloqueTeclado = (
-    <div ref={bloque} style={{ background: FONDO, border: `1px solid ${BORDE}`, borderRadius: 12, padding: "8px 10px",
+    <div ref={bloque} style={{ background: `linear-gradient(180deg, ${FONDO} 0%, ${FONDO} 84%, transparent 100%)`, borderRadius: 12, padding: "8px 10px 20px",   // sin borde: solo un esfumado abajo
       ...(fijo ? { position: "sticky", top: modo === "compu" ? 8 : 0, zIndex: 20 } : {}) }}>
       {notas}
       <div ref={kbRef}>{teclados}</div>
