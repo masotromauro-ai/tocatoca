@@ -148,15 +148,6 @@ export function ArmadorCompacto({ a, pegado=null, children }){
               <button style={pill(a.romano)} onClick={()=>a.setRomano(true)}>I · III · V</button>
               <button style={pill(!a.romano)} onClick={()=>a.setRomano(false)}>1 · 3 · 5</button>
             </div>
-            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:8}}>
-              {a.tones.map(t=>(
-                <div key={t.pc} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
-                  <div style={{width:34,height:34,borderRadius:9,background:nc(t.pc),border:"2px solid rgba(255,255,255,.2)",display:"flex",alignItems:"center",justifyContent:"center",
-                    color:txtSobre(nc(t.pc)),fontFamily:"serif",fontWeight:900,fontSize:11}}>{t.nombre}</div>
-                  <span style={{fontSize:10,fontFamily:"monospace",color:UI.mute}}>{t.lab}</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       )}
@@ -167,7 +158,8 @@ export function ArmadorCompacto({ a, pegado=null, children }){
 // Voicing recomendado sobre el teclado real (alturas del CSV).
 // Mano izquierda (marcato): BAJO = la fundamental (de preferencia en la octava 2) y, arriba, un RELLENO CERRADO
 //   que arranca cerca del Re4 y se apila hacia arriba sin saltos; la quinta se omite cuando el acorde tiene séptima
-//   o sexta (Do△7 = Do2 + Mi4 + Si4; Sol7 = Sol2 + Fa4 + Si4; Do = Do2 + Mi4 + Sol4 + Do5). La inversión rota qué nota
+//   o sexta (Do△7 = Do2 + Mi4 + Si4; Sol7 = Sol2 + Fa4 + Si4); una tríada no repite la fundamental arriba (Do = Do2 + Mi4 + Sol4:
+//   el Do de la octava siguiente es de arpegio, no de acorde). La inversión rota qué nota
 //   del relleno va abajo. Si el teclado no llega, el relleno baja de octava.
 // Mano derecha: las notas del acorde en orden ascendente desde el Do3; la inversión rota qué nota va abajo.
 const BAJO_REG=[36,47];   // Do2..Si2: donde prefiere caer el bajo
@@ -175,10 +167,10 @@ const RELLENO_PISO=62;    // Re4: el relleno arranca con la primera nota del aco
 const mod12=(n)=>((n%12)+12)%12;
 
 // Las notas que van arriba del bajo en la mano izquierda: con 7ª/6ª/extensiones, sin fundamental y sin quinta justa;
-// en una tríada, 3ª + 5ª + la fundamental arriba (Do = Mi, Sol, Do).
+// en una tríada, solo 3ª + 5ª (Do = Mi, Sol): la fundamental no se repite arriba, eso es de arpegio.
 export const rellenoIzq=(tones)=>{
   const [raiz,...resto]=tones; if(!raiz) return [];
-  return resto.length>=3 ? resto.filter(t=>t.raw!=="5") : [...resto,raiz];   // tríada: cierra con la fundamental arriba
+  return resto.length>=3 ? resto.filter(t=>t.raw!=="5") : resto;
 };
 
 export function armarVoicing(btns, bellows, tones, mano, inv){
