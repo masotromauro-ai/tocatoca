@@ -115,7 +115,7 @@ export function DisponibilidadAcorde({ tones, leftBtns, rightBtns, bellows, voz 
 }
 
 // La forma sugerida, en versión compacta para el armador de la pestaña Bandoneón: es lo primero que se ve;
-// «Ver todas las notas» agrega la tabla con todas las posiciones y muestra todas las notas del acorde en el teclado.
+// «Todas las notas» agrega la tabla con todas las posiciones y muestra todas las notas del acorde en el teclado.
 export function FormaSugerida({ tones, leftBtns, rightBtns, bellows, voz }){
   const res=voz.res, nv=res.variantes||1, k=(voz.inv||0)%nv, vacia=res.notas.length===0;
   const peq=(on,extra)=>acento(uiPill(on,{padding:"4px 11px",fontSize:12,...extra}),COLORES.voicing,on);
@@ -123,7 +123,10 @@ export function FormaSugerida({ tones, leftBtns, rightBtns, bellows, voz }){
   return(
     <div style={{borderLeft:`3px solid ${COLORES.voicing}`,paddingLeft:12}}>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,flexWrap:"wrap",marginBottom:8}}>
-        <p style={{margin:0,fontSize:10,letterSpacing:"0.14em",textTransform:"uppercase",fontWeight:600,fontFamily:UI_FONT,color:COLORES.voicing}}>● Forma sugerida</p>
+        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          <button style={peq(!voz.todas,{padding:"5px 13px"})} onClick={()=>voz.setTodas(false)} title="La forma recomendada, resaltada en el teclado">● Forma sugerida</button>
+          <button style={peq(voz.todas,{padding:"5px 13px"})} onClick={()=>voz.setTodas(true)} title="Todas las notas del acorde en el teclado y dónde está cada una">Todas las notas</button>
+        </div>
         <div style={{display:"flex",gap:6,alignItems:"center"}}>
           <span style={{fontSize:11,color:"#8a8a8a"}}>Tocar con</span>
           {[["izq","Izquierda"],["der","Derecha"]].map(([m,l])=>(<button key={m} style={peq(voz.mano===m)} onClick={()=>{voz.setMano(m);voz.setInv(0);}}>{l}</button>))}
@@ -147,8 +150,6 @@ export function FormaSugerida({ tones, leftBtns, rightBtns, bellows, voz }){
         <button style={uiPlay(false,{padding:"5px 12px"})} onClick={()=>res.notas.forEach((n,i)=>setTimeout(()=>playBand(CHROMATIC[n.pc],n.oct),i*45))}>▶ Tocar esta forma</button>
         {nv>1 && <button style={uiPill(false,{padding:"5px 12px"})} onClick={()=>voz.setInv((k+1)%nv)} title="Cambia qué nota va abajo">Otra forma ▸ ({k+1} de {nv})</button>}
         {!vacia && voz.onMarcar && <button style={uiMarcar(false)} onClick={voz.onMarcar} title="Pasa estas notas a Notas marcadas, para escucharlas y modificarlas sobre el teclado">◎ Marcar estas teclas</button>}
-        <button style={peq(voz.todas,{marginLeft:"auto"})} onClick={()=>voz.setTodas(!voz.todas)}
-          title="Muestra todas las notas del acorde en el teclado y dónde está cada una">{voz.todas?"Ver solo la forma sugerida":"Ver todas las notas"}</button>
       </div>
       {(voz.todas||vacia) && <div style={{marginTop:10,borderTop:"1px solid #1e1e1e",paddingTop:8}}><TablaNotas tones={tones} leftBtns={leftBtns} rightBtns={rightBtns} bellows={bellows}/></div>}
     </div>
