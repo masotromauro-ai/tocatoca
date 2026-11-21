@@ -115,6 +115,9 @@ export function DisponibilidadAcorde({ tones, leftBtns, rightBtns, bellows, voz 
   );
 }
 
+// Color de una nota a partir de su altura (0 a 11). Si falla, un gris: un color nunca debe romper la pantalla.
+const colorNota=(pc)=>{ try{ return nc(CHROMATIC[pc])||"#888"; }catch(e){ return "#888"; } };
+
 // La forma sugerida, en versión compacta para el armador de la pestaña Bandoneón: es lo primero que se ve;
 // «Todas las notas» agrega la tabla con todas las posiciones y muestra todas las notas del acorde en el teclado.
 export function FormaSugerida({ tones, leftBtns, rightBtns, bellows, voz }){
@@ -140,7 +143,7 @@ export function FormaSugerida({ tones, leftBtns, rightBtns, bellows, voz }){
         {res.notas.map((n,i)=>(
           <span key={i} style={{display:"inline-flex",alignItems:"center",gap:4,padding:"1px 8px 1px 5px",borderRadius:8,background:"#0e0e10",border:`1px solid ${COLORES.voicing}55`,
             fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:12,color:"#ececec"}}>
-            <i style={{width:9,height:9,borderRadius:"50%",background:nc(n.pc),display:"inline-block"}}/>{n.nombre}{n.oct}
+            <i style={{width:9,height:9,borderRadius:"50%",background:colorNota(n.pc),display:"inline-block"}}/>{n.nombre}{n.oct}
           </span>
         ))}
         <span style={{display:"inline-flex",flexWrap:"wrap",gap:6,alignItems:"center",marginLeft:"auto"}}>
