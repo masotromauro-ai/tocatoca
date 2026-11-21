@@ -1,6 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // firestore.rules — Reglas de la base de BandoMaps (proyecto tocatoca-621a5).
-// Versión v2 (8-nov-2026): el avance por día (progreso/{uid}/dias) y cada
+// Versión v3 (20-nov-2026): sin invitación, la persona puede dejar una SOLICITUD
+// (ficha inactiva, rol alumno, con lo que pidió en «pidio») que un admin aprueba.
+// v2 (8-nov-2026): el avance por día (progreso/{uid}/dias) y cada
 // docente ve sólo a SUS alumnos (usuarios/{uid}.docente). v1, 7-nov-2026. Sin el UID de Mauro: los administradores entran
 // por invitación, como cualquiera (Mauro: «ambos como administradores»).
 //
@@ -63,6 +65,18 @@ service cloud.firestore {
             && request.resource.data.keys().hasOnly(["nombre", "mail", "rol", "activo", "usuario", "creado"])
             && request.resource.data.rol == get(/databases/$(database)/documents/invitaciones/$(miMail())).data.rol
             && request.resource.data.activo == true
+            && request.resource.data.mail == miMail())
+        // v3: SIN invitación, sólo una solicitud: inactiva, rol alumno y lo que
+        // pidió (alumno | docente). No da ningún acceso hasta que un admin la
+        // apruebe (activo y rol los cambia sólo un admin).
+        || (request.auth.uid == uid
+            && request.auth.token.email_verified == true
+            && !exists(/databases/$(database)/documents/invitaciones/$(miMail()))
+            && request.resource.data.keys().hasOnly(["nombre", "mail", "rol", "activo", "pidio", "creado"])
+            && request.resource.data.nombre is string && request.resource.data.nombre.size() <= 60
+            && request.resource.data.rol == "alumno"
+            && request.resource.data.activo == false
+            && request.resource.data.pidio in ["alumno", "docente"]
             && request.resource.data.mail == miMail());
       // Cada uno cambia sólo su nombre y sus preferencias. Rol, activo,
       // permisos y probador: sólo un admin.
