@@ -1,9 +1,8 @@
 // Dónde cae el acorde en cada mano: disponibilidad, anchos y disposición.
 
-import { Fragment, useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { octLista } from "./armador.jsx";
 import { CHROMATIC } from "../teoria/notas.js";
-import { nc } from "../teoria/color.js";
 import { UI_FONT, uiMarcar, uiPill, uiPlay, uiVista } from "../ui/tema.js";
 import { playBand } from "../audio/audio.js";
 import { itemsMano } from "./tablas.js";
@@ -16,11 +15,15 @@ export const COLORES={ fuelle:"#38bdf8", vista:"#9aa3ad", marcar:"#f472b6", acor
 // Pinta de «color» un botón activo; el que no está activo queda como estaba
 export const acento=(estilo,color,on)=>on?{...estilo,background:color+"2b",borderColor:color,color:"#fff"}:estilo;
 
-// La tabla «dónde está cada nota del acorde» (octavas disponibles en cada mano y sentido del fuelle).
-export function TablaNotas({ tones, leftBtns, rightBtns, bellows }){
+// El voicing sugerido para el acorde (una sola forma, según con qué mano y de qué manera se quiera tocar) y, plegado,
+// dónde está cada nota del acorde en el teclado. Sin «voz» (otras pantallas) muestra solo dónde está cada nota.
+export function DisponibilidadAcorde({ tones, leftBtns, rightBtns, bellows, voz }){
   const cols=[["izq","abre","IZQ ▷",leftBtns],["izq","cierra","IZQ ◁",leftBtns],["der","abre","DER ▷",rightBtns],["der","cierra","DER ◁",rightBtns]];
   const itemsDe={}; cols.forEach(c=>{ itemsDe[c[0]+c[1]]=itemsMano(c[3],c[1]); });
-  return(
+  const sec={fontSize:10,letterSpacing:"0.14em",color:"#8a8a8a",textTransform:"uppercase",marginBottom:8,fontWeight:600,fontFamily:UI_FONT};
+  const lbl={fontSize:11,color:"#8a8a8a",marginRight:2};
+  const peq=(on,extra)=>acento(uiPill(on,{padding:"5px 12px",fontSize:12,...extra}),COLORES.voicing,on);
+  const tabla=(
     <div>
       <div className="overflow-x-auto">
         <table style={{borderCollapse:"collapse",fontSize:12,fontFamily:"monospace",width:"100%"}}>
@@ -43,15 +46,6 @@ export function TablaNotas({ tones, leftBtns, rightBtns, bellows }){
       <p style={{fontSize:10,color:"#555",margin:"6px 0 4px",lineHeight:1.5}}>Los números son las octavas donde existe esa nota (2×3 = dos teclas en la octava 3). Columna clara = fuelle actual.</p>
     </div>
   );
-}
-
-// El voicing sugerido para el acorde (una sola forma, según con qué mano y de qué manera se quiera tocar) y, plegado,
-// dónde está cada nota del acorde en el teclado. Sin «voz» (otras pantallas) muestra solo dónde está cada nota.
-export function DisponibilidadAcorde({ tones, leftBtns, rightBtns, bellows, voz }){
-  const sec={fontSize:10,letterSpacing:"0.14em",color:"#8a8a8a",textTransform:"uppercase",marginBottom:8,fontWeight:600,fontFamily:UI_FONT};
-  const lbl={fontSize:11,color:"#8a8a8a",marginRight:2};
-  const peq=(on,extra)=>acento(uiPill(on,{padding:"5px 12px",fontSize:12,...extra}),COLORES.voicing,on);
-  const tabla=<TablaNotas tones={tones} leftBtns={leftBtns} rightBtns={rightBtns} bellows={bellows}/>;
   if(!voz) return(
     <div className="mt-3" style={{borderTop:"1px solid #2a2a2a",paddingTop:10}}>
       <p style={sec}>Dónde está cada nota (octavas disponibles)</p>
@@ -101,59 +95,17 @@ export function DisponibilidadAcorde({ tones, leftBtns, rightBtns, bellows, voz 
       {res.opcional && res.opcional.length>0 && <p style={{fontSize:11.5,color:"#a0a0a6",margin:"0 0 8px"}}>Opcional: {res.opcional.join(", ")}.</p>}
       <div className="flex flex-wrap gap-1.5 items-center">
         <button style={uiPlay(false,{padding:"6px 14px"})} onClick={()=>res.notas.forEach((n,i)=>setTimeout(()=>playBand(CHROMATIC[n.pc],n.oct),i*45))}>▶ Tocar este voicing</button>
-        {nv>1 && <button style={uiPill(false,{padding:"6px 14px"})} onClick={()=>voz.setInv(((voz.inv||0)+1)%nv)} title="Cambia qué nota va abajo">Otra forma ▸ ({(voz.inv||0)%nv+1} de {nv})</button>}
+        {nv>1 && <button style={uiPill(false,{padding:"6px 14px"})} onClick={()=>voz.setInv(((voz.inv||0)+1)%nv)} title="Otras formas: la otra inversión, el bajo una octava arriba y versiones más agudas">Otra forma ▸ ({(voz.inv||0)%nv+1} de {nv})</button>}
         <button style={uiPill(voz.solo,{padding:"6px 14px"})} onClick={()=>voz.setSolo(!voz.solo)}>{voz.solo?"Mostrando solo estas teclas":"Resaltar solo estas teclas"}</button>
         {voz.onMarcar && res.notas.length>0 && <button style={uiMarcar(false)} onClick={voz.onMarcar} title="Pasa estas notas a Notas marcadas, para escucharlas y modificarlas sobre el teclado">◎ Marcar estas teclas</button>}
       </div>
+      {nv>1 && <p style={{fontSize:11.5,color:COLORES.voicing,margin:"8px 0 0"}}>Forma {(voz.inv||0)%nv+1} de {nv}: {res.desc||"la recomendada"}</p>}
       {res.texto && <p style={{fontSize:10.5,color:"#6a6a70",margin:"8px 0 0",lineHeight:1.5}}>{res.texto}</p>}
 
       <details style={{marginTop:12,borderTop:"1px solid #1e1e1e",paddingTop:8}}>
         <summary style={{cursor:"pointer",fontSize:11,color:"#8a8a8a",letterSpacing:"0.04em"}}>Ver todas las notas del acorde y dónde está cada una</summary>
         <div style={{marginTop:8}}>{tabla}</div>
       </details>
-    </div>
-  );
-}
-
-// Color de una nota a partir de su altura (0 a 11). Si falla, un gris: un color nunca debe romper la pantalla.
-const colorNota=(pc)=>{ try{ return nc(CHROMATIC[pc])||"#888"; }catch(e){ return "#888"; } };
-
-// La forma sugerida, en versión compacta para el armador de la pestaña Bandoneón: es lo primero que se ve;
-// «Todas las notas» agrega la tabla con todas las posiciones y muestra todas las notas del acorde en el teclado.
-export function FormaSugerida({ tones, leftBtns, rightBtns, bellows, voz }){
-  const res=voz.res, nv=res.variantes||1, k=(voz.inv||0)%nv, vacia=res.notas.length===0;
-  const peq=(on,extra)=>acento(uiPill(on,{padding:"4px 11px",fontSize:12,...extra}),COLORES.voicing,on);
-  const aviso={fontSize:11.5,color:"#c9a25a",margin:"0 0 8px"};
-  return(
-    <div style={{borderLeft:`3px solid ${COLORES.voicing}`,paddingLeft:12}}>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"6px 12px",flexWrap:"wrap",marginBottom:6}}>
-        <div style={{display:"flex",gap:6,alignItems:"center"}}>
-          <button style={peq(!voz.todas,{padding:"5px 13px"})} onClick={()=>voz.setTodas(false)} title="La forma recomendada, resaltada en el teclado">● Forma sugerida</button>
-          <button style={peq(voz.todas,{padding:"5px 13px"})} onClick={()=>voz.setTodas(true)} title="Todas las notas del acorde en el teclado y dónde está cada una">Todas las notas</button>
-        </div>
-        <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-          <span style={{fontSize:11,color:"#8a8a8a"}}>Tocar con</span>
-          {[["izq","Izquierda"],["der","Derecha"],["ambas","Ambas"]].map(([m,l])=>(<button key={m} style={peq(voz.mano===m)} title={m==="ambas"?"Bajo en la izquierda; el resto del acorde en la derecha":undefined} onClick={()=>{voz.setMano(m);voz.setInv(0);}}>{l}</button>))}
-        </div>
-      </div>
-      {res.faltan.length>0 && <p style={aviso}>⚠ No hay con este fuelle: {res.faltan.join(", ")}. Probá el otro sentido del fuelle u otra mano.</p>}
-      {vacia && <p style={aviso}>Con este fuelle no hay notas del acorde para armar con esta elección.</p>}
-      <div style={{display:"flex",flexWrap:"wrap",gap:6,alignItems:"center"}}>
-        {res.notas.map((n,i)=>(<Fragment key={i}>
-          {voz.mano==="ambas" && (i===0||n.mano!==res.notas[i-1].mano) && <span style={{fontSize:9.5,letterSpacing:"0.1em",color:"#8a8a8a",textTransform:"uppercase"}}>{n.mano==="izq"?"Izq":"Der"}</span>}
-          <span style={{display:"inline-flex",alignItems:"center",gap:4,padding:"1px 8px 1px 5px",borderRadius:8,background:"#0e0e10",border:`1px solid ${COLORES.voicing}55`,
-            fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:12,color:"#ececec"}}>
-            <i style={{width:9,height:9,borderRadius:"50%",background:colorNota(n.pc),display:"inline-block"}}/>{n.nombre}{n.oct}
-          </span></Fragment>
-        ))}
-        {res.opcional&&res.opcional.length>0 && <span style={{fontSize:11,color:"#8a8a8f"}} title="Se puede sumar, pero no hace falta">opcional: {res.opcional.join(", ")}</span>}
-        <span style={{display:"inline-flex",flexWrap:"wrap",gap:6,alignItems:"center",marginLeft:"auto"}}>
-          <button style={uiPlay(false,{padding:"4px 11px"})} onClick={()=>res.notas.forEach((n,i)=>setTimeout(()=>playBand(CHROMATIC[n.pc],n.oct),i*45))}>▶ Tocar</button>
-          {nv>1 && <button style={uiPill(false,{padding:"4px 11px"})} onClick={()=>voz.setInv((k+1)%nv)} title="Cambia qué nota va abajo">Otra forma ▸ ({k+1} de {nv})</button>}
-          {!vacia && voz.onMarcar && <button style={uiMarcar(false)} onClick={voz.onMarcar} title="Pasa estas notas a Notas marcadas, para escucharlas y modificarlas sobre el teclado">◎ Marcar</button>}
-        </span>
-      </div>
-      {(voz.todas||vacia) && <div style={{marginTop:10,borderTop:"1px solid #1e1e1e",paddingTop:8}}><TablaNotas tones={tones} leftBtns={leftBtns} rightBtns={rightBtns} bellows={bellows}/></div>}
     </div>
   );
 }
