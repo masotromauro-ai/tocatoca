@@ -30,7 +30,7 @@
 <body>
 <main>
   <h1>BandoMaps</h1>
-  <div class="sub">Tu cuenta</div>
+  <div class="sub" id="sub">Tu cuenta</div>
 
   <!-- Crear la cuenta / entrar -->
   <form id="fCuenta">
@@ -49,6 +49,7 @@
     <button id="bCuenta" type="submit">Crear mi cuenta</button>
     <button id="bModo" class="link" type="button">Ya tengo cuenta</button>
     <button id="bOlvide" class="link oculto" type="button">Olvidé mi contraseña</button>
+    <p id="nPedido" class="oculto" style="font-size:13px;color:var(--mu)">Después de registrarte, el administrador tiene que aprobar tu cuenta antes de que puedas entrar. Si te invitaron por mail, entrás directo.</p>
   </form>
 
   <!-- Verificar el mail -->
@@ -61,7 +62,13 @@
 
   <!-- Sin invitación -->
   <section id="sSinInv" class="oculto">
-    <p>Tu cuenta está creada, pero tu mail todavía no tiene una invitación a BandoMaps. Pedísela a tu profesor; cuando la tengas, volvé a esta página.</p>
+    <p>Tu cuenta está creada, pero tu mail todavía no tiene una invitación a BandoMaps. Pedísela a tu profesor, o usá el link de alumno o de profesor que te mandaron. Cuando lo tengas, volvé a esta página.</p>
+  </section>
+
+  <!-- Solicitud enviada, esperando al administrador -->
+  <section id="sPendiente" class="oculto">
+    <p id="pTexto"></p>
+    <p><a href="/" style="display:block;text-align:center;padding:12px;border-radius:10px;border:1px solid var(--line);color:var(--tx);font-weight:600;text-decoration:none">Ir a BandoMaps</a></p>
   </section>
 
   <!-- Listo -->
@@ -78,7 +85,7 @@
 
 <script type="module">
 import { cargarFirebase, auth, db, A, F, VERSION as VI } from "./cuenta/firebase.js";
-import { validar, paso, fichaNueva, causa, limpiarMail, AVISO_SPAM, VERSION as VR } from "./cuenta/registro.js";
+import { validar, paso, fichaNueva, fichaPendiente, rolPedido, NOMBRE_PEDIDO, causa, limpiarMail, AVISO_SPAM, VERSION as VR } from "./cuenta/registro.js";
 
 // El ojo 👁 de las contraseñas: la copia común del panel, diferida y con catch.
 import("https://maurogasta-crypto.github.io/datos/ojos.js").catch(() => {});
@@ -89,9 +96,21 @@ $("vSpam").textContent = AVISO_SPAM;
 let nueva = true, ocupado = false;
 const ROLES = { admin: "administrador", docente: "docente", alumno: "alumno" };
 
+// El link de alumnos (?rol=alumno) o de profesores (?rol=docente). Se guarda en el navegador:
+// después de confirmar el mail la persona vuelve a esta página y ya no trae el ?rol.
+const pedido = (() => {
+  let p = rolPedido(location.search);
+  try { if (p) localStorage.setItem("bm_pedido", p); else p = rolPedido("?rol=" + (localStorage.getItem("bm_pedido") || "")); } catch (e) {}
+  return p;
+})();
+if (pedido) {
+  $("sub").textContent = "Registro de " + NOMBRE_PEDIDO[pedido];
+  $("nPedido").classList.remove("oculto");
+}
+
 const decir = (t, tipo = "") => { $("msg").textContent = t; $("msg").className = "msg " + tipo; };
 const mostrar = (cual) => {
-  for (const id of ["fCuenta", "sVerificar", "sSinInv", "sListo"]) $(id).classList.toggle("oculto", id !== cual);
+  for (const id of ["fCuenta", "sVerificar", "sSinInv", "sPendiente", "sListo"]) $(id).classList.toggle("oculto", id !== cual);
   $("bSalir").classList.toggle("oculto", cual === "fCuenta");
 };
 const modo = (n) => {
@@ -120,15 +139,23 @@ async function evaluar(u) {
     const s = await F.getDoc(F.doc(db, "invitaciones", mail)).catch(() => null);
     invitacion = s && s.exists() ? s.data() : null;
   }
-  const p = paso({ usuario: u, verificado: u.emailVerified, tieneFicha, invitacion });
+  const p = paso({ usuario: u, verificado: u.emailVerified, tieneFicha, invitacion, pedido });
   if (p === "verificar") { $("vMail").textContent = mail; mostrar("sVerificar"); return; }
   if (p === "sin-invitacion") { mostrar("sSinInv"); return; }
-  if (p === "crear-ficha") {
+  if (p === "crear-ficha" || p === "crear-pendiente") {
     const nombre = u.displayName || sessionStorage.getItem("bm_nombre") || "";
-    await F.setDoc(F.doc(db, "usuarios", u.uid), fichaNueva(mail, nombre, invitacion));
+    await F.setDoc(F.doc(db, "usuarios", u.uid), p === "crear-ficha" ? fichaNueva(mail, nombre, invitacion) : fichaPendiente(mail, nombre, pedido));
+    try { localStorage.removeItem("bm_pedido"); } catch (e) {}
   }
   const f = await F.getDoc(F.doc(db, "usuarios", u.uid));
-  const rol = f.exists() ? f.data().rol : "";
+  const d = f.exists() ? f.data() : {};
+  if (d.activo !== true) {   // solicitud esperando al administrador, o cuenta no activa
+    $("pTexto").textContent = d.pidio && !d.rechazado
+      ? `Listo: tu solicitud como ${NOMBRE_PEDIDO[d.pidio] || d.pidio} quedó enviada con ${mail}. Cuando el administrador la apruebe, vas a poder entrar con tu mail y tu contraseña.`
+      : "Tu cuenta no está activa por ahora. Hablalo con el administrador.";
+    mostrar("sPendiente"); decir(""); return;
+  }
+  const rol = d.rol || "";
   $("lTexto").textContent = `Listo: quedaste registrado en BandoMaps como ${ROLES[rol] || rol}, con ${mail}.`
     + (rol === "admin" || rol === "docente" ? "" : " Ya podés cerrar esta página.");
   $("lUsuarios").classList.toggle("oculto", !(rol === "admin" || rol === "docente"));
