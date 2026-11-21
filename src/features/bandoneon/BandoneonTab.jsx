@@ -1,10 +1,10 @@
 // La pestaña Bandoneón.
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { ArmadorCompacto, useAcorde } from "../../shared/bandoneon/armador.jsx";
+import { ArmadorAcordes, useAcorde } from "../../shared/bandoneon/armador.jsx";
 import { sugerirVoicing } from "../../shared/bandoneon/acorde.js";
 import { itemsMano } from "../../shared/bandoneon/tablas.js";
-import { COLORES, ControlesDisposicion, FormaSugerida, acento, calcAnchos, useAnchoMedido, useDisposicion } from "../../shared/bandoneon/disposicion.jsx";
+import { COLORES, ControlesDisposicion, DisponibilidadAcorde, acento, calcAnchos, useAnchoMedido, useDisposicion } from "../../shared/bandoneon/disposicion.jsx";
 import { GrupoColor, PantallaBandoneon } from "./Pantalla.jsx";
 import { CHROMATIC, LAT } from "../../shared/teoria/notas.js";
 import { nc } from "../../shared/teoria/color.js";
@@ -176,9 +176,9 @@ export function BandoneonTab() {
   const bothVisible = view==="ambas";
   const [romano,setRomano]=useRomanos();
   const acorde = useAcorde(romano,setRomano);
-  const [vozMano,setVozMano]=useState("izq"), [vozForma,setVozForma]=useState("cerrada"), [vozInv,setVozInv]=useState(0), [vozTodas,setVozTodas]=useState(false);   // por defecto: la forma sugerida
+  const [vozMano,setVozMano]=useState("izq"), [vozForma,setVozForma]=useState("cerrada"), [vozInv,setVozInv]=useState(0), [vozSolo,setVozSolo]=useState(false);
   const vozRes = useMemo(()=> acorde.open && leftBtns.length ? sugerirVoicing({izq:itemsMano(leftBtns,bellows),der:itemsMano(rightBtns,bellows)}, acorde.tones, {mano:vozMano,forma:vozForma,inv:vozInv}) : {notas:[],faltan:[],opcional:[],variantes:1,forma:"cerrada",texto:""}, [acorde.open,acorde.key,acorde.romano,leftBtns,rightBtns,bellows,vozMano,vozForma,vozInv]);
-  const chordIds = (acorde.open && !vozTodas && vozRes.notas.length) ? Object.fromEntries(vozRes.notas.map(n=>[n.b,n.lab])) : null;   // teclado: solo la forma sugerida, salvo «Todas las notas»
+  const chordIds = (acorde.open && vozSolo) ? Object.fromEntries(vozRes.notas.map(n=>[n.b,n.lab])) : null;
   const chordMap = acorde.open ? acorde.labelByPc : null;
   const canvasMaxWidth = wrapWidth; // cada teclado usa todo el ancho (apilados) para verse lo más grande posible
   const disp = useDisposicion();
@@ -191,7 +191,7 @@ export function BandoneonTab() {
   );
 
   const cardS={background:"#121214",border:"1px solid #26262a",borderRadius:12,padding:"12px 14px"};
-  const vozProp={mano:vozMano,setMano:(m)=>{setVozMano(m);setVozInv(0);if(m!=="ambas")setVozForma("cerrada");},forma:vozForma,setForma:(f)=>{setVozForma(f);setVozInv(0);},inv:vozInv,setInv:setVozInv,todas:vozTodas,setTodas:setVozTodas,res:vozRes,
+  const vozProp={mano:vozMano,setMano:(m)=>{setVozMano(m);setVozInv(0);if(m!=="ambas")setVozForma("cerrada");},forma:vozForma,setForma:(f)=>{setVozForma(f);setVozInv(0);},inv:vozInv,setInv:setVozInv,solo:vozSolo,setSolo:setVozSolo,res:vozRes,
     onMarcar:()=>setMarks(m=>({...m,[bellows]:vozRes.notas.map(n=>n.b)}))};
 
   const bPM = (<PanelMarcadas marcadas={marcadas} marcar={marcar} onRemove={quitarMark} onClear={()=>setMarks(m=>({...m,[bellows]:[]}))}/>);
@@ -237,9 +237,9 @@ export function BandoneonTab() {
             </div>
   );
   const bArm = (
-        <ArmadorCompacto a={acorde}>
-          <FormaSugerida tones={acorde.tones} leftBtns={leftBtns} rightBtns={rightBtns} bellows={bellows} voz={vozProp}/>
-        </ArmadorCompacto>
+        <ArmadorAcordes a={acorde}>
+          <DisponibilidadAcorde tones={acorde.tones} leftBtns={leftBtns} rightBtns={rightBtns} bellows={bellows} voz={vozProp}/>
+        </ArmadorAcordes>
   );
   const bNotas = (
       <div style={{minHeight:40,marginBottom:6}}>
