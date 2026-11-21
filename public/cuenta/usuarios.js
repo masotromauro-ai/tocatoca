@@ -9,11 +9,14 @@
    va a rechazar, y para que nadie se quede afuera por un toque.
    ═══════════════════════════════════════════════════════════ */
 import { limpiarMail } from "./registro.js";
-export const VERSION = "usuarios-2";
+export const VERSION = "usuarios-3";
 
 export const ROLES = ["admin", "docente", "alumno"];
 export const NOMBRE_ROL = { admin: "Administrador", docente: "Docente", alumno: "Alumno" };
 export const LINK_REGISTRO = "https://tocatoca-il7f.vercel.app/registro.html";
+export const LINK_ALUMNOS = LINK_REGISTRO + "?rol=alumno";
+export const LINK_DOCENTES = LINK_REGISTRO + "?rol=docente";
+export const ROLES_APROBACION = ["alumno", "docente"];
 
 /** ¿Puede entrar a esta pantalla? Admin y docente sí; alumno o suspendido, no. */
 export const puedeVer = (yo) => !!yo && yo.activo === true && (yo.rol === "admin" || yo.rol === "docente");
@@ -21,6 +24,16 @@ export const puedeVer = (yo) => !!yo && yo.activo === true && (yo.rol === "admin
 /** ¿Puede cambiarle rol, estado o «probador» a otro? Sólo un admin, y nunca a sí mismo
     (así nadie se saca el acceso de un toque; a otro admin, sí). */
 export const puedeEditar = (yo, otro) => !!yo && yo.rol === "admin" && yo.activo === true && !!otro && otro.id !== yo.id;
+
+/** Una solicitud que espera aprobación (vino por el link de alumnos o de profesores). */
+export const esPendiente = (u) => !!u && u.activo !== true && !!u.pidio && !u.rechazado;
+
+/** ¿Puede aprobar o rechazar solicitudes? Sólo un admin activo (lo exigen las reglas). */
+export const puedeAprobar = (yo) => !!yo && yo.rol === "admin" && yo.activo === true;
+
+/** Los cambios de la ficha al aprobar (con el rol elegido) o rechazar. */
+export const aprobacion = (rol) => ({ activo: true, rol: ROLES_APROBACION.includes(rol) ? rol : "alumno", pidio: "" });
+export const rechazo = () => ({ rechazado: true });
 
 /** Los roles que yo puedo dar en una invitación. */
 export const rolesQueInvita = (yo) => (!yo ? [] : yo.rol === "admin" ? ROLES : yo.rol === "docente" ? ["alumno"] : []);
@@ -36,7 +49,8 @@ export function validarInvitacion({ mail, rol, usuario }, yo, usuarios = [], inv
   const m = limpiarMail(mail);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m)) return "Revisá el mail: no parece una dirección válida.";
   if (!rolesQueInvita(yo).includes(rol)) return yo && yo.rol === "docente" ? "Un docente invita sólo alumnos." : "No podés invitar con ese rol.";
-  if (usuarios.some((u) => limpiarMail(u.mail) === m)) return "Esa persona ya tiene cuenta: cambiale el rol en la lista de abajo.";
+  const ya = usuarios.find((u) => limpiarMail(u.mail) === m);
+  if (ya) return esPendiente(ya) ? "Esa persona ya pidió acceso: aprobala en «Esperando aprobación»." : "Esa persona ya tiene cuenta: cambiale el rol en la lista de abajo.";
   if (invitaciones.some((i) => i.id === m)) return "Ya hay una invitación para ese mail.";
   if (usuario && !/^[A-Za-z0-9._-]{2,30}$/.test(String(usuario).trim())) return "El usuario viejo va sin espacios (letras, números, punto, guion).";
   return "";
@@ -66,6 +80,16 @@ export function mensajeInvitacion(mail, rol) {
   const r = (NOMBRE_ROL[rol] || rol).toLowerCase();
   return `Hola! Te invitamos a BandoMaps como ${r}. Registrate en ${LINK_REGISTRO} con este mail: ${limpiarMail(mail)}. `
     + `Elegí una contraseña y confirmá el mail con el enlace que te llega (si no lo ves, buscalo en Spam).`;
+}
+
+/** El mensaje con el link abierto (sin invitación por mail): la persona se registra sola
+    y queda esperando que un admin la apruebe. */
+export function mensajeLink(rol) {
+  const quien = rol === "docente" ? "profesor" : "alumno";
+  const link = rol === "docente" ? LINK_DOCENTES : LINK_ALUMNOS;
+  return `Hola! Te invitamos a BandoMaps como ${quien}. Registrate desde este link:\n${link}\n\n`
+    + `Poné tu nombre, tu mail y una contraseña, y confirmá el mail con el enlace que te llega (si no lo ves, buscalo en Spam). `
+    + `Después tengo que aprobar tu cuenta, y ahí ya vas a poder entrar.`;
 }
 
 /** «Invitar varios» (usuarios-2, 8-nov-2026): una persona por renglón,
