@@ -6,7 +6,7 @@
    sigue, qué dice un error, qué ficha se crea) vive acá y lo prueba
    pruebas/registro.mjs con node a secas.
    ═══════════════════════════════════════════════════════════ */
-export const VERSION = "registro-3";
+export const VERSION = "registro-4";
 
 /** El mail de Firebase suele caer en SPAM (pasó con el de Mauro, 7-nov-2026):
     se dice a la vista cada vez que se manda uno. */
@@ -15,6 +15,14 @@ export const AVISO_SPAM = "Muchas veces llega a la carpeta de Spam o Correo no d
   + "de " + REMITENTE + ". Si está en Spam, marcalo como «No es spam» y tocá el enlace desde ahí.";
 
 export const limpiarMail = (m) => String(m || "").trim().toLowerCase();
+
+/** Los links de registro abierto: /registro.html?rol=alumno y ?rol=docente.
+    Devuelve "alumno", "docente" o "" (sin link de rol: se necesita invitación). */
+export function rolPedido(busqueda) {
+  const r = new URLSearchParams(String(busqueda || "")).get("rol");
+  return r === "alumno" || r === "docente" ? r : "";
+}
+export const NOMBRE_PEDIDO = { alumno: "alumno", docente: "profesor" };
 
 /** Lo que falta o está mal antes de crear la cuenta; "" si está todo bien. */
 export function validar({ mail, clave, clave2, nombre }, nueva = true) {
@@ -29,12 +37,13 @@ export function validar({ mail, clave, clave2, nombre }, nueva = true) {
 }
 
 /** En qué paso está la persona. */
-export function paso({ usuario, verificado, tieneFicha, invitacion }) {
+export function paso({ usuario, verificado, tieneFicha, invitacion, pedido }) {
   if (!usuario) return "entrar";
   if (tieneFicha) return "listo";
   if (!verificado) return "verificar";
-  if (!invitacion) return "sin-invitacion";
-  return "crear-ficha";
+  if (invitacion) return "crear-ficha";            // la invitación ya es la aprobación
+  if (pedido) return "crear-pendiente";            // vino por el link de alumnos o de profesores
+  return "sin-invitacion";
 }
 
 /** La ficha que crea la propia persona: exactamente lo que dejan las reglas. */
@@ -43,6 +52,13 @@ export function fichaNueva(mail, nombre, invitacion) {
     mail: limpiarMail(mail), rol: invitacion.rol, activo: true, creado: Date.now() };
   if (invitacion.usuario) f.usuario = String(invitacion.usuario);
   return f;
+}
+
+/** La solicitud que crea quien entra por un link sin invitación: inactiva, rol alumno,
+    y lo que pidió. Un admin la aprueba (activo=true y el rol que corresponda). */
+export function fichaPendiente(mail, nombre, pedido) {
+  return { nombre: String(nombre || "").trim().slice(0, 60) || limpiarMail(mail).split("@")[0],
+    mail: limpiarMail(mail), rol: "alumno", activo: false, pidio: pedido === "docente" ? "docente" : "alumno", creado: Date.now() };
 }
 
 const CAUSAS = {
