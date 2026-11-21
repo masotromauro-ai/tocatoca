@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { octLista } from "./armador.jsx";
 import { CHROMATIC } from "../teoria/notas.js";
+import { nc } from "../teoria/color.js";
 import { UI_FONT, uiMarcar, uiPill, uiPlay, uiVista } from "../ui/tema.js";
 import { playBand } from "../audio/audio.js";
 import { itemsMano } from "./tablas.js";
@@ -122,34 +123,31 @@ export function FormaSugerida({ tones, leftBtns, rightBtns, bellows, voz }){
   const aviso={fontSize:11.5,color:"#c9a25a",margin:"0 0 8px"};
   return(
     <div style={{borderLeft:`3px solid ${COLORES.voicing}`,paddingLeft:12}}>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,flexWrap:"wrap",marginBottom:8}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:"6px 12px",flexWrap:"wrap",marginBottom:6}}>
         <div style={{display:"flex",gap:6,alignItems:"center"}}>
           <button style={peq(!voz.todas,{padding:"5px 13px"})} onClick={()=>voz.setTodas(false)} title="La forma recomendada, resaltada en el teclado">● Forma sugerida</button>
           <button style={peq(voz.todas,{padding:"5px 13px"})} onClick={()=>voz.setTodas(true)} title="Todas las notas del acorde en el teclado y dónde está cada una">Todas las notas</button>
         </div>
-        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+        <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
           <span style={{fontSize:11,color:"#8a8a8a"}}>Tocar con</span>
           {[["izq","Izquierda"],["der","Derecha"]].map(([m,l])=>(<button key={m} style={peq(voz.mano===m)} onClick={()=>{voz.setMano(m);voz.setInv(0);}}>{l}</button>))}
+          <button style={peq(false,{opacity:0.4,cursor:"not-allowed"})} disabled title="Próximamente: forma sugerida para las dos manos">Ambas</button>
         </div>
       </div>
-      {vacia ? <p style={aviso}>Con este fuelle no hay notas del acorde para armar con esta elección.</p> : (
-        <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:8}}>
-          {res.notas.map((n,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",gap:6,padding:"4px 9px 4px 5px",borderRadius:10,background:"#0e0e10",border:`1px solid ${COLORES.voicing}55`}}>
-              <NotaDot note={n.esc} size={24}/>
-              <div style={{lineHeight:1.15}}>
-                <div style={{fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:13,color:"#ececec"}}>{n.nombre}{n.oct}</div>
-                <div style={{fontSize:9.5,color:"#8a8a8f"}}>{n.rol} · {n.b}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
       {res.faltan.length>0 && <p style={aviso}>⚠ No hay con este fuelle: {res.faltan.join(", ")}. Probá el otro sentido del fuelle u otra mano.</p>}
+      {vacia && <p style={aviso}>Con este fuelle no hay notas del acorde para armar con esta elección.</p>}
       <div style={{display:"flex",flexWrap:"wrap",gap:6,alignItems:"center"}}>
-        <button style={uiPlay(false,{padding:"5px 12px"})} onClick={()=>res.notas.forEach((n,i)=>setTimeout(()=>playBand(CHROMATIC[n.pc],n.oct),i*45))}>▶ Tocar esta forma</button>
-        {nv>1 && <button style={uiPill(false,{padding:"5px 12px"})} onClick={()=>voz.setInv((k+1)%nv)} title="Cambia qué nota va abajo">Otra forma ▸ ({k+1} de {nv})</button>}
-        {!vacia && voz.onMarcar && <button style={uiMarcar(false)} onClick={voz.onMarcar} title="Pasa estas notas a Notas marcadas, para escucharlas y modificarlas sobre el teclado">◎ Marcar estas teclas</button>}
+        {res.notas.map((n,i)=>(
+          <span key={i} style={{display:"inline-flex",alignItems:"center",gap:4,padding:"1px 8px 1px 5px",borderRadius:8,background:"#0e0e10",border:`1px solid ${COLORES.voicing}55`,
+            fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:12,color:"#ececec"}}>
+            <i style={{width:9,height:9,borderRadius:"50%",background:nc(n.pc),display:"inline-block"}}/>{n.nombre}{n.oct}
+          </span>
+        ))}
+        <span style={{display:"inline-flex",flexWrap:"wrap",gap:6,alignItems:"center",marginLeft:"auto"}}>
+          <button style={uiPlay(false,{padding:"4px 11px"})} onClick={()=>res.notas.forEach((n,i)=>setTimeout(()=>playBand(CHROMATIC[n.pc],n.oct),i*45))}>▶ Tocar</button>
+          {nv>1 && <button style={uiPill(false,{padding:"4px 11px"})} onClick={()=>voz.setInv((k+1)%nv)} title="Cambia qué nota va abajo">Otra forma ▸ ({k+1} de {nv})</button>}
+          {!vacia && voz.onMarcar && <button style={uiMarcar(false)} onClick={voz.onMarcar} title="Pasa estas notas a Notas marcadas, para escucharlas y modificarlas sobre el teclado">◎ Marcar</button>}
+        </span>
       </div>
       {(voz.todas||vacia) && <div style={{marginTop:10,borderTop:"1px solid #1e1e1e",paddingTop:8}}><TablaNotas tones={tones} leftBtns={leftBtns} rightBtns={rightBtns} bellows={bellows}/></div>}
     </div>
