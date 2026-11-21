@@ -39,7 +39,7 @@ export function calcAcorde(ac,romano){
 //    (séptima y tercera) juntas, dentro de una zona fija: de Sol2 a Fa3 con el teclado actual. Con 7ª mayor o dominante no va la
 //    quinta; con 7ª menor se la deja. Una tríada lleva quinta y tercera (Do = Do1 + Sol2 + Mi3).
 //  · Las dos manos, cerrada: bajo en la izquierda y, en la derecha, tercera y séptima juntas (zona Do3 a Do4). La quinta ♭ de un ø7 es opcional.
-//  · Las dos manos, abierta: bajo y quinta en la izquierda; tercera y séptima en la derecha, por encima de la octava del bajo.
+//  · Las dos manos, abierta: bajo y quinta en la izquierda; tercera y séptima en la derecha, en la misma zona que la cerrada.
 //  · Derecha sola: todas las notas del acorde de abajo hacia arriba desde el Do3.
 // Todas las zonas se miden desde el Do más grave de cada teclado, así no dependen de cómo esté numerado.
 export const REGLAS_VOICING = { quintaEnMenor7: true };   // false = como la partitura (Dm7 = solo tercera y séptima)
@@ -88,35 +88,66 @@ const TEXTO={
   izq:"Mano izquierda (marcato): abajo la fundamental más grave y arriba las notas que definen el acorde, juntas. Con 7ª mayor o dominante no lleva quinta.",
   der:"Mano derecha: todas las notas del acorde, de abajo hacia arriba desde el Do3.",
   ambasC:"Las dos manos: la izquierda toca el bajo y la derecha la tercera y la séptima, juntas.",
-  ambasA:"Las dos manos, abierto: la izquierda toca el bajo y la quinta; la derecha, la tercera y la séptima, por encima de la octava del bajo.",
+  ambasA:"Las dos manos, abierto: la izquierda toca el bajo y la quinta; la derecha, la tercera y la séptima, en la misma zona (Do3 a Do4).",
 };
 
+const MAX_FORMAS=12;
+const firma=(c)=>c.notas.map(n=>n.b).sort().join("|");
+
 // items: {izq:[{b,pc,oct,midi}], der:[…]} (lo que da itemsMano) · tones: lo que da calcAcorde · opc: {mano:"izq"|"der"|"ambas", forma:"cerrada"|"abierta", inv}
+// «inv» elige entre las formas posibles; la 0 es la recomendada. Después vienen, por orden: la otra inversión, el bajo una octava arriba
+// y las versiones más agudas (siguiendo la misma lógica, mientras el teclado tenga las notas).
 export function sugerirVoicing(items,tones,{mano="izq",forma="cerrada",inv=0}={}){
-  const vacio={notas:[],faltan:[],opcional:[],variantes:1,forma:"cerrada",texto:""};
+  const vacio={notas:[],faltan:[],opcional:[],variantes:1,forma:"cerrada",texto:"",desc:""};
   const IZQ=items.izq||[], DER=items.der||[], a=analizarAcorde(tones);
   if(!a.raiz||(mano!=="der"&&!IZQ.length)||(mano!=="izq"&&!DER.length)) return vacio;
   const abierta=mano==="ambas"&&forma==="abierta";
   const mk=(it,t,rol,m)=>({pc:it.pc,oct:it.oct,midi:it.midi,b:it.b.id,esc:t.esc,nombre:t.nombre,lab:t.lab,rol,mano:m});
-  const notas=[],faltan=[]; let nv=1, texto=TEXTO.izq;
+  const nf=(t)=>`${t.nombre} (${t.lab})`;
   const opcional=a.opcional&&mano!=="der"?[`${a.opcional.nombre} (${a.opcional.lab})`]:[];
-  let bajo=null;
-  if(mano!=="der"){
-    bajo=teclas(IZQ,a.raiz)[0];
-    if(bajo) notas.push(mk(bajo,a.raiz,"Bajo","izq")); else faltan.push(`${a.raiz.nombre} (bajo)`);
-  }
-  if(mano==="izq"){
-    const base=baseDe(IZQ), vs=variantes(ordenIzq(a),IZQ,Math.max(base+18,bajo?bajo.midi+1:0),base+30), v=vs[inv%vs.length];
-    v.notas.forEach(x=>notas.push(mk(x.it,x.t,x.t.lab,"izq"))); v.falta.forEach(t=>faltan.push(`${t.nombre} (${t.lab})`)); nv=vs.length;
-  } else if(mano==="der"){
-    const base=baseDe(DER), vs=variantes(tones,DER,base+12,base+24,false), v=vs[inv%vs.length];
-    v.notas.forEach(x=>notas.push(mk(x.it,x.t,x.t.lab,"der"))); v.falta.forEach(t=>faltan.push(`${t.nombre} (${t.lab})`)); nv=vs.length; texto=TEXTO.der;
-  } else {
-    if(abierta&&a.quin&&bajo){ const q=teclas(IZQ,a.quin).find(i=>i.midi>bajo.midi); if(q) notas.push(mk(q,a.quin,a.quin.lab,"izq")); else faltan.push(`${a.quin.nombre} (${a.quin.lab})`); }
-    const base=baseDe(DER), suelo=abierta?Math.max(base+12,(bajo?bajo.midi:0)+12):base+12, vs=variantes(ordenGuia(a),DER,suelo,abierta?base+30:base+24), v=vs[inv%vs.length];
-    v.notas.forEach(x=>notas.push(mk(x.it,x.t,x.t.lab,"der"))); v.falta.forEach(t=>faltan.push(`${t.nombre} (${t.lab})`)); nv=vs.length;
-    texto=abierta?TEXTO.ambasA:TEXTO.ambasC;
-  }
-  return {notas,faltan,opcional,variantes:nv,forma:abierta?"abierta":"cerrada",texto};
-}
+  // el bajo: la fundamental más grave, o la de la octava siguiente
+  const bajosPosibles=()=>{ const l=teclas(IZQ,a.raiz); if(!l.length) return []; const sig=l.find(i=>i.midi>=l[0].midi+12); return sig?[l[0],sig]:[l[0]]; };
+  const unir=(partes)=>partes.filter(Boolean).join(" · ");
+  const cands=[];
+  const nota=(v,m)=>v.notas.map(x=>mk(x.it,x.t,x.t.lab,m));
+  let texto=TEXTO.izq;
 
+  if(mano==="izq"){
+    const base=baseDe(IZQ), bs=bajosPosibles(), orden=ordenIzq(a);
+    [[0,""],[1,"más aguda"],[2,"todavía más aguda"]].forEach(([z,dz])=>{
+      (bs.length?bs:[null]).forEach((b,bi)=>{
+        variantes(orden,IZQ,Math.max(base+18+12*z,b?b.midi+1:0),base+30+12*z).forEach((v,vi)=>{
+          cands.push({notas:[...(b?[mk(b,a.raiz,"Bajo","izq")]:[]),...nota(v,"izq")],faltan:[...(b?[]:[`${a.raiz.nombre} (bajo)`]),...v.falta.map(nf)],desc:unir([dz,bi?"bajo una octava arriba":"",vi?"otra inversión":""])});
+        });
+      });
+    });
+  } else if(mano==="der"){
+    const base=baseDe(DER); texto=TEXTO.der;
+    [[12,""],[24,"más aguda"],[36,"todavía más aguda"]].forEach(([d,dz])=>{
+      variantes(tones,DER,base+d,base+d+12,false).forEach((v,vi)=>{
+        cands.push({notas:nota(v,"der"),faltan:v.falta.map(nf),desc:unir([dz,vi?"otra inversión":""])});
+      });
+    });
+  } else {
+    const base=baseDe(DER), bs=bajosPosibles(); texto=abierta?TEXTO.ambasA:TEXTO.ambasC;
+    (bs.length?bs:[null]).forEach((b,bi)=>{
+      const izqNotas=[...(b?[mk(b,a.raiz,"Bajo","izq")]:[])], izqFalta=b?[]:[`${a.raiz.nombre} (bajo)`];
+      if(abierta&&a.quin&&b){ const q=teclas(IZQ,a.quin).find(i=>i.midi>b.midi); if(q) izqNotas.push(mk(q,a.quin,a.quin.lab,"izq")); else izqFalta.push(nf(a.quin)); }
+      // la derecha usa la misma zona (Do3 a Do4) en la cerrada y en la abierta: no se va una octava arriba; lo más agudo viene después, en las otras formas
+      const pisos=[[base+12,base+24,""],[base+9,base+24,"con una nota más grave"],[base+24,base+36,"más aguda"],[base+36,base+48,"todavía más aguda"]];
+      pisos.forEach(([suelo,tope,dz],pi)=>{
+        variantes(ordenGuia(a),DER,suelo,tope).forEach((v,vi)=>{
+          cands.push({notas:[...izqNotas,...nota(v,"der")],faltan:[...izqFalta,...v.falta.map(nf)],desc:unir([dz,bi?"bajo una octava arriba":"",vi?"otra inversión":""]),orden:[pi<=1?0:1,bi,vi,pi]});
+        });
+      });
+    });
+    // primero lo recomendado: con el bajo grave, las inversiones cercanas; después con el bajo una octava arriba; al final, las zonas más agudas (de a una octava)
+    cands.sort((x,y)=>x.orden[0]-y.orden[0]||x.orden[1]-y.orden[1]||(x.orden[0]===0?(x.orden[2]-y.orden[2]||x.orden[3]-y.orden[3]):(x.orden[3]-y.orden[3]||x.orden[2]-y.orden[2])));
+  }
+  const vistos=new Set(), lista=[];
+  cands.forEach(c=>{ const f=firma(c); if(!vistos.has(f)){ vistos.add(f); lista.push(c); } });
+  const completas=lista.filter(c=>!c.faltan.length);
+  const usar=(completas.length?completas:lista.slice(0,1)).slice(0,MAX_FORMAS);
+  const e=usar[((inv%usar.length)+usar.length)%usar.length]||{notas:[],faltan:[],desc:""};
+  return {notas:e.notas,faltan:e.faltan,opcional,variantes:usar.length,forma:abierta?"abierta":"cerrada",texto,desc:e.desc||""};
+}
