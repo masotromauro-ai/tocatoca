@@ -1,10 +1,10 @@
 // La pestaña Bandoneón.
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { ArmadorAcordes, useAcorde } from "../../shared/bandoneon/armador.jsx";
+import { ArmadorCompacto, useAcorde } from "../../shared/bandoneon/armador.jsx";
 import { sugerirVoicing } from "../../shared/bandoneon/acorde.js";
 import { itemsMano } from "../../shared/bandoneon/tablas.js";
-import { COLORES, ControlesDisposicion, DisponibilidadAcorde, acento, calcAnchos, useAnchoMedido, useDisposicion } from "../../shared/bandoneon/disposicion.jsx";
+import { COLORES, ControlesDisposicion, FormaSugerida, acento, calcAnchos, useAnchoMedido, useDisposicion } from "../../shared/bandoneon/disposicion.jsx";
 import { GrupoColor, PantallaBandoneon } from "./Pantalla.jsx";
 import { CHROMATIC, LAT } from "../../shared/teoria/notas.js";
 import { nc } from "../../shared/teoria/color.js";
@@ -237,9 +237,9 @@ export function BandoneonTab() {
             </div>
   );
   const bArm = (
-        <ArmadorAcordes a={acorde}>
-          <DisponibilidadAcorde tones={acorde.tones} leftBtns={leftBtns} rightBtns={rightBtns} bellows={bellows} voz={vozProp}/>
-        </ArmadorAcordes>
+        <ArmadorCompacto a={acorde}>
+          <FormaSugerida tones={acorde.tones} leftBtns={leftBtns} rightBtns={rightBtns} bellows={bellows} voz={vozProp}/>
+        </ArmadorCompacto>
   );
   const bNotas = (
       <div style={{minHeight:40,marginBottom:6}}>
