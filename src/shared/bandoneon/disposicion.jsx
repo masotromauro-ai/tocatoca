@@ -1,6 +1,6 @@
 // Dónde cae el acorde en cada mano: disponibilidad, anchos y disposición.
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { Fragment, useState, useEffect, useCallback, useRef } from "react";
 import { octLista } from "./armador.jsx";
 import { CHROMATIC } from "../teoria/notas.js";
 import { nc } from "../teoria/color.js";
@@ -133,19 +133,20 @@ export function FormaSugerida({ tones, leftBtns, rightBtns, bellows, voz }){
         </div>
         <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
           <span style={{fontSize:11,color:"#8a8a8a"}}>Tocar con</span>
-          {[["izq","Izquierda"],["der","Derecha"]].map(([m,l])=>(<button key={m} style={peq(voz.mano===m)} onClick={()=>{voz.setMano(m);voz.setInv(0);}}>{l}</button>))}
-          <button style={peq(false,{opacity:0.4,cursor:"not-allowed"})} disabled title="Próximamente: forma sugerida para las dos manos">Ambas</button>
+          {[["izq","Izquierda"],["der","Derecha"],["ambas","Ambas"]].map(([m,l])=>(<button key={m} style={peq(voz.mano===m)} title={m==="ambas"?"Bajo en la izquierda; el resto del acorde en la derecha":undefined} onClick={()=>{voz.setMano(m);voz.setInv(0);}}>{l}</button>))}
         </div>
       </div>
       {res.faltan.length>0 && <p style={aviso}>⚠ No hay con este fuelle: {res.faltan.join(", ")}. Probá el otro sentido del fuelle u otra mano.</p>}
       {vacia && <p style={aviso}>Con este fuelle no hay notas del acorde para armar con esta elección.</p>}
       <div style={{display:"flex",flexWrap:"wrap",gap:6,alignItems:"center"}}>
-        {res.notas.map((n,i)=>(
-          <span key={i} style={{display:"inline-flex",alignItems:"center",gap:4,padding:"1px 8px 1px 5px",borderRadius:8,background:"#0e0e10",border:`1px solid ${COLORES.voicing}55`,
+        {res.notas.map((n,i)=>(<Fragment key={i}>
+          {voz.mano==="ambas" && (i===0||n.mano!==res.notas[i-1].mano) && <span style={{fontSize:9.5,letterSpacing:"0.1em",color:"#8a8a8a",textTransform:"uppercase"}}>{n.mano==="izq"?"Izq":"Der"}</span>}
+          <span style={{display:"inline-flex",alignItems:"center",gap:4,padding:"1px 8px 1px 5px",borderRadius:8,background:"#0e0e10",border:`1px solid ${COLORES.voicing}55`,
             fontFamily:"'Libre Baskerville',serif",fontWeight:700,fontSize:12,color:"#ececec"}}>
             <i style={{width:9,height:9,borderRadius:"50%",background:colorNota(n.pc),display:"inline-block"}}/>{n.nombre}{n.oct}
-          </span>
+          </span></Fragment>
         ))}
+        {res.opcional&&res.opcional.length>0 && <span style={{fontSize:11,color:"#8a8a8f"}} title="Se puede sumar, pero no hace falta">opcional: {res.opcional.join(", ")}</span>}
         <span style={{display:"inline-flex",flexWrap:"wrap",gap:6,alignItems:"center",marginLeft:"auto"}}>
           <button style={uiPlay(false,{padding:"4px 11px"})} onClick={()=>res.notas.forEach((n,i)=>setTimeout(()=>playBand(CHROMATIC[n.pc],n.oct),i*45))}>▶ Tocar</button>
           {nv>1 && <button style={uiPill(false,{padding:"4px 11px"})} onClick={()=>voz.setInv((k+1)%nv)} title="Cambia qué nota va abajo">Otra forma ▸ ({k+1} de {nv})</button>}
