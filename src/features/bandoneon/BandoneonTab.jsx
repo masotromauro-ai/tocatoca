@@ -176,8 +176,8 @@ export function BandoneonTab() {
   const [vozMano,setVozMano]=useState("izq"), [vozInv,setVozInv]=useState(0), [vozTodas,setVozTodas]=useState(false);   // por defecto: la forma sugerida
   const vozRes = useMemo(()=>{
     if(!(acorde.open && leftBtns.length)) return {notas:[],faltan:[]};
-    const r=armarVoicing(vozMano==="izq"?leftBtns:rightBtns, bellows, acorde.tones, vozMano, vozInv);
-    return {...r, variantes:Math.max(1, vozMano==="izq" ? rellenoIzq(acorde.tones).length : acorde.tones.length)};   // cuántas inversiones hay
+    const r=armarVoicing(vozMano==="der"?rightBtns:leftBtns, bellows, acorde.tones, vozMano, vozInv, rightBtns);
+    return {...r, variantes:Math.max(1, vozMano==="der" ? acorde.tones.length : rellenoIzq(acorde.tones).length)};   // cuántas inversiones hay
   }, [acorde.open,acorde.key,acorde.romano,leftBtns,rightBtns,bellows,vozMano,vozInv]);
   const chordIds = (acorde.open && !vozTodas && vozRes.notas.length) ? Object.fromEntries(vozRes.notas.map(n=>[n.b,n.lab])) : null;   // teclado: solo la forma sugerida, salvo «Ver todas las notas»
   const chordMap = acorde.open ? acorde.labelByPc : null;
@@ -192,6 +192,7 @@ export function BandoneonTab() {
   );
 
   const cardS={background:"#121214",border:"1px solid #26262a",borderRadius:12,padding:"12px 14px"};
+  const tagTeclado={position:"absolute",top:2,left:6,zIndex:2,pointerEvents:"none",fontSize:9,letterSpacing:"0.12em",color:"#8a8a8a",fontFamily:UI_FONT};   // rótulo de la mano, adentro del teclado
   const vozProp={mano:vozMano,setMano:setVozMano,inv:vozInv,setInv:setVozInv,todas:vozTodas,setTodas:setVozTodas,res:vozRes,
     onMarcar:()=>setMarks(m=>({...m,[bellows]:vozRes.notas.map(n=>n.b)}))};
 
@@ -259,7 +260,7 @@ export function BandoneonTab() {
     <div style={{fontFamily:UI_FONT}}>
 
       {/* Barra de control: todo lo que cambia el teclado, en una sola fila */}
-      <div style={{...cardS,display:"flex",gap:"10px 18px",flexWrap:"wrap",alignItems:"flex-end",marginBottom:12,padding:"10px 14px"}}>
+      <div style={{...cardS,display:"flex",gap:"10px 18px",flexWrap:"wrap",alignItems:"flex-end",marginBottom:6,padding:"8px 12px"}}>
         <GrupoCtl t="Fuelle">
           <div style={segS}>
             {[["abre","▷ Abre"],["cierra","◁ Cierra"]].map(([b,l])=>(
@@ -286,10 +287,10 @@ export function BandoneonTab() {
           style={{...uiGhost,marginLeft:"auto"}}>✕ Soltar</button>
       </div>
 
-      {/* Notas que suenan + acorde detectado — altura fija para no desplazar el teclado */}
-      <div style={{minHeight:40,marginBottom:6}}>
+      {/* Notas que suenan + acorde detectado — altura fija (baja) para no desplazar el teclado */}
+      <div style={{minHeight:30,marginBottom:4}}>
       {(activeNotes.length>0||heardMidis.length>0)&&(
-        <div style={{padding:isMobile?"6px 10px":"6px 12px",background:"#121214",border:"1px solid #26262a",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:5}}>
+        <div style={{padding:"3px 10px",background:"#121214",border:"1px solid #26262a",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:5}}>
           <div style={{display:"flex",gap:4,flexWrap:"wrap",flex:"1 1 auto"}}>
             {heardMidis.length>0&&(
               <span style={{padding:"2px 8px",borderRadius:20,background:"#2dd4bf22",border:"1px solid #2dd4bf",color:"#7ff0dd",fontWeight:700,fontSize:isMobile?10:11}}>
@@ -308,9 +309,9 @@ export function BandoneonTab() {
             })}
           </div>
           {detected&&(
-            <div style={{textAlign:"right",flexShrink:0}}>
-              <div style={{fontSize:8,color:"#7c7c82"}}>Acorde</div>
-              <div style={{fontSize:isMobile?17:20,fontWeight:900,color:"#e6e6e6",fontFamily:"serif"}}>{detected}</div>
+            <div style={{flexShrink:0,display:"flex",alignItems:"baseline",gap:6}}>
+              <span style={{fontSize:9,color:"#7c7c82"}}>Acorde</span>
+              <b style={{fontSize:16,fontWeight:900,color:"#e6e6e6",fontFamily:"serif"}}>{detected}</b>
             </div>
           )}
         </div>
@@ -323,17 +324,13 @@ export function BandoneonTab() {
         flexDirection: an.fila ? "row" : (disp.invertir ? "column-reverse" : "column"),
         gap: an.gap,
         alignItems: an.fila ? "flex-start" : "center",
-        paddingBottom: 8,
+        paddingBottom: 4,
       }}>
         {bLateral && <aside style={bAsideL}><div style={{display:"flex",flexDirection:"column",gap:12}}>{bPM}{bMic}</div></aside>}
         <div style={bLateral?{display:"flex",flexDirection:disp.invertir?"column-reverse":"column",gap:an.gap,alignItems:"center",width:bKbW,flexShrink:0}:{display:"contents"}}>
         {(view==="ambas"||view==="izquierda")&&(
-          <div style={{width: an.aL, flexShrink:0}}>
-            <div style={{fontSize:11,color:"#8a8a8a",marginBottom:5,letterSpacing:"0.12em",
-              display:"flex",alignItems:"center",gap:6}}>
-              <span>MANO IZQUIERDA · {leftBtns.length} botones</span>
-              {isMobile&&<span style={{opacity:.5,fontSize:8}}>↑ abre / cierra ↓</span>}
-            </div>
+          <div style={{width: an.aL, flexShrink:0, position:"relative"}}>
+            <span style={tagTeclado}>IZQ · {leftBtns.length}{isMobile?" · ↑ abre / cierra ↓":""}</span>
             <BandCanvas buttons={leftBtns} bellows={bellows}
               pressed={pressedL} heardIds={heardIdsL}
               onDown={downL} onUp={upL} mobile={isMobile}
@@ -342,10 +339,8 @@ export function BandoneonTab() {
           </div>
         )}
         {(view==="ambas"||view==="derecha")&&(
-          <div style={{width: an.aR, flexShrink:0}}>
-            <div style={{fontSize:11,color:"#8a8a8a",marginBottom:5,letterSpacing:"0.12em"}}>
-              MANO DERECHA · {rightBtns.length} botones
-            </div>
+          <div style={{width: an.aR, flexShrink:0, position:"relative"}}>
+            <span style={tagTeclado}>DER · {rightBtns.length}</span>
             <BandCanvas buttons={rightBtns} bellows={bellows}
               pressed={pressedR} heardIds={heardIdsR}
               onDown={downR} onUp={upR} mobile={isMobile}
