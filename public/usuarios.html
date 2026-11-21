@@ -68,6 +68,22 @@
       <div id="quienSoy" class="nota" style="margin:0"></div>
     </div>
 
+    <!-- Links para que se registren solos (sólo administrador) -->
+    <div id="cLinks" class="card oculto">
+      <h2>Links para que se registren solos</h2>
+      <p class="nota" style="margin-top:0">Mandá el mensaje con el link: la persona se registra sola y aparece abajo, en «Esperando aprobación». Si tenés su mail, usá «Invitar»: entra sin aprobación.</p>
+      <div class="fila" style="margin-top:10px">
+        <button id="bLinkAlu" class="sec" type="button">Copiar mensaje para alumnos</button>
+        <button id="bLinkDoc" class="sec" type="button">Copiar mensaje para profesores</button>
+      </div>
+    </div>
+
+    <!-- Esperando aprobación (sólo administrador) -->
+    <div id="cEsp" class="card oculto">
+      <h2>Esperando aprobación <span id="nEsp" class="chip"></span></h2>
+      <div id="lEsp"></div>
+    </div>
+
     <!-- Invitar -->
     <form id="fInvitar" class="card">
       <h2>Invitar a alguien</h2>
@@ -116,7 +132,8 @@
 import { cargarFirebase, auth, db, A, F, VERSION as VI } from "./cuenta/firebase.js";
 import { causa, limpiarMail, VERSION as VR } from "./cuenta/registro.js";
 import { puedeVer, puedeEditar, rolesQueInvita, dejaSinAdmin, validarInvitacion, invitacionNueva,
-         pendientes, ordenar, mensajeInvitacion, leerLista, NOMBRE_ROL, ROLES, VERSION as VU } from "./cuenta/usuarios.js";
+         pendientes, ordenar, mensajeInvitacion, leerLista, NOMBRE_ROL, ROLES, VERSION as VU,
+         esPendiente, puedeAprobar, ROLES_APROBACION, aprobacion, rechazo, mensajeLink } from "./cuenta/usuarios.js";
 
 import("https://maurogasta-crypto.github.io/datos/ojos.js").catch(() => {});
 
@@ -152,6 +169,22 @@ function pintar() {
   $("vRol").innerHTML = rolesQueInvita(yo).map((r) => `<option value="${r}"${r === "alumno" ? " selected" : ""}>${NOMBRE_ROL[r]}</option>`).join("");
   $("iRol").innerHTML = rolesQueInvita(yo).map((r) => `<option value="${r}"${r === "alumno" ? " selected" : ""}>${NOMBRE_ROL[r]}</option>`).join("");
 
+  const admin = puedeAprobar(yo);
+  $("cLinks").classList.toggle("oculto", !admin);
+  $("cEsp").classList.toggle("oculto", !admin);
+  const esp = usuarios.filter(esPendiente).sort((a, b) => (a.creado || 0) - (b.creado || 0));
+  $("nEsp").textContent = esp.length;
+  $("lEsp").innerHTML = esp.length ? esp.map((u) => `
+    <div class="persona">
+      <div><span class="nombre">${esc(u.nombre || "(sin nombre)")}</span><span class="chip">pidió: ${esc(NOMBRE_ROL[u.pidio] || u.pidio)}</span></div>
+      <div class="mail">${esc(u.mail)}</div>
+      <div class="controles">
+        <select data-rolap="${esc(u.id)}">${ROLES_APROBACION.map((r) => `<option value="${r}"${u.pidio === r ? " selected" : ""}>${NOMBRE_ROL[r]}</option>`).join("")}</select>
+        <button data-aprobar="${esc(u.id)}" type="button">Aprobar</button>
+        <button class="peligro" data-rechazar="${esc(u.id)}" type="button">Rechazar</button>
+      </div>
+    </div>`).join("") : `<p class="nota">No hay nadie esperando.</p>`;
+
   const pend = pendientes(invitaciones, usuarios);
   $("nPend").textContent = pend.length;
   $("lPend").innerHTML = pend.length ? pend.map((i) => `
@@ -163,7 +196,7 @@ function pintar() {
       </div>
     </div>`).join("") : `<p class="nota">No hay invitaciones esperando.</p>`;
 
-  const lista = ordenar(usuarios);
+  const lista = ordenar(usuarios.filter((u) => !esPendiente(u)));
   $("nPers").textContent = lista.length;
   $("lPers").innerHTML = lista.map((u) => {
     const edita = puedeEditar(yo, u);
@@ -171,7 +204,7 @@ function pintar() {
     <div class="persona">
       <div><span class="nombre">${esc(u.nombre || "(sin nombre)")}</span>
         ${u.id === yo.id ? `<span class="chip yo">vos</span>` : ""}
-        ${u.activo === true ? "" : `<span class="chip baja">suspendido</span>`}
+        ${u.activo === true ? "" : `<span class="chip baja">${u.rechazado ? "rechazado" : "suspendido"}</span>`}
         ${u.probador ? `<span class="chip">probador</span>` : ""}</div>
       <div class="mail">${esc(u.mail)}${u.usuario ? ` · usuario viejo: ${esc(u.usuario)}` : ""}</div>
       <div class="controles">
@@ -205,6 +238,23 @@ $("lPers").addEventListener("click", (e) => {
   const susp = u.activo === true;
   if (susp && !confirm(`¿Suspender a ${u.nombre || u.mail}? No va a poder entrar hasta que lo reactives. No se borra nada.`)) return;
   conEspera(() => cambiar(id, { activo: !susp }, susp ? "Suspendido." : "Reactivado."));
+});
+const copiar = (texto) => (navigator.clipboard ? navigator.clipboard.writeText(texto) : Promise.reject())
+  .then(() => decir("Mensaje copiado: pegalo en WhatsApp o en un mail.", "ok"))
+  .catch(() => { prompt("Copiá este mensaje:", texto); });
+$("bLinkAlu").onclick = () => copiar(mensajeLink("alumno"));
+$("bLinkDoc").onclick = () => copiar(mensajeLink("docente"));
+$("lEsp").addEventListener("click", (e) => {
+  const a = e.target.dataset.aprobar, r = e.target.dataset.rechazar;
+  if (a) {
+    const sel = $("lEsp").querySelector(`select[data-rolap="${a}"]`), rol = sel ? sel.value : "alumno";
+    conEspera(() => cambiar(a, aprobacion(rol), `Aprobado como ${NOMBRE_ROL[rol].toLowerCase()}. Ya puede entrar.`));
+  }
+  if (r) {
+    const u = usuarios.find((x) => x.id === r);
+    if (!confirm(`¿Rechazar a ${u.nombre || u.mail}? No va a poder entrar. Podés reactivarlo después desde «Personas».`)) return;
+    conEspera(() => cambiar(r, rechazo(), "Rechazado."));
+  }
 });
 $("lPend").addEventListener("click", (e) => {
   const c = e.target.dataset.copiar, q = e.target.dataset.quitar;
