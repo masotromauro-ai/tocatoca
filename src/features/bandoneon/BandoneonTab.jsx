@@ -1,8 +1,11 @@
 // La pestaña Bandoneón.
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { ArmadorCompacto, armarVoicing, rellenoIzq, useAcorde } from "../../shared/bandoneon/armador.jsx";
-import { ControlesDisposicion, FormaSugerida, calcAnchos, useAnchoMedido, useDisposicion } from "../../shared/bandoneon/disposicion.jsx";
+import { ArmadorAcordes, useAcorde } from "../../shared/bandoneon/armador.jsx";
+import { sugerirVoicing } from "../../shared/bandoneon/acorde.js";
+import { itemsMano } from "../../shared/bandoneon/tablas.js";
+import { COLORES, ControlesDisposicion, DisponibilidadAcorde, acento, calcAnchos, useAnchoMedido, useDisposicion } from "../../shared/bandoneon/disposicion.jsx";
+import { GrupoColor, PantallaBandoneon } from "./Pantalla.jsx";
 import { CHROMATIC, LAT } from "../../shared/teoria/notas.js";
 import { nc } from "../../shared/teoria/color.js";
 import { UI_FONT, uiGhost, uiLabel, uiMarcar, uiPill, uiPlay, uiVista } from "../../shared/ui/tema.js";
@@ -12,7 +15,7 @@ import { downloadCSV, generateCSS } from "../../shared/bandoneon/csv.js";
 import { BandCanvas, MapaAlturas } from "../../shared/bandoneon/Teclado.jsx";
 import { ImportModal, SavedModal } from "../../shared/bandoneon/Modales.jsx";
 import { BandEditor } from "../../shared/bandoneon/Editor.jsx";
-import { GrupoCtl, PanelMarcadas, segS } from "../../shared/ui/controles.jsx";
+import { PanelMarcadas, segS } from "../../shared/ui/controles.jsx";
 import { Desplegable } from "../../shared/ui/ayudas.jsx";
 import { txtSobre } from "../../shared/teoria/etiquetas.js";
 import { useRomanos } from "../../shared/almacen/romanos.js";
@@ -112,7 +115,7 @@ export function BandoneonTab() {
   // juntas hasta que se sueltan. Acá guardamos los nodos de audio activos por
   // botón (id) en un ref: se crean al presionar y se apagan (con una rampa
   // corta para evitar clicks) al soltar.
-  const { startNote, stopAllNotes, stopNote } = useSonidoBandoneon({ bellows });
+  const { startNote, stopAllNotes, stopNote } = useSonidoBandoneon({  });
 
   // ─── Escucha física: varias notas a la vez, acotadas a lo que el teclado puede producir ───
   const { heardAcorde, heardIdsL, heardIdsR, heardNotas, heardTxt } = useEscuchaBandoneon({ LAT, bellows, getOct, heardMidis, isListening, leftBtns, micExacta, micMano, micModo, micOct, noteIdxB, rightBtns, setErrorAudio, setHeardMidis, setIsListening });
@@ -173,13 +176,9 @@ export function BandoneonTab() {
   const bothVisible = view==="ambas";
   const [romano,setRomano]=useRomanos();
   const acorde = useAcorde(romano,setRomano);
-  const [vozMano,setVozMano]=useState("izq"), [vozInv,setVozInv]=useState(0), [vozTodas,setVozTodas]=useState(false);   // por defecto: la forma sugerida
-  const vozRes = useMemo(()=>{
-    if(!(acorde.open && leftBtns.length)) return {notas:[],faltan:[]};
-    const r=armarVoicing(vozMano==="der"?rightBtns:leftBtns, bellows, acorde.tones, vozMano, vozInv, rightBtns);
-    return {...r, variantes:Math.max(1, vozMano==="der" ? acorde.tones.length : rellenoIzq(acorde.tones).length)};   // cuántas inversiones hay
-  }, [acorde.open,acorde.key,acorde.romano,leftBtns,rightBtns,bellows,vozMano,vozInv]);
-  const chordIds = (acorde.open && !vozTodas && vozRes.notas.length) ? Object.fromEntries(vozRes.notas.map(n=>[n.b,n.lab])) : null;   // teclado: solo la forma sugerida, salvo «Ver todas las notas»
+  const [vozMano,setVozMano]=useState("izq"), [vozForma,setVozForma]=useState("cerrada"), [vozInv,setVozInv]=useState(0), [vozSolo,setVozSolo]=useState(false);
+  const vozRes = useMemo(()=> acorde.open && leftBtns.length ? sugerirVoicing({izq:itemsMano(leftBtns,bellows),der:itemsMano(rightBtns,bellows)}, acorde.tones, {mano:vozMano,forma:vozForma,inv:vozInv}) : {notas:[],faltan:[],opcional:[],variantes:1,forma:"cerrada",texto:""}, [acorde.open,acorde.key,acorde.romano,leftBtns,rightBtns,bellows,vozMano,vozForma,vozInv]);
+  const chordIds = (acorde.open && vozSolo) ? Object.fromEntries(vozRes.notas.map(n=>[n.b,n.lab])) : null;
   const chordMap = acorde.open ? acorde.labelByPc : null;
   const canvasMaxWidth = wrapWidth; // cada teclado usa todo el ancho (apilados) para verse lo más grande posible
   const disp = useDisposicion();
@@ -192,8 +191,7 @@ export function BandoneonTab() {
   );
 
   const cardS={background:"#121214",border:"1px solid #26262a",borderRadius:12,padding:"12px 14px"};
-  const tagTeclado={position:"absolute",top:2,left:6,zIndex:2,pointerEvents:"none",fontSize:9,letterSpacing:"0.12em",color:"#8a8a8a",fontFamily:UI_FONT};   // rótulo de la mano, adentro del teclado
-  const vozProp={mano:vozMano,setMano:setVozMano,inv:vozInv,setInv:setVozInv,todas:vozTodas,setTodas:setVozTodas,res:vozRes,
+  const vozProp={mano:vozMano,setMano:(m)=>{setVozMano(m);setVozInv(0);if(m!=="ambas")setVozForma("cerrada");},forma:vozForma,setForma:(f)=>{setVozForma(f);setVozInv(0);},inv:vozInv,setInv:setVozInv,solo:vozSolo,setSolo:setVozSolo,res:vozRes,
     onMarcar:()=>setMarks(m=>({...m,[bellows]:vozRes.notas.map(n=>n.b)}))};
 
   const bPM = (<PanelMarcadas marcadas={marcadas} marcar={marcar} onRemove={quitarMark} onClear={()=>setMarks(m=>({...m,[bellows]:[]}))}/>);
@@ -230,67 +228,23 @@ export function BandoneonTab() {
           </div>
   );
   const bMapa = (
-          <details style={cardS}>
-            <summary style={{cursor:"pointer",fontFamily:UI_FONT,fontSize:12,fontWeight:600,color:"#cfcfd4",letterSpacing:"0.03em"}}>
-              Mapa de alturas · octavas de cada tecla
-            </summary>
-            <div style={{marginTop:12}}>
+<div>
               <p style={{fontFamily:UI_FONT,fontSize:11,color:"#7c7c82",lineHeight:1.5,marginBottom:12}}>
                 Las octavas siguen la numeración científica (Do4 es el Do central). Tocá una nota para oírla. Si una altura aparece repetida en dos teclas se marca con borde punteado.
               </p>
               <MapaAlturas btns={leftBtns}  bellows={bellows} titulo="Mano izquierda"/>
               <MapaAlturas btns={rightBtns} bellows={bellows} titulo="Mano derecha"/>
             </div>
-          </details>
   );
-  const bKbW = view==="ambas" ? Math.max(an.aL,an.aR) : view==="izquierda" ? an.aL : an.aR;
-  // Teclados apilados: el teclado en el medio, a la izquierda Marcadas y Escucha, a la derecha el armador (que se desplaza solo)
-  const bSideT = wrapWidth-bKbW-38, bSideL = Math.floor(bSideT*0.4);
-  const bLateral = !isMobile && !an.fila && bSideT>=500;
-  const bAsideL = {flex:"0 0 auto",width:bSideL,minWidth:0};
-  const bAsideR = {flex:"0 0 auto",width:bSideT-bSideL,minWidth:0,alignSelf:"stretch"};
-  // Armador: debajo de los teclados, a todo el ancho; abierto queda fijo abajo de la pantalla (o arriba, si va al costado)
   const bArm = (
-    <ArmadorCompacto a={acorde} pegado={bLateral?"arriba":"abajo"}>
-      <FormaSugerida tones={acorde.tones} leftBtns={leftBtns} rightBtns={rightBtns} bellows={bellows} voz={vozProp}/>
-    </ArmadorCompacto>
+        <ArmadorAcordes a={acorde}>
+          <DisponibilidadAcorde tones={acorde.tones} leftBtns={leftBtns} rightBtns={rightBtns} bellows={bellows} voz={vozProp}/>
+        </ArmadorAcordes>
   );
-
-  return (
-    <div style={{fontFamily:UI_FONT}}>
-
-      {/* Barra de control: todo lo que cambia el teclado, en una sola fila */}
-      <div style={{...cardS,display:"flex",gap:"10px 18px",flexWrap:"wrap",alignItems:"flex-end",marginBottom:6,padding:"8px 12px"}}>
-        <GrupoCtl t="Fuelle">
-          <div style={segS}>
-            {[["abre","▷ Abre"],["cierra","◁ Cierra"]].map(([b,l])=>(
-              <button key={b} style={uiVista(bellows===b,{padding:isMobile?"5px 10px":"5px 14px"})}
-                onClick={()=>{stopAllNotes();setBellows(b);setPressedL([]);setPressedR([]);}}>{l}</button>
-            ))}
-          </div>
-        </GrupoCtl>
-        <GrupoCtl t="Teclado">
-          <div style={segS}>
-            {[["ambas","Ambas"],["izquierda","Izq."],["derecha","Der."]].map(([v,l])=>(
-              <button key={v} style={uiVista(view===v,{padding:isMobile?"5px 8px":"5px 12px"})} onClick={()=>setView(v)}>{l}</button>
-            ))}
-          </div>
-        </GrupoCtl>
-        <GrupoCtl t="Disposición"><ControlesDisposicion d={disp} isMobile={isMobile}/></GrupoCtl>
-        <GrupoCtl t="Marcar notas">
-          <div style={segS}>
-            <button style={uiMarcar(marcar)} onClick={()=>{stopAllNotes();setPressedL([]);setPressedR([]);setMarcar(v=>!v);}}
-              title="Con Marcar activo, tocar una tecla la agrega o la saca del acorde">◎ Marcar{marksB.length?` · ${marksB.length}`:""}</button>
-          </div>
-        </GrupoCtl>
-        <button onClick={()=>{stopAllNotes();setPressedL([]);setPressedR([]);}} title="Soltar todas las teclas"
-          style={{...uiGhost,marginLeft:"auto"}}>✕ Soltar</button>
-      </div>
-
-      {/* Notas que suenan + acorde detectado — altura fija (baja) para no desplazar el teclado */}
-      <div style={{minHeight:30,marginBottom:4}}>
+  const bNotas = (
+      <div style={{minHeight:40,marginBottom:6}}>
       {(activeNotes.length>0||heardMidis.length>0)&&(
-        <div style={{padding:"3px 10px",background:"#121214",border:"1px solid #26262a",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:5}}>
+        <div style={{padding:isMobile?"6px 10px":"6px 12px",background:"#121214",border:"1px solid #26262a",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:5}}>
           <div style={{display:"flex",gap:4,flexWrap:"wrap",flex:"1 1 auto"}}>
             {heardMidis.length>0&&(
               <span style={{padding:"2px 8px",borderRadius:20,background:"#2dd4bf22",border:"1px solid #2dd4bf",color:"#7ff0dd",fontWeight:700,fontSize:isMobile?10:11}}>
@@ -309,28 +263,24 @@ export function BandoneonTab() {
             })}
           </div>
           {detected&&(
-            <div style={{flexShrink:0,display:"flex",alignItems:"baseline",gap:6}}>
-              <span style={{fontSize:9,color:"#7c7c82"}}>Acorde</span>
-              <b style={{fontSize:16,fontWeight:900,color:"#e6e6e6",fontFamily:"serif"}}>{detected}</b>
+            <div style={{textAlign:"right",flexShrink:0}}>
+              <div style={{fontSize:8,color:"#7c7c82"}}>Acorde</div>
+              <div style={{fontSize:isMobile?17:20,fontWeight:900,color:"#e6e6e6",fontFamily:"serif"}}>{detected}</div>
             </div>
           )}
         </div>
       )}
       </div>
-
-      {/* Teclados — se mide el ancho real disponible y se reparte entre los visibles */}
-      <div ref={canvasWrapRef} style={bLateral?{display:"flex",gap:18,alignItems:"flex-start",paddingBottom:8,width:"100%",minWidth:0}:{
-        display: "flex",
-        flexDirection: an.fila ? "row" : (disp.invertir ? "column-reverse" : "column"),
-        gap: an.gap,
-        alignItems: an.fila ? "flex-start" : "center",
-        paddingBottom: 4,
-      }}>
-        {bLateral && <aside style={bAsideL}><div style={{display:"flex",flexDirection:"column",gap:12}}>{bPM}{bMic}</div></aside>}
-        <div style={bLateral?{display:"flex",flexDirection:disp.invertir?"column-reverse":"column",gap:an.gap,alignItems:"center",width:bKbW,flexShrink:0}:{display:"contents"}}>
+  );
+  const bTeclados = (
+    <div style={{display:"flex",flexDirection:an.fila?"row":(disp.invertir?"column-reverse":"column"),gap:an.gap,alignItems:an.fila?"flex-start":"center",paddingBottom:4}}>
         {(view==="ambas"||view==="izquierda")&&(
-          <div style={{width: an.aL, flexShrink:0, position:"relative"}}>
-            <span style={tagTeclado}>IZQ · {leftBtns.length}{isMobile?" · ↑ abre / cierra ↓":""}</span>
+          <div style={{width: an.aL, flexShrink:0}}>
+            <div style={{fontSize:11,color:"#8a8a8a",marginBottom:5,letterSpacing:"0.12em",
+              display:"flex",alignItems:"center",gap:6}}>
+              <span>MANO IZQUIERDA · {leftBtns.length} botones</span>
+              {isMobile&&<span style={{opacity:.5,fontSize:8}}>↑ abre / cierra ↓</span>}
+            </div>
             <BandCanvas buttons={leftBtns} bellows={bellows}
               pressed={pressedL} heardIds={heardIdsL}
               onDown={downL} onUp={upL} mobile={isMobile}
@@ -339,8 +289,10 @@ export function BandoneonTab() {
           </div>
         )}
         {(view==="ambas"||view==="derecha")&&(
-          <div style={{width: an.aR, flexShrink:0, position:"relative"}}>
-            <span style={tagTeclado}>DER · {rightBtns.length}</span>
+          <div style={{width: an.aR, flexShrink:0}}>
+            <div style={{fontSize:11,color:"#8a8a8a",marginBottom:5,letterSpacing:"0.12em"}}>
+              MANO DERECHA · {rightBtns.length} botones
+            </div>
             <BandCanvas buttons={rightBtns} bellows={bellows}
               pressed={pressedR} heardIds={heardIdsR}
               onDown={downR} onUp={upR} mobile={isMobile}
@@ -348,18 +300,10 @@ export function BandoneonTab() {
               octMap={bellows==="abre" ? OCT_R_OPEN : OCT_R_CLOSE}/>
           </div>
         )}
-        </div>
-        {bLateral && <aside style={bAsideR}>{bArm}</aside>}
-      </div>
-
-      {/* Paneles: al costado del teclado si hay lugar; si no, debajo en dos columnas */}
-      {bLateral ? <div style={{marginTop:8}}>{bMapa}</div> : (<>
-      <div style={{marginTop:8}}>{bArm}</div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(340px,1fr))",gap:12,alignItems:"start"}}>{bPM}{bMic}{bMapa}</div>
-      </>)}
-
-      {/* Teclado: edición e importación */}
-      <div style={{...cardS,marginTop:12,display:"flex",gap:8,flexWrap:"wrap",alignItems:"center",padding:"9px 14px"}}>
+    </div>
+  );
+  const bTecladoCfg = (
+      <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
         <div style={{display:"flex",alignItems:"center",gap:6,flex:"1 1 auto"}}>
           <div style={{width:7,height:7,borderRadius:"50%",background:fromStorage?"#e6e6e6":"#8a8a8a"}}/>
           <span style={{fontSize:11,color:"#8a8a8a",fontFamily:UI_FONT}}>
@@ -376,9 +320,47 @@ export function BandoneonTab() {
           </button>
         )}
       </div>
+  );
+  const barra = (
+    <div style={{...cardS,display:"flex",gap:"10px 18px",flexWrap:"wrap",alignItems:"flex-end",marginBottom:12,padding:"10px 14px"}}>
+      <GrupoColor t="Fuelle" color={COLORES.fuelle}>
+        <div style={segS}>
+          {[["abre","▷ Abre"],["cierra","◁ Cierra"]].map(([b,l])=>(
+            <button key={b} style={acento(uiVista(bellows===b,{padding:isMobile?"5px 10px":"5px 14px"}),COLORES.fuelle,bellows===b)}
+              onClick={()=>{stopAllNotes();setBellows(b);setPressedL([]);setPressedR([]);}}>{l}</button>
+          ))}
+        </div>
+      </GrupoColor>
+      <GrupoColor t="Teclado" color={COLORES.vista}>
+        <div style={segS}>
+          {[["ambas","Ambas"],["izquierda","Izq."],["derecha","Der."]].map(([v,l])=>(
+            <button key={v} style={acento(uiVista(view===v,{padding:isMobile?"5px 8px":"5px 12px"}),COLORES.vista,view===v)} onClick={()=>setView(v)}>{l}</button>
+          ))}
+        </div>
+      </GrupoColor>
+      <GrupoColor t="Disposición" color={COLORES.vista}><ControlesDisposicion d={disp} isMobile={isMobile}/></GrupoColor>
+      <GrupoColor t="Marcar notas" color={COLORES.marcar}>
+        <div style={segS}>
+          <button style={acento(uiMarcar(marcar),COLORES.marcar,marcar)} onClick={()=>{stopAllNotes();setPressedL([]);setPressedR([]);setMarcar(v=>!v);}}
+            title="Con Marcar activo, tocar una tecla la agrega o la saca del acorde">◎ Marcar{marksB.length?` · ${marksB.length}`:""}</button>
+        </div>
+      </GrupoColor>
+      <button onClick={()=>{stopAllNotes();setPressedL([]);setPressedR([]);}} title="Soltar todas las teclas"
+        style={{...uiGhost,marginLeft:"auto"}}>✕ Soltar</button>
+    </div>
+  );
 
-      {showSaved&&<SavedModal cssText={cssText} onClose={()=>setShowSaved(false)}/>}
-      {showImport&&<ImportModal onImport={handleImport} onClose={()=>setShowImport(false)}/>}
+  return (
+    <div style={{fontFamily:UI_FONT}}>
+      <PantallaBandoneon barra={barra} notas={bNotas} teclados={bTeclados} kbRef={canvasWrapRef} paneles={[
+        {id:"acorde",titulo:"Armar acorde",color:COLORES.acorde,nodo:<>{bArm}<div style={{marginTop:12}}>{bPM}</div></>},
+        {id:"escuchar",titulo:"Escuchar",color:COLORES.escuchar,nodo:bMic},
+        {id:"mapa",titulo:"Mapa de alturas",color:COLORES.mapa,nodo:bMapa},
+        {id:"teclado",titulo:"Mi teclado",color:COLORES.teclado,nodo:bTecladoCfg},
+      ]}/>
+
+            {showSaved&&<SavedModal cssText={cssText} onClose={()=>setShowSaved(false)}/>}
+            {showImport&&<ImportModal onImport={handleImport} onClose={()=>setShowImport(false)}/>}
     </div>
   );
 }
