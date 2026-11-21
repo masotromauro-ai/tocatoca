@@ -7,7 +7,7 @@ import { nc } from "../teoria/color.js";
 import { UI_FONT } from "../ui/tema.js";
 import { playBand } from "../audio/audio.js";
 
-function BandBtn({ btn, bellows, pressed, isHeard, onDown, onUp, draggable=false, onMove, oct=null, chordActive=false, chordLabel=null, markLabel=null }) {
+function BandBtn({ btn, bellows, pressed, isHeard, onDown, onUp, draggable=false, onMove, oct=null, chordActive=false, chordLabel=null, softLabel=null, markLabel=null }) {
   const note  = bellows === "abre" ? btn.abre  : btn.cierra;
   const color = draggable ? (bellows === "abre" ? btn.color_abre : btn.color_cierra) : nc(LAT[note]||note);   // paleta real de las notas
   const isOn  = pressed.includes(btn.id);
@@ -55,8 +55,9 @@ function BandBtn({ btn, bellows, pressed, isHeard, onDown, onUp, draggable=false
           : "0 2px 8px rgba(0,0,0,.7)",
         transform: isHeard?"scale(1.1)":isOn?"scale(0.95)":"scale(1)",
         transition:"transform .08s,box-shadow .12s, opacity .2s",
-        zIndex: isAct?20:(chordLabel?15:1),
-        opacity: chordActive && !chordLabel && !isAct ? 0.25 : 1,
+        zIndex: isAct?20:(chordLabel?15:(softLabel?12:1)),
+        opacity: chordActive && !chordLabel && !softLabel && !isAct ? 0.25 : 1,
+        ...(softLabel ? {opacity:.85,background:`radial-gradient(circle at 36% 30%,${color}cc,${color}77 60%,${color}44)`,border:"2.5px solid #ffffff66",boxShadow:"none"} : {}),
         ...(chordLabel ? {background:`radial-gradient(circle at 36% 30%,${color}ff,${color}ee 55%,${color}bb)`,border:"3px solid #ffffff", boxShadow:`0 0 0 3px #ffffff55, 0 0 18px ${color}`} : {}),
         ...(markLabel ? {zIndex:18,opacity:1,background:`radial-gradient(circle at 36% 30%,${color}ff,${color}ee 55%,${color}bb)`,border:"3px solid #ffffff", boxShadow:`0 0 0 2px #0b0b0c, 0 0 0 5px #ffffff, 0 0 16px ${color}`} : {}),
       }}
@@ -64,6 +65,10 @@ function BandBtn({ btn, bellows, pressed, isHeard, onDown, onUp, draggable=false
       {markLabel && (
         <span style={{position:"absolute",bottom:-7,right:-7,minWidth:18,height:18,padding:"0 4px",borderRadius:9,background:"#0b0b0c",color:"#fff",border:"1.5px solid #fff",
           fontSize:10,fontWeight:800,fontFamily:"monospace",display:"flex",alignItems:"center",justifyContent:"center",zIndex:4}}>{markLabel}</span>
+      )}
+      {softLabel && (
+        <span style={{position:"absolute",top:-5,right:-5,minWidth:15,height:15,padding:"0 3px",borderRadius:8,background:"#ffffffaa",color:"#101010",
+          fontSize:8,fontWeight:800,fontFamily:"monospace",display:"flex",alignItems:"center",justifyContent:"center",zIndex:3}}>{softLabel}</span>
       )}
       {chordLabel && (
         <span style={{position:"absolute",top:-6,right:-6,minWidth:17,height:17,padding:"0 3px",borderRadius:9,background:"#fff",color:"#101010",
@@ -122,7 +127,7 @@ export function MapaAlturas({ btns, bellows, titulo }){
 }
 
 export function BandCanvas({ buttons, bellows, pressed, heardIds=[], onDown, onUp,
-  draggable=false, onMove, showGrid=false, onSelect=null, selected=null, octMap=null, maxWidth=null, maxScale=1, chordMap=null, chordIds=null, markIds=null }) {
+  draggable=false, onMove, showGrid=false, onSelect=null, selected=null, octMap=null, maxWidth=null, maxScale=1, chordMap=null, chordIds=null, chordSoft=false, markIds=null }) {
 
   const W = Math.max(...buttons.map(b=>b.x)) + BTN_SIZE + 16;
   const H = Math.max(...buttons.map(b=>b.y)) + BTN_SIZE + 20;
@@ -150,10 +155,11 @@ export function BandCanvas({ buttons, bellows, pressed, heardIds=[], onDown, onU
         background: showGrid
           ? `repeating-linear-gradient(0deg,transparent,transparent 9px,rgba(255,255,255,.06) 10px),
              repeating-linear-gradient(90deg,transparent,transparent 9px,rgba(255,255,255,.06) 10px),#0c0c0c`
-          : "linear-gradient(145deg,#1d1d1d,#101010)",
-        border: `2px solid ${draggable?"#e6e6e655":"#3a3a3a"}`,
+          : draggable ? "linear-gradient(145deg,#1d1d1d,#101010)"
+          : "linear-gradient(180deg,#19191b 0%,#131315 70%,rgba(19,19,21,0) 100%)",   // sin recuadro: solo un esfumado abajo
+        border: draggable ? "2px solid #e6e6e655" : "none",                          // el editor conserva su borde
         borderRadius: 16,
-        boxShadow: "0 8px 24px rgba(0,0,0,.7)",
+        boxShadow: draggable ? "0 8px 24px rgba(0,0,0,.7)" : "none",
         touchAction: "none",
       }}
     >
@@ -166,7 +172,8 @@ export function BandCanvas({ buttons, bellows, pressed, heardIds=[], onDown, onU
           oct={octMap ? octMap[btn.id] : null}
           markLabel={markIds ? (markIds[btn.id]||null) : null}
           chordActive={!!(chordIds||chordMap)}
-          chordLabel={chordIds ? (chordIds[btn.id]||null) : (chordMap ? (chordMap[(()=>{const n=bellows==="abre"?btn.abre:btn.cierra; return LAT[n]||n;})()] || null) : null)}/>
+          chordLabel={chordIds ? (chordIds[btn.id]||null) : (chordMap ? (chordMap[(()=>{const n=bellows==="abre"?btn.abre:btn.cierra; return LAT[n]||n;})()] || null) : null)}
+          softLabel={(chordSoft&&chordIds&&chordMap&&!chordIds[btn.id]) ? (chordMap[(()=>{const n=bellows==="abre"?btn.abre:btn.cierra; return LAT[n]||n;})()] || null) : null}/>
       ))}
     </div>
   );
