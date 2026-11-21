@@ -61,8 +61,13 @@ igual(midis(sug("A", "m7", { mano: "ambas", inv: 1 }), "der"), [48, 55], "La m7,
 // ── Las dos manos, abierta: bajo y quinta a la izquierda; tercera y séptima a la derecha
 const ab = sug("C", "maj7", { mano: "ambas", forma: "abierta" });
 igual(midis(ab, "izq"), [24, 31], "Do △7 abierto: bajo y quinta a la izquierda");
-igual(midis(ab, "der"), [59, 64], "Do △7 abierto: Si3 y Mi4 a la derecha");
+igual(midis(ab, "der"), [52, 59], "Do △7 abierto: Mi3 y Si3 a la derecha, igual que la cerrada");
 if (ab.forma !== "abierta") falla("la forma abierta se informa como abierta");
+// la derecha no se va una octava arriba: en la 1ª forma, cerrada o abierta, ninguna nota pasa del Do4 (60)
+for (const forma of ["cerrada", "abierta"]) for (const r of CROM) for (const t of Object.keys(TIPOS)) {
+  const top = Math.max(...midis(sug(r, t, { mano: "ambas", forma }), "der"));
+  if (top > 60) falla(`${r} ${t} ${forma}: la derecha llega a ${top}`);
+}
 // abierta solo existe con las dos manos
 if (sug("C", "maj7", { mano: "izq", forma: "abierta" }).forma !== "cerrada") falla("con una sola mano la forma es cerrada");
 
@@ -70,6 +75,28 @@ if (sug("C", "maj7", { mano: "izq", forma: "abierta" }).forma !== "cerrada") fal
 igual(midis(sug("C", "M", { mano: "der" })), [48, 52, 55], "Do mayor en la derecha");
 igual(midis(sug("C", "M", { mano: "der", inv: 1 })), [52, 55, 60], "Do mayor en la derecha, 1ª inversión");
 igual(sug("C", "maj7", { mano: "izq" }).variantes, 2, "dos formas para Do △7");
+
+// ── «Otra forma»: bajo en Do1 o Do2, la otra inversión, y después las octavas más agudas
+const forma = (r, t, opc, i) => sug(r, t, { ...opc, inv: i });
+igual(sug("C", "M", { mano: "izq" }).variantes, 4, "Do mayor a la izquierda: cuatro formas");
+igual(midis(forma("C", "M", { mano: "izq" }, 0)), [24, 43, 52], "Do = Do1 Sol2 Mi3");
+igual(midis(forma("C", "M", { mano: "izq" }, 2)), [36, 43, 52], "Do = Do2 Sol2 Mi3 (bajo una octava arriba)");
+igual(midis(forma("C", "maj7", { mano: "izq" }, 1)), [36, 47, 52], "Do △7 = Do2 Si2 Mi3 (bajo una octava arriba)");
+igual(midis(forma("C", "maj7", { mano: "ambas" }, 0), "der"), [52, 59], "Do △7, dos manos: Mi3 Si3");
+igual(midis(forma("C", "maj7", { mano: "ambas" }, 1), "der"), [47, 52], "Do △7, dos manos: Si2 Mi3");
+igual(midis(forma("C", "maj7", { mano: "ambas" }, 4), "izq"), [36], "Do △7, dos manos, bajo en Do2");
+igual(midis(forma("C", "maj7", { mano: "ambas" }, 6), "der"), [64, 71], "Do △7, dos manos, versión más aguda");
+if (forma("C", "maj7", { mano: "izq" }, 0).desc !== "") falla("la recomendada no lleva descripción");
+if (!forma("C", "maj7", { mano: "izq" }, 1).desc.includes("octava")) falla("la 2ª forma se describe");
+for (const [r, t, o] of [["C", "M", { mano: "izq" }], ["D", "m7", { mano: "izq" }], ["G", "dom7", { mano: "ambas" }], ["A", "m", { mano: "der" }], ["C", "maj7", { mano: "ambas", forma: "abierta" }]]) {
+  const n = sug(r, t, o).variantes, vistas = new Set();
+  for (let i = 0; i < n; i++) {
+    const x = sug(r, t, { ...o, inv: i }); vistas.add(x.notas.map((k) => k.b).sort().join());
+    if (x.faltan.length) falla(`${r} ${t} ${o.mano}: la forma ${i + 1} tiene faltantes`);
+    const iz = midis(x, "izq"); for (let k = 1; k < iz.length; k++) if (iz[k] <= iz[k - 1]) falla(`${r} ${t}: forma ${i + 1} no sube a la izquierda`);
+  }
+  if (vistas.size !== n) falla(`${r} ${t} ${o.mano}: hay formas repetidas`);
+}
 
 // ── Faltantes: si el teclado no tiene la fundamental, se avisa
 const sinRaiz = { izq: T.izq.filter((i) => i.pc !== 0), der: T.der };
