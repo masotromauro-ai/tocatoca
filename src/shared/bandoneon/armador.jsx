@@ -130,6 +130,7 @@ export function ArmadorCompacto({ a, pegado=null, children }){
 
       {a.open && (
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:"10px 18px",marginTop:8}}>
+          <div>{children}</div>
           <div>
             <p style={{...lab,marginBottom:6}}>Elegir</p>
             <div style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"flex-end"}}>
@@ -157,7 +158,6 @@ export function ArmadorCompacto({ a, pegado=null, children }){
               ))}
             </div>
           </div>
-          <div>{children}</div>
         </div>
       )}
     </div>
