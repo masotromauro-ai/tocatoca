@@ -93,10 +93,18 @@ export function DisponibilidadAcorde({ tones, leftBtns, rightBtns, bellows, voz 
       ) : <p style={{fontSize:12,color:"#c9a25a",margin:"0 0 8px"}}>Con este fuelle no hay notas del acorde para armar con esta elección.</p>}
       {res.faltan.length>0 && <p style={{fontSize:11.5,color:"#c9a25a",margin:"0 0 8px"}}>⚠ No hay con este fuelle: {res.faltan.join(", ")}. Probá el otro sentido del fuelle u otra elección.</p>}
       {res.opcional && res.opcional.length>0 && <p style={{fontSize:11.5,color:"#a0a0a6",margin:"0 0 8px"}}>Opcional: {res.opcional.join(", ")}.</p>}
+      {voz.setVista && (
+        <div className="flex flex-wrap gap-1.5 items-center mb-2">
+          <span style={lbl}>En el teclado</span>
+          {[["voicing","Solo el voicing"],["suave","Voicing + el resto atenuado"],["todas","Todas las notas del acorde"]].map(([v,l])=>(
+            <button key={v} style={peq(voz.vista===v)} onClick={()=>voz.setVista(v)}
+              title={v==="voicing"?"Se resaltan solo las teclas del voicing sugerido":v==="suave"?"Se marcan todas las notas del acorde, pero solo el voicing queda resaltado":"Se marcan todas las notas del acorde"}>{l}</button>
+          ))}
+        </div>
+      )}
       <div className="flex flex-wrap gap-1.5 items-center">
         <button style={uiPlay(false,{padding:"6px 14px"})} onClick={()=>res.notas.forEach((n,i)=>setTimeout(()=>playBand(CHROMATIC[n.pc],n.oct),i*45))}>▶ Tocar este voicing</button>
         {nv>1 && <button style={uiPill(false,{padding:"6px 14px"})} onClick={()=>voz.setInv(((voz.inv||0)+1)%nv)} title="Otras formas: la otra inversión, el bajo una octava arriba y versiones más agudas">Otra forma ▸ ({(voz.inv||0)%nv+1} de {nv})</button>}
-        <button style={uiPill(voz.solo,{padding:"6px 14px"})} onClick={()=>voz.setSolo(!voz.solo)}>{voz.solo?"Mostrando solo estas teclas":"Resaltar solo estas teclas"}</button>
         {voz.onMarcar && res.notas.length>0 && <button style={uiMarcar(false)} onClick={voz.onMarcar} title="Pasa estas notas a Notas marcadas, para escucharlas y modificarlas sobre el teclado">◎ Marcar estas teclas</button>}
       </div>
       {nv>1 && <p style={{fontSize:11.5,color:COLORES.voicing,margin:"8px 0 0"}}>Forma {(voz.inv||0)%nv+1} de {nv}: {res.desc||"la recomendada"}</p>}
