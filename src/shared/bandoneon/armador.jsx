@@ -9,6 +9,7 @@ import { itemsMano } from "./tablas.js";
 import { ACORDE_BASES, ACORDE_INI, ACORDE_NOV, ACORDE_RAICES, ACORDE_SEPT, ACORDE_TRE, ACORDE_UND } from "./acordes-base.js";
 import { txtSobre } from "../teoria/etiquetas.js";
 import { calcAcorde } from "./acorde.js";
+import { Desplegable } from "../ui/ayudas.jsx";
 
 export function useAcorde(romano=false,setRomano=()=>{}){
   const [ac,setAc]     = useState(ACORDE_INI);
@@ -97,6 +98,66 @@ export function ArmadorAcordes({ a, collapsible=true, children }){
             </div>
           </div>
           {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Armador compacto (pestaña Bandoneón): elegir a la izquierda; resultado y forma sugerida a la derecha, todo a la vista.
+// «pegado»: "abajo" o "arriba" deja el panel fijo en la pantalla mientras se mira el teclado (solo con el panel abierto).
+export function ArmadorCompacto({ a, pegado=null, children }){
+  const UI={bg:"#121214",line:"#2a2a2a",text:"#e6e6e6",mute:"#8a8a8a"};
+  const pill=(on)=>uiPill(on,{padding:"4px 11px",fontSize:12});
+  const lab={fontSize:10,letterSpacing:"0.14em",color:UI.mute,textTransform:"uppercase",margin:0};
+  const sel=(etq,campo,list,ancho)=>(<Desplegable ancho={ancho} etiqueta={etq} valor={a.ac[campo]} opciones={list.map(o=>[o.id,o.label])} onChange={v=>a.set(campo,v)}/>);
+  const fijo=!(a.open&&pegado)?{}:pegado==="abajo"
+    ?{position:"sticky",bottom:0,zIndex:20,maxHeight:"60vh",overflowY:"auto",boxShadow:"0 -10px 24px rgba(0,0,0,.55)"}
+    :{position:"sticky",top:8,zIndex:20,maxHeight:"calc(100vh - 16px)",overflowY:"auto"};
+  return(
+    <div className="rounded-xl mb-3" style={{background:UI.bg,border:`1px solid ${UI.line}`,padding:"10px 12px",...fijo}}>
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div style={{display:"flex",alignItems:"baseline",gap:10,minWidth:0}}>
+          <p style={lab}>🎼 Armar acorde</p>
+          <p style={{margin:0,fontSize:a.open?16:12,fontFamily:"'Libre Baskerville',serif",fontWeight:700,color:UI.text}}>{a.name}</p>
+        </div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {a.open && <button onClick={()=>tocarAcordeBand(a)} style={uiPlay(false,{padding:"5px 12px"})}>▶ Tocar acorde</button>}
+          {a.open && <button style={pill(false)} onClick={a.reset}>⟳ Limpiar</button>}
+          <button onClick={()=>a.setOpen(!a.open)} style={pill(a.open)}>{a.open?"Ocultar":"Abrir"}</button>
+        </div>
+      </div>
+
+      {a.open && (
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:"10px 18px",marginTop:8}}>
+          <div>
+            <p style={{...lab,marginBottom:6}}>Elegir</p>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"flex-end"}}>
+              <Desplegable ancho={92} etiqueta="Fundamental" valor={a.ac.root} opciones={ACORDE_RAICES.map(x=>[x,nombreLat(x)])} onChange={v=>a.set("root",v)}/>
+              {sel("Tipo","base",ACORDE_BASES,112)}
+              {sel("Séptima","sept",ACORDE_SEPT,112)}
+              {sel("Novena","nov",ACORDE_NOV,64)}
+              {sel("Oncena","und",ACORDE_UND,64)}
+              {sel("Trecena","tre",ACORDE_TRE,64)}
+            </div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6,alignItems:"center",marginTop:8}}>
+              <button style={pill(a.ac.seis)} onClick={()=>a.set("seis",!a.ac.seis)}>Sexta (6)</button>
+              <button style={pill(a.ac.sin5)} onClick={()=>a.set("sin5",!a.ac.sin5)}>Sin quinta</button>
+              <span style={{...lab,marginLeft:8}}>Función</span>
+              <button style={pill(a.romano)} onClick={()=>a.setRomano(true)}>I · III · V</button>
+              <button style={pill(!a.romano)} onClick={()=>a.setRomano(false)}>1 · 3 · 5</button>
+            </div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:8}}>
+              {a.tones.map(t=>(
+                <div key={t.pc} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+                  <div style={{width:34,height:34,borderRadius:9,background:nc(t.pc),border:"2px solid rgba(255,255,255,.2)",display:"flex",alignItems:"center",justifyContent:"center",
+                    color:txtSobre(nc(t.pc)),fontFamily:"serif",fontWeight:900,fontSize:11}}>{t.nombre}</div>
+                  <span style={{fontSize:10,fontFamily:"monospace",color:UI.mute}}>{t.lab}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>{children}</div>
         </div>
       )}
     </div>
