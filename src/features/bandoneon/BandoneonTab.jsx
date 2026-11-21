@@ -176,9 +176,9 @@ export function BandoneonTab() {
   const bothVisible = view==="ambas";
   const [romano,setRomano]=useRomanos();
   const acorde = useAcorde(romano,setRomano);
-  const [vozMano,setVozMano]=useState("izq"), [vozForma,setVozForma]=useState("cerrada"), [vozInv,setVozInv]=useState(0), [vozSolo,setVozSolo]=useState(false);
+  const [vozMano,setVozMano]=useState("izq"), [vozForma,setVozForma]=useState("cerrada"), [vozInv,setVozInv]=useState(0), [vozVista,setVozVista]=useState("voicing");   // en el teclado: "voicing" (por defecto, solo el sugerido) · "suave" (todo el acorde atenuado y el voicing resaltado) · "todas"
   const vozRes = useMemo(()=> acorde.open && leftBtns.length ? sugerirVoicing({izq:itemsMano(leftBtns,bellows),der:itemsMano(rightBtns,bellows)}, acorde.tones, {mano:vozMano,forma:vozForma,inv:vozInv}) : {notas:[],faltan:[],opcional:[],variantes:1,forma:"cerrada",texto:""}, [acorde.open,acorde.key,acorde.romano,leftBtns,rightBtns,bellows,vozMano,vozForma,vozInv]);
-  const chordIds = (acorde.open && vozSolo) ? Object.fromEntries(vozRes.notas.map(n=>[n.b,n.lab])) : null;
+  const chordIds = (acorde.open && vozVista!=="todas") ? Object.fromEntries(vozRes.notas.map(n=>[n.b,n.lab])) : null;
   const chordMap = acorde.open ? acorde.labelByPc : null;
   const canvasMaxWidth = wrapWidth; // cada teclado usa todo el ancho (apilados) para verse lo más grande posible
   const disp = useDisposicion();
@@ -191,7 +191,7 @@ export function BandoneonTab() {
   );
 
   const cardS={background:"#121214",border:"1px solid #26262a",borderRadius:12,padding:"12px 14px"};
-  const vozProp={mano:vozMano,setMano:(m)=>{setVozMano(m);setVozInv(0);if(m!=="ambas")setVozForma("cerrada");},forma:vozForma,setForma:(f)=>{setVozForma(f);setVozInv(0);},inv:vozInv,setInv:setVozInv,solo:vozSolo,setSolo:setVozSolo,res:vozRes,
+  const vozProp={mano:vozMano,setMano:(m)=>{setVozMano(m);setVozInv(0);if(m!=="ambas")setVozForma("cerrada");},forma:vozForma,setForma:(f)=>{setVozForma(f);setVozInv(0);},inv:vozInv,setInv:setVozInv,vista:vozVista,setVista:setVozVista,res:vozRes,
     onMarcar:()=>setMarks(m=>({...m,[bellows]:vozRes.notas.map(n=>n.b)}))};
 
   const bPM = (<PanelMarcadas marcadas={marcadas} marcar={marcar} onRemove={quitarMark} onClear={()=>setMarks(m=>({...m,[bellows]:[]}))}/>);
@@ -284,7 +284,7 @@ export function BandoneonTab() {
             <BandCanvas buttons={leftBtns} bellows={bellows}
               pressed={pressedL} heardIds={heardIdsL}
               onDown={downL} onUp={upL} mobile={isMobile}
-              maxWidth={an.aL} maxScale={3.6} chordMap={chordMap} chordIds={chordIds} markIds={markIds}
+              maxWidth={an.aL} maxScale={3.6} chordMap={chordMap} chordIds={chordIds} chordSoft={vozVista==="suave"} markIds={markIds}
               octMap={bellows==="abre" ? OCT_L_OPEN : OCT_L_CLOSE}/>
           </div>
         )}
@@ -296,7 +296,7 @@ export function BandoneonTab() {
             <BandCanvas buttons={rightBtns} bellows={bellows}
               pressed={pressedR} heardIds={heardIdsR}
               onDown={downR} onUp={upR} mobile={isMobile}
-              maxWidth={an.aR} maxScale={3.6} chordMap={chordMap} chordIds={chordIds} markIds={markIds}
+              maxWidth={an.aR} maxScale={3.6} chordMap={chordMap} chordIds={chordIds} chordSoft={vozVista==="suave"} markIds={markIds}
               octMap={bellows==="abre" ? OCT_R_OPEN : OCT_R_CLOSE}/>
           </div>
         )}
