@@ -164,6 +164,14 @@ export default function Puerta({ children }) {
     </Caja>
   );
 
+  if (fase === "pendiente") return (
+    <Caja>
+      <Nota color={G.tx}>Tu solicitud está esperando aprobación.</Nota>
+      <Nota>Cuando el administrador la apruebe, vas a poder entrar con este mail y tu contraseña. Podés cerrar esta página y volver más tarde.</Nota>
+      <p style={{ margin: "16px 0 0" }}><button type="button" style={btn(false)} onClick={salir}>Salir</button></p>
+    </Caja>
+  );
+
   if (fase === "suspendido") return (
     <Caja>
       <Nota color={G.mal}>Tu cuenta está suspendida.</Nota>
