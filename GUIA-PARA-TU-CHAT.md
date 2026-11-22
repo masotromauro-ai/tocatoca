@@ -2,7 +2,7 @@
 
 Para **Mariano** y para su chat gratuito de Claude (claude.ai). La primera parte es para la persona; la segunda, para el chat.
 
-> **Actualizada el 22-nov-2026** (cómo subir un cambio de varios archivos sin romper el sitio, abajo). **17-nov-2026:** Un solo camino, en pasos cortos. Reemplaza los procedimientos anteriores (copias guardadas, pegar código en el panel, «App.jsx» entero): ya no hacen falta. El código está partido en archivos chicos, una carpeta por parte.
+> **Actualizada el 22-nov-2026** (cómo subir un cambio de varios archivos sin romper el sitio, abajo; y las muestras del bandoneón, en `MUESTRAS.md`). **17-nov-2026:** Un solo camino, en pasos cortos. Reemplaza los procedimientos anteriores (copias guardadas, pegar código en el panel, «App.jsx» entero): ya no hacen falta. El código está partido en archivos chicos, una carpeta por parte.
 
 ---
 
@@ -54,6 +54,12 @@ Cada subida la revisa la ronda del chat de Mauro: que la app abra con sus 11 pes
 
 Si no querés usar GitHub, en el paso 4 subí el archivo en el panel («Trabajar con tu chat gratuito» → «Subir el archivo que te devolvió») y lo sube Claude.
 
+### Las muestras del bandoneón (el sonido de cada botón)
+
+Para **corregir una nota que suena mal o cargar una grabación tuya** hay un procedimiento aparte, con su propio texto para
+tu chat: **`MUESTRAS.md`** (en la raíz del repositorio). Ahí también está, en pasos, todo lo que se arregló del teclado el
+22-nov-2026 (teclas trabadas, zona de toque, y el tic, el corte y el cambio de color al sostener una nota).
+
 ---
 
 ## Parte 2 · Para el chat: cómo trabajar sin romper nada
@@ -84,7 +90,7 @@ Una web para que alumnos de bandoneón aprendan la **mecánica y la topografía 
 - `src/shared/teoria/` — notas, colores, escalas, acordes, progresiones, **cifrado**.
 - `src/shared/bandoneon/` — las tablas del teclado, las **formas recomendadas** (`voicings.js`), el dibujo del teclado y su editor, guardar y cargar, los caminos de notas.
 - `src/shared/ui/` — estilos y piezas visuales (piano, círculo, tarjetas).
-- `src/shared/audio/` — el sonido y el micrófono.
+- `src/shared/audio/` — el sonido y el micrófono. Las grabaciones de cada botón: `public/muestras/` (cosidas) y `muestras-originales/` (tal cual); para tocarlas, `MUESTRAS.md`.
 - `src/features/` — una carpeta por pestaña: `entrenador/`, `codigo/`, `teoria/`, `clases/`, `herramientas/` (Acorde, Progresión, Biblioteca, Quintas, Modos, Colores), `bandoneon/` y `aviso/`.
 
 ### Vocabulario

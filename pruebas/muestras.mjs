@@ -24,6 +24,8 @@ for (const m of idx.muestras) {
   if (!d) falla(`${c}: el botón ${m.boton} no existe en el teclado de fábrica`);
   else if (PC[m.fuelle === "abre" ? d.abre : d.cierra] !== m.pc) falla(`${c}: el botón de fábrica es otra nota (pc ${PC[m.fuelle === "abre" ? d.abre : d.cierra]}, la muestra es pc ${m.pc})`);
   if (m.velocidad !== undefined && !(m.velocidad >= 0.4 && m.velocidad <= 2.5)) falla(`${c}: velocidad fuera de rango (${m.velocidad})`);
+  // Cada muestra publicada tiene su grabación original, sin coser: el cosido se hace siempre desde ahí (MUESTRAS.md)
+  if (!existsSync(new URL("../muestras-originales/" + m.archivo, import.meta.url))) falla(`${c}: falta su grabación original en muestras-originales/${m.archivo} (se cose desde ahí, MUESTRAS.md)`);
   const arch = new URL(m.archivo, carpeta);
   if (!existsSync(arch)) { falla(`${c}: falta el archivo ${m.archivo}`); continue; }
   const b = readFileSync(arch);

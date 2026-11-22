@@ -20,13 +20,25 @@
 # Y lo mide como suena en la app (arranque y cuatro vueltas): volumen, el cambio de color de 20 en 20 ms y la altura,
 # alrededor de cada costura contra el resto de la nota.
 #
-# Uso (desde la raíz, necesita numpy):
-#   python3 -I pruebas/coser-muestras.py <carpeta de ORIGINALES> <carpeta de salida (public/muestras)> <informe.json> [--aplicar]
-# Los originales son las grabaciones sin coser (git show f50684e^:public/muestras/<archivo>, con su indice.json): se cose
-# siempre desde ellos, nunca sobre una muestra ya cosida. Sin --aplicar sólo informa.
+# Uso (desde la raíz del repositorio, necesita Python 3 con numpy; nada más):
+#   python3 -I pruebas/coser-muestras.py                         informa de las 71 (no cambia nada)
+#   python3 -I pruebas/coser-muestras.py --solo <archivo.wav>    informa de UNA
+#   python3 -I pruebas/coser-muestras.py --solo <archivo.wav> --aplicar
+#        cose esa una: escribe public/muestras/<archivo.wav> y su loopStart/loopEnd (y duracion/centesimas si faltan)
+#        en public/muestras/indice.json. Sin --aplicar no escribe nada.
+#   Opcionales: --originales <carpeta> (muestras-originales) · --destino <carpeta> (public/muestras) · --informe <x.json>
+# Se cose SIEMPRE desde la grabación original (muestras-originales/<archivo>), nunca sobre una ya cosida.
+# Una nota nueva: su grabación va a muestras-originales/ y su ficha a public/muestras/indice.json (ver MUESTRAS.md):
+# lo que falte de la ficha (duracion, centesimas, loopStart, loopEnd) lo calcula esto.
 import json, sys, wave, numpy as np
 
-origen, destino, informe = sys.argv[1], sys.argv[2], sys.argv[3]
+def opcion(nombre, defecto=None):
+    return sys.argv[sys.argv.index(nombre) + 1] if nombre in sys.argv else defecto
+
+origen = opcion("--originales", "muestras-originales")
+destino = opcion("--destino", "public/muestras")
+informe = opcion("--informe")
+solo = opcion("--solo")
 aplicar = "--aplicar" in sys.argv
 idx = json.load(open(destino + "/indice.json"))
 orig = {o["archivo"]: o for o in json.load(open(origen + "/indice.json"))["muestras"]}
@@ -219,12 +231,36 @@ def coser(x, sr, s0, f0, con_color):
 
 archivos = {}
 for m in idx["muestras"]: archivos.setdefault(m["archivo"], []).append(m)
+if solo:
+    if solo not in archivos:
+        sys.exit(f"✗ {solo} no está en {destino}/indice.json: primero se agrega su ficha (mano, fuelle, boton, pc, nota, "
+                 "nota_app, midi_referencia, archivo). Ver MUESTRAS.md.")
+    archivos = {solo: archivos[solo]}
 
 res = []
 for a, ms in sorted(archivos.items()):
-    m = ms[0]; mo = orig[a]
+    m = ms[0]
     x, sr = leer(origen, a)
+    # la grabación original: si es nueva (no está en el índice de originales) se mide con un tramo de prueba
+    mo = orig.get(a) or {"loopStart": 0.35, "loopEnd": round(len(x) / sr - 0.2, 3)}
+    if len(x) / sr < 1.2:
+        sys.exit(f"✗ {a}: dura {len(x) / sr:.2f} s; hace falta al menos 1,2 s de nota sostenida (ideal 1,5 a 3 s).")
     s0 = int(round(mo["loopStart"] * sr)); e0 = int(round(mo["loopEnd"] * sr))
+    if "centesimas" not in m:                                   # nota nueva: se mide cuánto más alta que La 440 está
+        f_nom = 440 * 2 ** ((m["midi_referencia"] - 69) / 12)
+        _, _, F = perfil(x[int(0.3 * sr):], sr, f_nom)
+        # La altura medida: la nota más fuerte en la zona de la fundamental, buscada en ±1 semitono (sin el control de abajo,
+        # una grabación de otra nota se cosería igual y sonaría desafinada en ese botón)
+        N = 8192 if f_nom < 110 else 4096; Z = x[int(0.3 * sr):int(0.3 * sr) + 4 * N]
+        X = np.abs(np.fft.rfft(Z[:len(Z) // N * N].reshape(-1, N) * np.hanning(N), axis=1)).mean(axis=0)
+        fr = np.fft.rfftfreq(N, 1 / sr); zona = (fr > f_nom * 2 ** (-1 / 12)) & (fr < f_nom * 2 ** (1 / 12))
+        f_med = fr[zona][np.argmax(X[zona])]
+        cents = 1200 * np.log2(np.median(F) / f_nom) if abs(1200 * np.log2(f_med / f_nom)) < 50 else 1200 * np.log2(f_med / f_nom)
+        if abs(cents) > 50:
+            sys.exit(f"✗ {a}: la grabación no es {m.get('nota_app', '')} (midi {m['midi_referencia']}): suena {cents:+.0f} cents "
+                     "corrida. Revisá que la grabación y la ficha sean del mismo botón y fuelle.")
+        for o in ms: o["centesimas"] = round(float(cents), 1)
+    for o in ms: o["duracion"] = round(len(x) / sr, 3)
     f0 = 440 * 2 ** ((m["midi_referencia"] - 69) / 12) * 2 ** (m.get("centesimas", 0) / 1200)
     antes = medir(x, s0, e0, sr, f0)
 
@@ -247,9 +283,24 @@ for a, ms in sorted(archivos.items()):
 
 if aplicar:
     json.dump(idx, open(destino + "/indice.json", "w"), ensure_ascii=False, indent=1); open(destino + "/indice.json", "a").write("\n")
-json.dump(res, open(informe, "w"), ensure_ascii=False, indent=1)
+if informe: json.dump(res, open(informe, "w"), ensure_ascii=False, indent=1)
 print(f'{"archivo":24s} {"bucle":>13s} │ color costura/resto │ altura costura/resto (cents) │ volumen')
 for r in res:
     A, D = r["antes"], r["despues"]
     print(f'{r["archivo"]:24s} {r["loopStart"]:.2f}–{r["loopEnd"]:.2f} │ {A["color_costura"]:4.1f}/{A["color_resto"]:3.1f} → {D["color_costura"]:4.1f}/{D["color_resto"]:3.1f} │ '
           f'{A["altura_costura"]:5.1f}/{A["altura_resto"]:4.1f} → {D["altura_costura"]:4.1f}/{D["altura_resto"]:4.1f} │ {D["vol_min"]:.2f}–{D["vol_max"]:.2f}')
+
+# El veredicto, con la misma vara que pruebas/muestras.mjs: al dar la vuelta, la nota no puede cambiar de color ni de altura
+# más que lo que cambia sola en el resto, ni el volumen salir de 0,8–1,25.
+def veredicto(D):
+    malo = []
+    if D["color_costura"] > 1.5 * D["color_resto"] + 0.3: malo.append(f'el color cambia {D["color_costura"]} dB (el resto, {D["color_resto"]})')
+    if D["altura_costura"] > 2 * D["altura_resto"] + 2: malo.append(f'la altura se mueve {D["altura_costura"]} cents (el resto, {D["altura_resto"]})')
+    if D["vol_min"] < 0.8 or D["vol_max"] > 1.25: malo.append(f'el volumen va de {D["vol_min"]} a {D["vol_max"]}')
+    return malo
+print()
+for r in res:
+    malo = veredicto(r["despues"])
+    print(("✗ " + r["archivo"] + ": " + "; ".join(malo)) if malo else ("✓ " + r["archivo"] + ": al dar la vuelta no se nota" + (" — escrita, lista para subir" if aplicar else " (sin --aplicar no se escribió nada)")))
+if any(veredicto(r["despues"]) for r in res):
+    print("  Si una nota no queda bien, la grabación no da: conviene grabarla de nuevo (MUESTRAS.md, «Cómo grabar»)."); sys.exit(1)
