@@ -36,7 +36,7 @@ for (const m of idx.muestras) {
   else if (bits === 16 && canales === 1 && !costuras.has(m.archivo)) {
     // La costura del bucle: al volver del final al comienzo la onda no puede saltar más que lo que salta sola adentro del bucle.
     // Un salto se oye como un «tic» en cada vuelta mientras la tecla está apretada (22-nov-2026: 37 de 71 muestras lo tenían).
-    // Se arregla con pruebas/coser-muestras.py (funde el final del bucle con lo que viene antes del comienzo).
+    // Se arregla con pruebas/coser-muestras.py, siempre desde las grabaciones originales (ver su cabecera).
     costuras.add(m.archivo);
     const x = new Int16Array(b.buffer.slice(b.byteOffset + 44, b.byteOffset + b.length - ((b.length - 44) % 2)));
     const s = Math.round(m.loopStart * sr), e = Math.round(m.loopEnd * sr);
@@ -47,6 +47,20 @@ for (const m of idx.muestras) {
     const pegado = [x[e - 3], x[e - 2], x[e - 1], x[s], x[s + 1], x[s + 2]];
     let junta = 0; for (let i = 2; i < pegado.length; i++) junta = Math.max(junta, d2(pegado, i));
     if (junta > 2 * normal) falla(`${m.archivo}: la costura del bucle salta ${(junta / normal).toFixed(1)} veces lo normal (se oye un tic en cada vuelta)`);
+    // Y el volumen: sostenida, alrededor de cada costura (±200 ms), no puede hundirse ni subir (22-nov-2026: la primera costura
+    // fundía dos ondas que no coincidían, se restaban y el volumen caía al 16 % en cada vuelta: «un corte y continuación»).
+    // Ventanas de 3 períodos (al menos 10 ms): más cortas, en las notas graves el volumen tiembla sólo por la fase.
+    const z = []; for (let i = 0; i < e; i++) z.push(x[i]); for (let k = 0; k < 3; k++) for (let i = s; i < e; i++) z.push(x[i]);
+    const f0 = 440 * Math.pow(2, (m.midi_referencia - 69) / 12);
+    const h = Math.max(Math.round(0.01 * sr), Math.round(3 * sr / f0));
+    const rmsDe = (i) => { let a = 0; for (let j = i; j < i + h; j++) a += z[j] * z[j]; return Math.sqrt(a / h); };
+    const bucle = []; for (let i = e; i + h < e + (e - s); i += h >> 1) bucle.push(rmsDe(i));
+    bucle.sort((p, q) => p - q); const med = bucle[bucle.length >> 1];
+    let vmin = Infinity, vmax = 0;
+    for (const c of [e, 2 * e - s, 3 * e - 2 * s]) for (let i = c - Math.round(0.2 * sr); i < c + Math.round(0.2 * sr) && i + h < z.length; i += h >> 1) {
+      const v = rmsDe(i) / med; vmin = Math.min(vmin, v); vmax = Math.max(vmax, v);
+    }
+    if (vmin < 0.8 || vmax > 1.25) falla(`${m.archivo}: sostenida, el volumen va de ${vmin.toFixed(2)} a ${vmax.toFixed(2)} al dar la vuelta (se oye un corte)`);
   }
 }
 
