@@ -1,6 +1,6 @@
 // Prueba de las muestras reales del bandoneón (sin navegador ni npm): node pruebas/muestras.mjs
 // Controla que el índice esté bien armado, que cada .wav exista y dure lo que dice, que los bucles caigan dentro
-// de la muestra, y que a cada botón del teclado (R01…, L01…) le corresponda una muestra, y que siga siendo la misma nota (lo que falta se informa, no falla).
+// de la muestra, que la costura del bucle no haga «tic», y que a cada botón del teclado (R01…, L01…) le corresponda una muestra, y que siga siendo la misma nota (lo que falta se informa, no falla).
 
 import { readFileSync, existsSync } from "node:fs";
 import { DEFS_L, DEFS_R } from "../src/shared/bandoneon/layouts.js";
@@ -12,6 +12,7 @@ const falla = (m) => { fallos++; console.log("✗ " + m); };
 
 const idx = JSON.parse(readFileSync(new URL("indice.json", carpeta), "utf8"));
 const claves = new Set();
+const costuras = new Set();   // cada archivo se mira una vez (varios botones comparten muestra)
 
 for (const m of idx.muestras) {
   const c = `${m.mano}|${m.fuelle}|${m.boton}`;
@@ -32,6 +33,21 @@ for (const m of idx.muestras) {
   if (Math.abs(dur - m.duracion) > 0.02) falla(`${c}: dura ${dur.toFixed(2)} s y el índice dice ${m.duracion}`);
   if (!(m.loopStart >= 0 && m.loopEnd > m.loopStart && m.loopEnd <= dur + 0.001)) falla(`${c}: el bucle ${m.loopStart}–${m.loopEnd} no cabe en ${dur.toFixed(2)} s`);
   else if (m.loopEnd - m.loopStart < 0.5) falla(`${c}: bucle demasiado corto (se oiría como zumbido)`);
+  else if (bits === 16 && canales === 1 && !costuras.has(m.archivo)) {
+    // La costura del bucle: al volver del final al comienzo la onda no puede saltar más que lo que salta sola adentro del bucle.
+    // Un salto se oye como un «tic» en cada vuelta mientras la tecla está apretada (22-nov-2026: 37 de 71 muestras lo tenían).
+    // Se arregla con pruebas/coser-muestras.py (funde el final del bucle con lo que viene antes del comienzo).
+    costuras.add(m.archivo);
+    const x = new Int16Array(b.buffer.slice(b.byteOffset + 44, b.byteOffset + b.length - ((b.length - 44) % 2)));
+    const s = Math.round(m.loopStart * sr), e = Math.round(m.loopEnd * sr);
+    const d2 = (a, i) => Math.abs(a[i] - 2 * a[i - 1] + a[i - 2]);
+    const dentro = []; for (let i = s + 2; i < e; i++) dentro.push(d2(x, i));
+    dentro.sort((p, q) => p - q);
+    const normal = dentro[Math.floor(dentro.length * 0.999)];
+    const pegado = [x[e - 3], x[e - 2], x[e - 1], x[s], x[s + 1], x[s + 2]];
+    let junta = 0; for (let i = 2; i < pegado.length; i++) junta = Math.max(junta, d2(pegado, i));
+    if (junta > 2 * normal) falla(`${m.archivo}: la costura del bucle salta ${(junta / normal).toFixed(1)} veces lo normal (se oye un tic en cada vuelta)`);
+  }
 }
 
 // Cobertura contra el teclado de fábrica: cada botón tiene que tener su muestra
