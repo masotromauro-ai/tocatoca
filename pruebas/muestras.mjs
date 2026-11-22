@@ -36,7 +36,7 @@ for (const m of idx.muestras) {
   else if (bits === 16 && canales === 1 && !costuras.has(m.archivo)) {
     // La costura del bucle: al volver del final al comienzo la onda no puede saltar más que lo que salta sola adentro del bucle.
     // Un salto se oye como un «tic» en cada vuelta mientras la tecla está apretada (22-nov-2026: 37 de 71 muestras lo tenían).
-    // Se arregla con pruebas/coser-muestras.py, siempre desde las grabaciones originales (ver su cabecera).
+    // Se arregla con pruebas/coser-muestras.py, siempre desde las grabaciones originales (ver su cabecera: el tic, el volumen y el color).
     costuras.add(m.archivo);
     const x = new Int16Array(b.buffer.slice(b.byteOffset + 44, b.byteOffset + b.length - ((b.length - 44) % 2)));
     const s = Math.round(m.loopStart * sr), e = Math.round(m.loopEnd * sr);
@@ -51,7 +51,7 @@ for (const m of idx.muestras) {
     // fundía dos ondas que no coincidían, se restaban y el volumen caía al 16 % en cada vuelta: «un corte y continuación»).
     // Ventanas de 3 períodos (al menos 10 ms): más cortas, en las notas graves el volumen tiembla sólo por la fase.
     const z = []; for (let i = 0; i < e; i++) z.push(x[i]); for (let k = 0; k < 3; k++) for (let i = s; i < e; i++) z.push(x[i]);
-    const f0 = 440 * Math.pow(2, (m.midi_referencia - 69) / 12);
+    const f0 = 440 * Math.pow(2, (m.midi_referencia - 69) / 12) * Math.pow(2, (m.centesimas || 0) / 1200);
     const h = Math.max(Math.round(0.01 * sr), Math.round(3 * sr / f0));
     const rmsDe = (i) => { let a = 0; for (let j = i; j < i + h; j++) a += z[j] * z[j]; return Math.sqrt(a / h); };
     const bucle = []; for (let i = e; i + h < e + (e - s); i += h >> 1) bucle.push(rmsDe(i));
@@ -61,6 +61,26 @@ for (const m of idx.muestras) {
       const v = rmsDe(i) / med; vmin = Math.min(vmin, v); vmax = Math.max(vmax, v);
     }
     if (vmin < 0.8 || vmax > 1.25) falla(`${m.archivo}: sostenida, el volumen va de ${vmin.toFixed(2)} a ${vmax.toFixed(2)} al dar la vuelta (se oye un corte)`);
+    // Y el COLOR (22-nov-2026, la tercera vez: «una caída y una subida repentina»): el nivel de los armónicos 1 a 6, cada 10 ms,
+    // no puede cambiar al dar la vuelta más que lo que cambia solo en el resto de la nota. Se mide con Goertzel (sin FFT ni npm).
+    const L = f0 < 110 ? 8192 : 4096, hann = new Float64Array(L).map((_, i) => 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (L - 1)));
+    const nivel = (i0, f) => { const w = 2 * Math.cos(2 * Math.PI * f / sr); let a = 0, b = 0;
+      for (let i = 0; i < L; i++) { const c = z[i0 + i] * hann[i] + w * a - b; b = a; a = c; }
+      return 10 * Math.log10(a * a + b * b - w * a * b + 1e-9); };
+    const paso = Math.round(0.01 * sr), marcos = [];
+    for (let i0 = Math.round(0.3 * sr); i0 + L < z.length; i0 += paso) marcos.push({ t: (i0 + L / 2) / sr, P: [1, 2, 3, 4, 5, 6].map((h) => nivel(i0, h * f0)) });
+    const tipico = [0, 1, 2, 3, 4, 5].map((h) => { const v = marcos.map((q) => q.P[h]).sort((p, q) => p - q); return Math.pow(10, v[v.length >> 1] / 20); });
+    const suma = tipico.reduce((p, q) => p + q, 0), peso = tipico.map((v) => v / suma);
+    const vueltas = [e, 2 * e - s, 3 * e - 2 * s, 4 * e - 3 * s].map((c) => c / sr);
+    const cerca = [], lejos = [];
+    for (let k = 2; k < marcos.length; k++) {
+      let d = 0; for (let h = 0; h < 6; h++) d += peso[h] * Math.min(15, Math.abs(marcos[k].P[h] - marcos[k - 2].P[h]));
+      const tt = marcos[k - 1].t; if (tt < Math.max(0.4, s / sr)) continue;
+      (vueltas.some((c) => Math.abs(c - tt) < 0.15) ? cerca : lejos).push(d);
+    }
+    lejos.sort((p, q) => p - q);
+    const resto = lejos[Math.floor(lejos.length * 0.99)] ?? 0, costura = Math.max(...cerca);
+    if (costura > 1.5 * resto + 0.4) falla(`${m.archivo}: al dar la vuelta el color cambia ${costura.toFixed(2)} dB (en el resto de la nota, ${resto.toFixed(2)}): se oye una caída y una subida`);
   }
 }
 

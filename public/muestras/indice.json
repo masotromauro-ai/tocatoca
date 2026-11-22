@@ -11,8 +11,8 @@
    "midi_referencia": 57,
    "archivo": "bando-der-abre-57.wav",
    "duracion": 1.492,
-   "loopStart": 0.35,
-   "loopEnd": 1.215261,
+   "loopStart": 0.30644,
+   "loopEnd": 1.171723,
    "centesimas": 11.8,
    "nota_app": "LA2"
   },
@@ -25,8 +25,8 @@
    "midi_referencia": 58,
    "archivo": "bando-der-abre-58.wav",
    "duracion": 1.72,
-   "loopStart": 0.35,
-   "loopEnd": 1.218367,
+   "loopStart": 0.35644,
+   "loopEnd": 0.901383,
    "centesimas": 14.2,
    "nota_app": "LA♯2"
   },
@@ -39,8 +39,8 @@
    "midi_referencia": 59,
    "archivo": "bando-der-abre-59.wav",
    "duracion": 1.75,
-   "loopStart": 0.35,
-   "loopEnd": 1.249229,
+   "loopStart": 0.68644,
+   "loopEnd": 1.232381,
    "centesimas": 14.4,
    "nota_app": "SI2"
   },
@@ -53,8 +53,8 @@
    "midi_referencia": 60,
    "archivo": "bando-der-abre-60.wav",
    "duracion": 1.787,
-   "loopStart": 0.35,
-   "loopEnd": 1.378662,
+   "loopStart": 0.51644,
+   "loopEnd": 1.400862,
    "centesimas": 10.7,
    "nota_app": "DO3"
   },
@@ -67,8 +67,8 @@
    "midi_referencia": 61,
    "archivo": "bando-der-abre-61.wav",
    "duracion": 1.702,
-   "loopStart": 0.35,
-   "loopEnd": 1.200227,
+   "loopStart": 0.30644,
+   "loopEnd": 0.858912,
    "centesimas": 8.2,
    "nota_app": "DO♯3"
   },
@@ -81,8 +81,8 @@
    "midi_referencia": 62,
    "archivo": "bando-der-abre-62.wav",
    "duracion": 1.73,
-   "loopStart": 0.35,
-   "loopEnd": 1.231814,
+   "loopStart": 0.30644,
+   "loopEnd": 1.028889,
    "centesimas": 9.3,
    "nota_app": "RE3"
   },
@@ -95,8 +95,8 @@
    "midi_referencia": 63,
    "archivo": "bando-der-abre-63.wav",
    "duracion": 1.812,
-   "loopStart": 0.35,
-   "loopEnd": 1.540658,
+   "loopStart": 0.39644,
+   "loopEnd": 0.943401,
    "centesimas": 9.0,
    "nota_app": "RE♯3"
   },
@@ -109,8 +109,8 @@
    "midi_referencia": 64,
    "archivo": "bando-der-abre-64.wav",
    "duracion": 1.561,
-   "loopStart": 0.35,
-   "loopEnd": 1.156939,
+   "loopStart": 0.31644,
+   "loopEnd": 1.120408,
    "centesimas": 12.4,
    "nota_app": "MI3"
   },
@@ -123,8 +123,8 @@
    "midi_referencia": 65,
    "archivo": "bando-der-abre-65.wav",
    "duracion": 1.585,
-   "loopStart": 0.35,
-   "loopEnd": 1.166916,
+   "loopStart": 0.35644,
+   "loopEnd": 1.170522,
    "centesimas": -3.6,
    "nota_app": "FA3"
   },
@@ -137,8 +137,8 @@
    "midi_referencia": 66,
    "archivo": "bando-der-abre-66.wav",
    "duracion": 1.673,
-   "loopStart": 0.35,
-   "loopEnd": 1.374717,
+   "loopStart": 0.31644,
+   "loopEnd": 1.257914,
    "centesimas": 7.0,
    "nota_app": "FA♯3"
   },
@@ -151,8 +151,8 @@
    "midi_referencia": 67,
    "archivo": "bando-der-abre-67.wav",
    "duracion": 1.659,
-   "loopStart": 0.35,
-   "loopEnd": 1.261519,
+   "loopStart": 0.55644,
+   "loopEnd": 1.244717,
    "centesimas": 4.4,
    "nota_app": "SOL3"
   },
@@ -165,8 +165,8 @@
    "midi_referencia": 68,
    "archivo": "bando-der-abre-68.wav",
    "duracion": 1.686,
-   "loopStart": 0.35,
-   "loopEnd": 1.185805,
+   "loopStart": 0.51644,
+   "loopEnd": 1.2661,
    "centesimas": 6.0,
    "nota_app": "SOL♯3"
   },
@@ -179,8 +179,8 @@
    "midi_referencia": 69,
    "archivo": "bando-der-abre-69.wav",
    "duracion": 1.659,
-   "loopStart": 0.35,
-   "loopEnd": 1.157959,
+   "loopStart": 0.60644,
+   "loopEnd": 1.163084,
    "centesimas": 2.9,
    "nota_app": "LA3"
   },
@@ -193,8 +193,8 @@
    "midi_referencia": 70,
    "archivo": "bando-der-abre-70.wav",
    "duracion": 1.73,
-   "loopStart": 0.35,
-   "loopEnd": 1.461769,
+   "loopStart": 0.53644,
+   "loopEnd": 1.298209,
    "centesimas": 6.8,
    "nota_app": "LA♯3"
   },
@@ -207,8 +207,8 @@
    "midi_referencia": 71,
    "archivo": "bando-der-abre-71.wav",
    "duracion": 1.74,
-   "loopStart": 0.35,
-   "loopEnd": 1.242426,
+   "loopStart": 0.75644,
+   "loopEnd": 1.314512,
    "centesimas": 4.8,
    "nota_app": "SI3"
   },
@@ -221,8 +221,8 @@
    "midi_referencia": 72,
    "archivo": "bando-der-abre-72.wav",
    "duracion": 1.8,
-   "loopStart": 0.35,
-   "loopEnd": 1.299955,
+   "loopStart": 0.37644,
+   "loopEnd": 1.197188,
    "centesimas": 6.6,
    "nota_app": "DO4"
   },
@@ -235,8 +235,8 @@
    "midi_referencia": 73,
    "archivo": "bando-der-abre-73.wav",
    "duracion": 1.769,
-   "loopStart": 0.35,
-   "loopEnd": 1.323107,
+   "loopStart": 0.59644,
+   "loopEnd": 1.15737,
    "centesimas": 9.0,
    "nota_app": "DO♯4"
   },
@@ -249,8 +249,8 @@
    "midi_referencia": 74,
    "archivo": "bando-der-abre-74.wav",
    "duracion": 1.827,
-   "loopStart": 0.35,
-   "loopEnd": 1.522766,
+   "loopStart": 0.72644,
+   "loopEnd": 1.274785,
    "centesimas": 7.1,
    "nota_app": "RE4"
   },
@@ -263,8 +263,8 @@
    "midi_referencia": 75,
    "archivo": "bando-der-abre-75.wav",
    "duracion": 1.786,
-   "loopStart": 0.35,
-   "loopEnd": 1.489592,
+   "loopStart": 0.56644,
+   "loopEnd": 1.387279,
    "centesimas": 11.8,
    "nota_app": "RE♯4"
   },
@@ -277,8 +277,8 @@
    "midi_referencia": 76,
    "archivo": "bando-der-abre-76.wav",
    "duracion": 2.549,
-   "loopStart": 0.35,
-   "loopEnd": 2.051066,
+   "loopStart": 0.79644,
+   "loopEnd": 1.345465,
    "centesimas": 11.1,
    "nota_app": "MI4"
   },
@@ -291,8 +291,8 @@
    "midi_referencia": 77,
    "archivo": "bando-der-abre-77.wav",
    "duracion": 1.747,
-   "loopStart": 0.35,
-   "loopEnd": 1.314649,
+   "loopStart": 0.71644,
+   "loopEnd": 1.265669,
    "centesimas": 8.1,
    "nota_app": "FA4"
   },
@@ -305,8 +305,8 @@
    "midi_referencia": 78,
    "archivo": "bando-der-abre-78.wav",
    "duracion": 1.773,
-   "loopStart": 0.35,
-   "loopEnd": 1.273855,
+   "loopStart": 0.52644,
+   "loopEnd": 1.09746,
    "centesimas": 6.4,
    "nota_app": "FA♯4"
   },
@@ -319,8 +319,8 @@
    "midi_referencia": 79,
    "archivo": "bando-der-abre-79.wav",
    "duracion": 1.799,
-   "loopStart": 0.35,
-   "loopEnd": 1.332653,
+   "loopStart": 0.77644,
+   "loopEnd": 1.324739,
    "centesimas": 5.0,
    "nota_app": "SOL4"
   },
@@ -333,8 +333,8 @@
    "midi_referencia": 80,
    "archivo": "bando-der-abre-80.wav",
    "duracion": 1.798,
-   "loopStart": 0.35,
-   "loopEnd": 1.38712,
+   "loopStart": 0.76644,
+   "loopEnd": 1.317302,
    "centesimas": 6.5,
    "nota_app": "SOL♯4"
   },
@@ -347,8 +347,8 @@
    "midi_referencia": 81,
    "archivo": "bando-der-abre-81.wav",
    "duracion": 1.743,
-   "loopStart": 0.35,
-   "loopEnd": 1.40415,
+   "loopStart": 0.71644,
+   "loopEnd": 1.305737,
    "centesimas": 6.4,
    "nota_app": "LA4"
   },
@@ -361,8 +361,8 @@
    "midi_referencia": 82,
    "archivo": "bando-der-abre-82.wav",
    "duracion": 1.694,
-   "loopStart": 0.35,
-   "loopEnd": 1.336825,
+   "loopStart": 0.72644,
+   "loopEnd": 1.274943,
    "centesimas": 3.6,
    "nota_app": "LA♯4"
   },
@@ -375,8 +375,8 @@
    "midi_referencia": 83,
    "archivo": "bando-der-abre-83.wav",
    "duracion": 1.726,
-   "loopStart": 0.35,
-   "loopEnd": 1.434082,
+   "loopStart": 0.56644,
+   "loopEnd": 1.205805,
    "centesimas": 5.2,
    "nota_app": "SI4"
   },
@@ -389,8 +389,8 @@
    "midi_referencia": 84,
    "archivo": "bando-der-abre-84.wav",
    "duracion": 1.81,
-   "loopStart": 0.35,
-   "loopEnd": 1.349297,
+   "loopStart": 0.61644,
+   "loopEnd": 1.207279,
    "centesimas": 8.7,
    "nota_app": "DO5"
   },
@@ -403,8 +403,8 @@
    "midi_referencia": 85,
    "archivo": "bando-der-abre-85.wav",
    "duracion": 2.808,
-   "loopStart": 0.35,
-   "loopEnd": 2.360454,
+   "loopStart": 0.78644,
+   "loopEnd": 1.336712,
    "centesimas": 6.7,
    "nota_app": "DO♯5"
   },
@@ -417,8 +417,8 @@
    "midi_referencia": 86,
    "archivo": "bando-der-abre-86.wav",
    "duracion": 1.476,
-   "loopStart": 0.35,
-   "loopEnd": 0.976576,
+   "loopStart": 0.34644,
+   "loopEnd": 0.936599,
    "centesimas": 8.6,
    "nota_app": "RE5"
   },
@@ -431,8 +431,8 @@
    "midi_referencia": 87,
    "archivo": "bando-der-abre-87.wav",
    "duracion": 2.178,
-   "loopStart": 0.35,
-   "loopEnd": 1.699955,
+   "loopStart": 0.77644,
+   "loopEnd": 1.576213,
    "centesimas": 6.9,
    "nota_app": "RE♯5"
   },
@@ -445,8 +445,8 @@
    "midi_referencia": 88,
    "archivo": "bando-der-abre-88.wav",
    "duracion": 1.723,
-   "loopStart": 0.35,
-   "loopEnd": 1.511678,
+   "loopStart": 0.56644,
+   "loopEnd": 1.226871,
    "centesimas": 5.9,
    "nota_app": "MI5"
   },
@@ -459,8 +459,8 @@
    "midi_referencia": 89,
    "archivo": "bando-der-abre-89.wav",
    "duracion": 1.94,
-   "loopStart": 0.35,
-   "loopEnd": 1.469955,
+   "loopStart": 0.37644,
+   "loopEnd": 1.156712,
    "centesimas": 11.2,
    "nota_app": "FA5"
   },
@@ -473,8 +473,8 @@
    "midi_referencia": 90,
    "archivo": "bando-der-abre-90.wav",
    "duracion": 1.738,
-   "loopStart": 0.35,
-   "loopEnd": 1.25644,
+   "loopStart": 0.54644,
+   "loopEnd": 1.09712,
    "centesimas": 10.2,
    "nota_app": "FA♯5"
   },
@@ -487,8 +487,8 @@
    "midi_referencia": 91,
    "archivo": "bando-der-abre-91.wav",
    "duracion": 1.83,
-   "loopStart": 0.35,
-   "loopEnd": 1.373946,
+   "loopStart": 0.50644,
+   "loopEnd": 1.055805,
    "centesimas": 9.9,
    "nota_app": "SOL5"
   },
@@ -501,8 +501,8 @@
    "midi_referencia": 92,
    "archivo": "bando-der-abre-92.wav",
    "duracion": 1.875,
-   "loopStart": 0.35,
-   "loopEnd": 1.472404,
+   "loopStart": 0.62644,
+   "loopEnd": 1.20619,
    "centesimas": 9.6,
    "nota_app": "SOL♯5"
   },
@@ -515,8 +515,8 @@
    "midi_referencia": 93,
    "archivo": "bando-der-abre-93.wav",
    "duracion": 1.719,
-   "loopStart": 0.35,
-   "loopEnd": 1.361066,
+   "loopStart": 0.64644,
+   "loopEnd": 1.236916,
    "centesimas": 14.7,
    "nota_app": "LA5"
   },
@@ -529,8 +529,8 @@
    "midi_referencia": 95,
    "archivo": "bando-der-abre-95.wav",
    "duracion": 2.319,
-   "loopStart": 0.35,
-   "loopEnd": 1.986259,
+   "loopStart": 0.79644,
+   "loopEnd": 1.725941,
    "centesimas": 11.3,
    "nota_app": "SI5"
   },
@@ -544,8 +544,8 @@
    "midi_referencia": 48,
    "archivo": "bando-der-abre-60.wav",
    "duracion": 1.787,
-   "loopStart": 0.35,
-   "loopEnd": 1.378662,
+   "loopStart": 0.51644,
+   "loopEnd": 1.400862,
    "centesimas": 10.7,
    "origen": "muestra de abriendo (R10) una octava más grave; reemplazar por la grabación real de este botón",
    "velocidad": 0.5
@@ -560,8 +560,8 @@
    "midi_referencia": 57,
    "archivo": "bando-der-abre-57.wav",
    "duracion": 1.492,
-   "loopStart": 0.35,
-   "loopEnd": 1.215261,
+   "loopStart": 0.30644,
+   "loopEnd": 1.171723,
    "centesimas": 11.8,
    "origen": "misma altura que abriendo (R23)"
   },
@@ -575,8 +575,8 @@
    "midi_referencia": 58,
    "archivo": "bando-der-abre-58.wav",
    "duracion": 1.72,
-   "loopStart": 0.35,
-   "loopEnd": 1.218367,
+   "loopStart": 0.35644,
+   "loopEnd": 0.901383,
    "centesimas": 14.2,
    "origen": "misma altura que abriendo (R31)"
   },
@@ -590,8 +590,8 @@
    "midi_referencia": 60,
    "archivo": "bando-der-abre-60.wav",
    "duracion": 1.787,
-   "loopStart": 0.35,
-   "loopEnd": 1.378662,
+   "loopStart": 0.51644,
+   "loopEnd": 1.400862,
    "centesimas": 10.7,
    "origen": "misma altura que abriendo (R10)"
   },
@@ -605,8 +605,8 @@
    "midi_referencia": 61,
    "archivo": "bando-der-abre-61.wav",
    "duracion": 1.702,
-   "loopStart": 0.35,
-   "loopEnd": 1.200227,
+   "loopStart": 0.30644,
+   "loopEnd": 0.858912,
    "centesimas": 8.2,
    "origen": "misma altura que abriendo (R08)"
   },
@@ -620,8 +620,8 @@
    "midi_referencia": 62,
    "archivo": "bando-der-abre-62.wav",
    "duracion": 1.73,
-   "loopStart": 0.35,
-   "loopEnd": 1.231814,
+   "loopStart": 0.30644,
+   "loopEnd": 1.028889,
    "centesimas": 9.3,
    "origen": "misma altura que abriendo (R11)"
   },
@@ -635,8 +635,8 @@
    "midi_referencia": 63,
    "archivo": "bando-der-abre-63.wav",
    "duracion": 1.812,
-   "loopStart": 0.35,
-   "loopEnd": 1.540658,
+   "loopStart": 0.39644,
+   "loopEnd": 0.943401,
    "centesimas": 9.0,
    "origen": "misma altura que abriendo (R32)"
   },
@@ -650,8 +650,8 @@
    "midi_referencia": 64,
    "archivo": "bando-der-abre-64.wav",
    "duracion": 1.561,
-   "loopStart": 0.35,
-   "loopEnd": 1.156939,
+   "loopStart": 0.31644,
+   "loopEnd": 1.120408,
    "centesimas": 12.4,
    "origen": "misma altura que abriendo (R17)"
   },
@@ -665,8 +665,8 @@
    "midi_referencia": 65,
    "archivo": "bando-der-abre-65.wav",
    "duracion": 1.585,
-   "loopStart": 0.35,
-   "loopEnd": 1.166916,
+   "loopStart": 0.35644,
+   "loopEnd": 1.170522,
    "centesimas": -3.6,
    "origen": "misma altura que abriendo (R24)"
   },
@@ -680,8 +680,8 @@
    "midi_referencia": 66,
    "archivo": "bando-der-abre-66.wav",
    "duracion": 1.673,
-   "loopStart": 0.35,
-   "loopEnd": 1.374717,
+   "loopStart": 0.31644,
+   "loopEnd": 1.257914,
    "centesimas": 7.0,
    "origen": "misma altura que abriendo (R19)"
   },
@@ -695,8 +695,8 @@
    "midi_referencia": 67,
    "archivo": "bando-der-abre-67.wav",
    "duracion": 1.659,
-   "loopStart": 0.35,
-   "loopEnd": 1.261519,
+   "loopStart": 0.55644,
+   "loopEnd": 1.244717,
    "centesimas": 4.4,
    "origen": "misma altura que abriendo (R12)"
   },
@@ -710,8 +710,8 @@
    "midi_referencia": 68,
    "archivo": "bando-der-abre-68.wav",
    "duracion": 1.686,
-   "loopStart": 0.35,
-   "loopEnd": 1.185805,
+   "loopStart": 0.51644,
+   "loopEnd": 1.2661,
    "centesimas": 6.0,
    "origen": "misma altura que abriendo (R26)"
   },
@@ -725,8 +725,8 @@
    "midi_referencia": 69,
    "archivo": "bando-der-abre-69.wav",
    "duracion": 1.659,
-   "loopStart": 0.35,
-   "loopEnd": 1.157959,
+   "loopStart": 0.60644,
+   "loopEnd": 1.163084,
    "centesimas": 2.9,
    "origen": "misma altura que abriendo (R20)"
   },
@@ -740,8 +740,8 @@
    "midi_referencia": 70,
    "archivo": "bando-der-abre-70.wav",
    "duracion": 1.73,
-   "loopStart": 0.35,
-   "loopEnd": 1.461769,
+   "loopStart": 0.53644,
+   "loopEnd": 1.298209,
    "centesimas": 6.8,
    "origen": "misma altura que abriendo (R25)"
   },
@@ -755,8 +755,8 @@
    "midi_referencia": 71,
    "archivo": "bando-der-abre-71.wav",
    "duracion": 1.74,
-   "loopStart": 0.35,
-   "loopEnd": 1.242426,
+   "loopStart": 0.75644,
+   "loopEnd": 1.314512,
    "centesimas": 4.8,
    "origen": "misma altura que abriendo (R27)"
   },
@@ -770,8 +770,8 @@
    "midi_referencia": 72,
    "archivo": "bando-der-abre-72.wav",
    "duracion": 1.8,
-   "loopStart": 0.35,
-   "loopEnd": 1.299955,
+   "loopStart": 0.37644,
+   "loopEnd": 1.197188,
    "centesimas": 6.6,
    "origen": "misma altura que abriendo (R21)"
   },
@@ -785,8 +785,8 @@
    "midi_referencia": 73,
    "archivo": "bando-der-abre-73.wav",
    "duracion": 1.769,
-   "loopStart": 0.35,
-   "loopEnd": 1.323107,
+   "loopStart": 0.59644,
+   "loopEnd": 1.15737,
    "centesimas": 9.0,
    "origen": "misma altura que abriendo (R18)"
   },
@@ -800,8 +800,8 @@
    "midi_referencia": 74,
    "archivo": "bando-der-abre-74.wav",
    "duracion": 1.827,
-   "loopStart": 0.35,
-   "loopEnd": 1.522766,
+   "loopStart": 0.72644,
+   "loopEnd": 1.274785,
    "centesimas": 7.1,
    "origen": "misma altura que abriendo (R28)"
   },
@@ -815,8 +815,8 @@
    "midi_referencia": 75,
    "archivo": "bando-der-abre-75.wav",
    "duracion": 1.786,
-   "loopStart": 0.35,
-   "loopEnd": 1.489592,
+   "loopStart": 0.56644,
+   "loopEnd": 1.387279,
    "centesimas": 11.8,
    "origen": "misma altura que abriendo (R34)"
   },
@@ -830,8 +830,8 @@
    "midi_referencia": 76,
    "archivo": "bando-der-abre-76.wav",
    "duracion": 2.549,
-   "loopStart": 0.35,
-   "loopEnd": 2.051066,
+   "loopStart": 0.79644,
+   "loopEnd": 1.345465,
    "centesimas": 11.1,
    "origen": "misma altura que abriendo (R22)"
   },
@@ -845,8 +845,8 @@
    "midi_referencia": 77,
    "archivo": "bando-der-abre-77.wav",
    "duracion": 1.747,
-   "loopStart": 0.35,
-   "loopEnd": 1.314649,
+   "loopStart": 0.71644,
+   "loopEnd": 1.265669,
    "centesimas": 8.1,
    "origen": "misma altura que abriendo (R33)"
   },
@@ -860,8 +860,8 @@
    "midi_referencia": 78,
    "archivo": "bando-der-abre-78.wav",
    "duracion": 1.773,
-   "loopStart": 0.35,
-   "loopEnd": 1.273855,
+   "loopStart": 0.52644,
+   "loopEnd": 1.09746,
    "centesimas": 6.4,
    "origen": "misma altura que abriendo (R35)"
   },
@@ -875,8 +875,8 @@
    "midi_referencia": 79,
    "archivo": "bando-der-abre-79.wav",
    "duracion": 1.799,
-   "loopStart": 0.35,
-   "loopEnd": 1.332653,
+   "loopStart": 0.77644,
+   "loopEnd": 1.324739,
    "centesimas": 5.0,
    "origen": "misma altura que abriendo (R38)"
   },
@@ -890,8 +890,8 @@
    "midi_referencia": 80,
    "archivo": "bando-der-abre-80.wav",
    "duracion": 1.798,
-   "loopStart": 0.35,
-   "loopEnd": 1.38712,
+   "loopStart": 0.76644,
+   "loopEnd": 1.317302,
    "centesimas": 6.5,
    "origen": "misma altura que abriendo (R29)"
   },
@@ -905,8 +905,8 @@
    "midi_referencia": 81,
    "archivo": "bando-der-abre-81.wav",
    "duracion": 1.743,
-   "loopStart": 0.35,
-   "loopEnd": 1.40415,
+   "loopStart": 0.71644,
+   "loopEnd": 1.305737,
    "centesimas": 6.4,
    "origen": "misma altura que abriendo (R36)"
   },
@@ -920,8 +920,8 @@
    "midi_referencia": 82,
    "archivo": "bando-der-abre-82.wav",
    "duracion": 1.694,
-   "loopStart": 0.35,
-   "loopEnd": 1.336825,
+   "loopStart": 0.72644,
+   "loopEnd": 1.274943,
    "centesimas": 3.6,
    "origen": "misma altura que abriendo (R13)"
   },
@@ -935,8 +935,8 @@
    "midi_referencia": 83,
    "archivo": "bando-der-abre-83.wav",
    "duracion": 1.726,
-   "loopStart": 0.35,
-   "loopEnd": 1.434082,
+   "loopStart": 0.56644,
+   "loopEnd": 1.205805,
    "centesimas": 5.2,
    "origen": "misma altura que abriendo (R30)"
   },
@@ -950,8 +950,8 @@
    "midi_referencia": 84,
    "archivo": "bando-der-abre-84.wav",
    "duracion": 1.81,
-   "loopStart": 0.35,
-   "loopEnd": 1.349297,
+   "loopStart": 0.61644,
+   "loopEnd": 1.207279,
    "centesimas": 8.7,
    "origen": "misma altura que abriendo (R14)"
   },
@@ -965,8 +965,8 @@
    "midi_referencia": 85,
    "archivo": "bando-der-abre-85.wav",
    "duracion": 2.808,
-   "loopStart": 0.35,
-   "loopEnd": 2.360454,
+   "loopStart": 0.78644,
+   "loopEnd": 1.336712,
    "centesimas": 6.7,
    "origen": "misma altura que abriendo (R37)"
   },
@@ -980,8 +980,8 @@
    "midi_referencia": 86,
    "archivo": "bando-der-abre-86.wav",
    "duracion": 1.476,
-   "loopStart": 0.35,
-   "loopEnd": 0.976576,
+   "loopStart": 0.34644,
+   "loopEnd": 0.936599,
    "centesimas": 8.6,
    "origen": "misma altura que abriendo (R15)"
   },
@@ -995,8 +995,8 @@
    "midi_referencia": 87,
    "archivo": "bando-der-abre-87.wav",
    "duracion": 2.178,
-   "loopStart": 0.35,
-   "loopEnd": 1.699955,
+   "loopStart": 0.77644,
+   "loopEnd": 1.576213,
    "centesimas": 6.9,
    "origen": "misma altura que abriendo (R09)"
   },
@@ -1010,8 +1010,8 @@
    "midi_referencia": 88,
    "archivo": "bando-der-abre-88.wav",
    "duracion": 1.723,
-   "loopStart": 0.35,
-   "loopEnd": 1.511678,
+   "loopStart": 0.56644,
+   "loopEnd": 1.226871,
    "centesimas": 5.9,
    "origen": "misma altura que abriendo (R07)"
   },
@@ -1025,8 +1025,8 @@
    "midi_referencia": 88,
    "archivo": "bando-der-abre-88.wav",
    "duracion": 1.723,
-   "loopStart": 0.35,
-   "loopEnd": 1.511678,
+   "loopStart": 0.56644,
+   "loopEnd": 1.226871,
    "centesimas": 5.9,
    "origen": "misma altura que abriendo (R07)"
   },
@@ -1040,8 +1040,8 @@
    "midi_referencia": 89,
    "archivo": "bando-der-abre-89.wav",
    "duracion": 1.94,
-   "loopStart": 0.35,
-   "loopEnd": 1.469955,
+   "loopStart": 0.37644,
+   "loopEnd": 1.156712,
    "centesimas": 11.2,
    "origen": "misma altura que abriendo (R04)"
   },
@@ -1055,8 +1055,8 @@
    "midi_referencia": 90,
    "archivo": "bando-der-abre-90.wav",
    "duracion": 1.738,
-   "loopStart": 0.35,
-   "loopEnd": 1.25644,
+   "loopStart": 0.54644,
+   "loopEnd": 1.09712,
    "centesimas": 10.2,
    "origen": "misma altura que abriendo (R06)"
   },
@@ -1070,8 +1070,8 @@
    "midi_referencia": 91,
    "archivo": "bando-der-abre-91.wav",
    "duracion": 1.83,
-   "loopStart": 0.35,
-   "loopEnd": 1.373946,
+   "loopStart": 0.50644,
+   "loopEnd": 1.055805,
    "centesimas": 9.9,
    "origen": "misma altura que abriendo (R03)"
   },
@@ -1085,8 +1085,8 @@
    "midi_referencia": 92,
    "archivo": "bando-der-abre-92.wav",
    "duracion": 1.875,
-   "loopStart": 0.35,
-   "loopEnd": 1.472404,
+   "loopStart": 0.62644,
+   "loopEnd": 1.20619,
    "centesimas": 9.6,
    "origen": "misma altura que abriendo (R02)"
   },
@@ -1100,8 +1100,8 @@
    "midi_referencia": 95,
    "archivo": "bando-der-abre-95.wav",
    "duracion": 2.319,
-   "loopStart": 0.35,
-   "loopEnd": 1.986259,
+   "loopStart": 0.79644,
+   "loopEnd": 1.725941,
    "centesimas": 11.3,
    "origen": "misma altura que abriendo (R01)"
   },
@@ -1115,8 +1115,8 @@
    "midi_referencia": 36,
    "archivo": "bando-izq-abre-36.wav",
    "duracion": 1.777,
-   "loopStart": 0.3519,
-   "loopEnd": 1.041134,
+   "loopStart": 0.64288,
+   "loopEnd": 1.604694,
    "centesimas": 16.4
   },
   {
@@ -1129,8 +1129,8 @@
    "midi_referencia": 38,
    "archivo": "bando-izq-abre-38.wav",
    "duracion": 1.96,
-   "loopStart": 0.3718,
-   "loopEnd": 1.403379,
+   "loopStart": 0.31288,
+   "loopEnd": 1.411338,
    "centesimas": 10.3
   },
   {
@@ -1143,8 +1143,8 @@
    "midi_referencia": 39,
    "archivo": "bando-izq-abre-39.wav",
    "duracion": 1.7,
-   "loopStart": 0.308,
-   "loopEnd": 1.150794,
+   "loopStart": 0.79288,
+   "loopEnd": 1.406054,
    "centesimas": 11.7
   },
   {
@@ -1157,8 +1157,8 @@
    "midi_referencia": 40,
    "archivo": "bando-izq-abre-40.wav",
    "duracion": 1.6,
-   "loopStart": 0.3998,
-   "loopEnd": 1.109773,
+   "loopStart": 0.64288,
+   "loopEnd": 1.304422,
    "centesimas": 14.6
   },
   {
@@ -1171,8 +1171,8 @@
    "midi_referencia": 41,
    "archivo": "bando-izq-abre-41.wav",
    "duracion": 1.357,
-   "loopStart": 0.308,
-   "loopEnd": 1.0139,
+   "loopStart": 0.33288,
+   "loopEnd": 1.02712,
    "centesimas": 11.5
   },
   {
@@ -1185,8 +1185,8 @@
    "midi_referencia": 42,
    "archivo": "bando-izq-abre-42.wav",
    "duracion": 1.76,
-   "loopStart": 0.5594,
-   "loopEnd": 1.563107,
+   "loopStart": 0.70288,
+   "loopEnd": 1.362789,
    "centesimas": 11.5
   },
   {
@@ -1199,8 +1199,8 @@
    "midi_referencia": 43,
    "archivo": "bando-izq-abre-43.wav",
    "duracion": 1.854,
-   "loopStart": 0.304,
-   "loopEnd": 0.860249,
+   "loopStart": 0.66288,
+   "loopEnd": 1.350385,
    "centesimas": 16.2
   },
   {
@@ -1213,8 +1213,8 @@
    "midi_referencia": 44,
    "archivo": "bando-izq-abre-44.wav",
    "duracion": 2.15,
-   "loopStart": 0.3,
-   "loopEnd": 1.007302,
+   "loopStart": 0.37288,
+   "loopEnd": 1.003832,
    "centesimas": 13.5
   },
   {
@@ -1227,8 +1227,8 @@
    "midi_referencia": 45,
    "archivo": "bando-izq-abre-45.wav",
    "duracion": 1.657,
-   "loopStart": 0.5953,
-   "loopEnd": 1.492789,
+   "loopStart": 0.56644,
+   "loopEnd": 1.206803,
    "centesimas": 16.1
   },
   {
@@ -1241,8 +1241,8 @@
    "midi_referencia": 46,
    "archivo": "bando-izq-abre-46.wav",
    "duracion": 1.54,
-   "loopStart": 0.3,
-   "loopEnd": 1.38102,
+   "loopStart": 0.33644,
+   "loopEnd": 0.932336,
    "centesimas": 13.1
   },
   {
@@ -1255,8 +1255,8 @@
    "midi_referencia": 47,
    "archivo": "bando-izq-abre-47.wav",
    "duracion": 1.739,
-   "loopStart": 0.5873,
-   "loopEnd": 1.309274,
+   "loopStart": 0.79644,
+   "loopEnd": 1.470272,
    "centesimas": 16.6
   },
   {
@@ -1269,8 +1269,8 @@
    "midi_referencia": 48,
    "archivo": "bando-izq-abre-48.wav",
    "duracion": 1.72,
-   "loopStart": 0.5075,
-   "loopEnd": 1.3878,
+   "loopStart": 0.77644,
+   "loopEnd": 1.368322,
    "centesimas": 12.0
   },
   {
@@ -1283,8 +1283,8 @@
    "midi_referencia": 49,
    "archivo": "bando-izq-abre-49.wav",
    "duracion": 1.56,
-   "loopStart": 0.3998,
-   "loopEnd": 1.358322,
+   "loopStart": 0.42644,
+   "loopEnd": 1.277664,
    "centesimas": 15.0
   },
   {
@@ -1297,8 +1297,8 @@
    "midi_referencia": 50,
    "archivo": "bando-izq-abre-50.wav",
    "duracion": 1.64,
-   "loopStart": 0.5953,
-   "loopEnd": 1.480862,
+   "loopStart": 0.70644,
+   "loopEnd": 1.308095,
    "centesimas": 12.2
   },
   {
@@ -1311,8 +1311,8 @@
    "midi_referencia": 51,
    "archivo": "bando-izq-abre-51.wav",
    "duracion": 1.48,
-   "loopStart": 0.3,
-   "loopEnd": 1.328866,
+   "loopStart": 0.30644,
+   "loopEnd": 1.058254,
    "centesimas": 13.2
   },
   {
@@ -1325,8 +1325,8 @@
    "midi_referencia": 52,
    "archivo": "bando-izq-abre-52.wav",
    "duracion": 1.56,
-   "loopStart": 0.5594,
-   "loopEnd": 1.331361,
+   "loopStart": 0.60644,
+   "loopEnd": 1.37839,
    "centesimas": 11.1
   },
   {
@@ -1339,8 +1339,8 @@
    "midi_referencia": 53,
    "archivo": "bando-izq-abre-53.wav",
    "duracion": 1.42,
-   "loopStart": 0.3958,
-   "loopEnd": 1.184082,
+   "loopStart": 0.32644,
+   "loopEnd": 0.930317,
    "centesimas": 12.5
   },
   {
@@ -1353,8 +1353,8 @@
    "midi_referencia": 54,
    "archivo": "bando-izq-abre-54.wav",
    "duracion": 1.6,
-   "loopStart": 0.5993,
-   "loopEnd": 1.297347,
+   "loopStart": 0.53644,
+   "loopEnd": 1.218458,
    "centesimas": 11.5
   },
   {
@@ -1367,8 +1367,8 @@
    "midi_referencia": 55,
    "archivo": "bando-izq-abre-55.wav",
    "duracion": 1.6,
-   "loopStart": 0.5674,
-   "loopEnd": 1.44898,
+   "loopStart": 0.35644,
+   "loopEnd": 1.455873,
    "centesimas": 12.1
   },
   {
@@ -1381,8 +1381,8 @@
    "midi_referencia": 56,
    "archivo": "bando-izq-abre-56.wav",
    "duracion": 3.25,
-   "loopStart": 0.5474,
-   "loopEnd": 1.250113,
+   "loopStart": 0.79644,
+   "loopEnd": 1.393968,
    "centesimas": 11.0
   },
   {
@@ -1395,8 +1395,8 @@
    "midi_referencia": 57,
    "archivo": "bando-izq-abre-57.wav",
    "duracion": 1.819,
-   "loopStart": 0.5714,
-   "loopEnd": 1.587279,
+   "loopStart": 0.55644,
+   "loopEnd": 1.572313,
    "centesimas": 12.2
   },
   {
@@ -1409,8 +1409,8 @@
    "midi_referencia": 58,
    "archivo": "bando-izq-abre-58.wav",
    "duracion": 1.54,
-   "loopStart": 0.4317,
-   "loopEnd": 1.232766,
+   "loopStart": 0.36644,
+   "loopEnd": 1.171769,
    "centesimas": 11.8
   },
   {
@@ -1423,8 +1423,8 @@
    "midi_referencia": 59,
    "archivo": "bando-izq-abre-59.wav",
    "duracion": 1.68,
-   "loopStart": 0.5594,
-   "loopEnd": 1.522109,
+   "loopStart": 0.43644,
+   "loopEnd": 1.37093,
    "centesimas": 11.9
   },
   {
@@ -1437,8 +1437,8 @@
    "midi_referencia": 60,
    "archivo": "bando-izq-abre-60.wav",
    "duracion": 1.58,
-   "loopStart": 0.5235,
-   "loopEnd": 1.40619,
+   "loopStart": 0.41644,
+   "loopEnd": 1.321882,
    "centesimas": 15.3
   },
   {
@@ -1451,8 +1451,8 @@
    "midi_referencia": 61,
    "archivo": "bando-izq-abre-61.wav",
    "duracion": 1.58,
-   "loopStart": 0.4716,
-   "loopEnd": 1.181043,
+   "loopStart": 0.71644,
+   "loopEnd": 1.304059,
    "centesimas": 11.9
   },
   {
@@ -1465,8 +1465,8 @@
    "midi_referencia": 62,
    "archivo": "bando-izq-abre-62.wav",
    "duracion": 1.62,
-   "loopStart": 0.4197,
-   "loopEnd": 1.039365,
+   "loopStart": 0.77644,
+   "loopEnd": 1.379138,
    "centesimas": 9.3
   },
   {
@@ -1479,8 +1479,8 @@
    "midi_referencia": 63,
    "archivo": "bando-izq-abre-63.wav",
    "duracion": 1.64,
-   "loopStart": 0.5953,
-   "loopEnd": 1.414308,
+   "loopStart": 0.33644,
+   "loopEnd": 1.500884,
    "centesimas": 8.0
   },
   {
@@ -1493,8 +1493,8 @@
    "midi_referencia": 64,
    "archivo": "bando-izq-abre-64.wav",
    "duracion": 1.44,
-   "loopStart": 0.3,
-   "loopEnd": 1.286508,
+   "loopStart": 0.66644,
+   "loopEnd": 1.214603,
    "centesimas": 12.6
   },
   {
@@ -1507,8 +1507,8 @@
    "midi_referencia": 65,
    "archivo": "bando-izq-abre-65.wav",
    "duracion": 1.6,
-   "loopStart": 0.5913,
-   "loopEnd": 1.441678,
+   "loopStart": 0.79644,
+   "loopEnd": 1.413605,
    "centesimas": 11.7
   },
   {
@@ -1521,8 +1521,8 @@
    "midi_referencia": 66,
    "archivo": "bando-izq-abre-66.wav",
    "duracion": 1.66,
-   "loopStart": 0.304,
-   "loopEnd": 1.347937,
+   "loopStart": 0.47644,
+   "loopEnd": 1.250023,
    "centesimas": 16.8
   },
   {
@@ -1535,8 +1535,8 @@
    "midi_referencia": 67,
    "archivo": "bando-izq-abre-67.wav",
    "duracion": 1.46,
-   "loopStart": 0.3678,
-   "loopEnd": 1.135079,
+   "loopStart": 0.34644,
+   "loopEnd": 1.118776,
    "centesimas": 18.4
   },
   {
@@ -1549,8 +1549,8 @@
    "midi_referencia": 68,
    "archivo": "bando-izq-abre-68.wav",
    "duracion": 1.62,
-   "loopStart": 0.3758,
-   "loopEnd": 1.090635,
+   "loopStart": 0.46644,
+   "loopEnd": 1.157347,
    "centesimas": 12.3
   },
   {
@@ -1563,8 +1563,8 @@
    "midi_referencia": 69,
    "archivo": "bando-der-abre-69.wav",
    "duracion": 1.659,
-   "loopStart": 0.35,
-   "loopEnd": 1.157959,
+   "loopStart": 0.60644,
+   "loopEnd": 1.163084,
    "centesimas": 2.9,
    "origen": "el La4 grabado a la izquierda es muy corto y se apaga solo (usa la muestra de la derecha, botón R20, de la misma altura)"
   },
@@ -1578,8 +1578,8 @@
    "midi_referencia": 37,
    "archivo": "bando-izq-abre-36.wav",
    "duracion": 1.777,
-   "loopStart": 0.3519,
-   "loopEnd": 1.041134,
+   "loopStart": 0.64288,
+   "loopEnd": 1.604694,
    "centesimas": 16.4,
    "origen": "muestra de abriendo (L33) estirada 1.0 semitonos",
    "velocidad": 1.05946
@@ -1594,8 +1594,8 @@
    "midi_referencia": 38,
    "archivo": "bando-izq-abre-38.wav",
    "duracion": 1.96,
-   "loopStart": 0.3718,
-   "loopEnd": 1.403379,
+   "loopStart": 0.31288,
+   "loopEnd": 1.411338,
    "centesimas": 10.3,
    "origen": "misma altura que abriendo (L26)"
   },
@@ -1609,8 +1609,8 @@
    "midi_referencia": 40,
    "archivo": "bando-izq-abre-40.wav",
    "duracion": 1.6,
-   "loopStart": 0.3998,
-   "loopEnd": 1.109773,
+   "loopStart": 0.64288,
+   "loopEnd": 1.304422,
    "centesimas": 14.6,
    "origen": "misma altura que abriendo (L06)"
   },
@@ -1624,8 +1624,8 @@
    "midi_referencia": 41,
    "archivo": "bando-izq-abre-41.wav",
    "duracion": 1.357,
-   "loopStart": 0.308,
-   "loopEnd": 1.0139,
+   "loopStart": 0.33288,
+   "loopEnd": 1.02712,
    "centesimas": 11.5,
    "origen": "misma altura que abriendo (L12)"
   },
@@ -1639,8 +1639,8 @@
    "midi_referencia": 42,
    "archivo": "bando-izq-abre-42.wav",
    "duracion": 1.76,
-   "loopStart": 0.5594,
-   "loopEnd": 1.563107,
+   "loopStart": 0.70288,
+   "loopEnd": 1.362789,
    "centesimas": 11.5,
    "origen": "misma altura que abriendo (L25)"
   },
@@ -1654,8 +1654,8 @@
    "midi_referencia": 43,
    "archivo": "bando-izq-abre-43.wav",
    "duracion": 1.854,
-   "loopStart": 0.304,
-   "loopEnd": 0.860249,
+   "loopStart": 0.66288,
+   "loopEnd": 1.350385,
    "centesimas": 16.2,
    "origen": "misma altura que abriendo (L18)"
   },
@@ -1669,8 +1669,8 @@
    "midi_referencia": 44,
    "archivo": "bando-izq-abre-44.wav",
    "duracion": 2.15,
-   "loopStart": 0.3,
-   "loopEnd": 1.007302,
+   "loopStart": 0.37288,
+   "loopEnd": 1.003832,
    "centesimas": 13.5,
    "origen": "misma altura que abriendo (L01)"
   },
@@ -1684,8 +1684,8 @@
    "midi_referencia": 45,
    "archivo": "bando-izq-abre-45.wav",
    "duracion": 1.657,
-   "loopStart": 0.5953,
-   "loopEnd": 1.492789,
+   "loopStart": 0.56644,
+   "loopEnd": 1.206803,
    "centesimas": 16.1,
    "origen": "misma altura que abriendo (L07)"
   },
@@ -1699,8 +1699,8 @@
    "midi_referencia": 46,
    "archivo": "bando-izq-abre-46.wav",
    "duracion": 1.54,
-   "loopStart": 0.3,
-   "loopEnd": 1.38102,
+   "loopStart": 0.33644,
+   "loopEnd": 0.932336,
    "centesimas": 13.1,
    "origen": "misma altura que abriendo (L02)"
   },
@@ -1714,8 +1714,8 @@
    "midi_referencia": 47,
    "archivo": "bando-izq-abre-47.wav",
    "duracion": 1.739,
-   "loopStart": 0.5873,
-   "loopEnd": 1.309274,
+   "loopStart": 0.79644,
+   "loopEnd": 1.470272,
    "centesimas": 16.6,
    "origen": "misma altura que abriendo (L27)"
   },
@@ -1729,8 +1729,8 @@
    "midi_referencia": 48,
    "archivo": "bando-izq-abre-48.wav",
    "duracion": 1.72,
-   "loopStart": 0.5075,
-   "loopEnd": 1.3878,
+   "loopStart": 0.77644,
+   "loopEnd": 1.368322,
    "centesimas": 12.0,
    "origen": "misma altura que abriendo (L17)"
   },
@@ -1744,8 +1744,8 @@
    "midi_referencia": 49,
    "archivo": "bando-izq-abre-49.wav",
    "duracion": 1.56,
-   "loopStart": 0.3998,
-   "loopEnd": 1.358322,
+   "loopStart": 0.42644,
+   "loopEnd": 1.277664,
    "centesimas": 15.0,
    "origen": "misma altura que abriendo (L03)"
   },
@@ -1759,8 +1759,8 @@
    "midi_referencia": 50,
    "archivo": "bando-izq-abre-50.wav",
    "duracion": 1.64,
-   "loopStart": 0.5953,
-   "loopEnd": 1.480862,
+   "loopStart": 0.70644,
+   "loopEnd": 1.308095,
    "centesimas": 12.2,
    "origen": "misma altura que abriendo (L13)"
   },
@@ -1774,8 +1774,8 @@
    "midi_referencia": 51,
    "archivo": "bando-izq-abre-51.wav",
    "duracion": 1.48,
-   "loopStart": 0.3,
-   "loopEnd": 1.328866,
+   "loopStart": 0.30644,
+   "loopEnd": 1.058254,
    "centesimas": 13.2,
    "origen": "misma altura que abriendo (L09)"
   },
@@ -1789,8 +1789,8 @@
    "midi_referencia": 52,
    "archivo": "bando-izq-abre-52.wav",
    "duracion": 1.56,
-   "loopStart": 0.5594,
-   "loopEnd": 1.331361,
+   "loopStart": 0.60644,
+   "loopEnd": 1.37839,
    "centesimas": 11.1,
    "origen": "misma altura que abriendo (L19)"
   },
@@ -1804,8 +1804,8 @@
    "midi_referencia": 52,
    "archivo": "bando-izq-abre-52.wav",
    "duracion": 1.56,
-   "loopStart": 0.5594,
-   "loopEnd": 1.331361,
+   "loopStart": 0.60644,
+   "loopEnd": 1.37839,
    "centesimas": 11.1,
    "origen": "misma altura que abriendo (L19)"
   },
@@ -1819,8 +1819,8 @@
    "midi_referencia": 53,
    "archivo": "bando-izq-abre-53.wav",
    "duracion": 1.42,
-   "loopStart": 0.3958,
-   "loopEnd": 1.184082,
+   "loopStart": 0.32644,
+   "loopEnd": 0.930317,
    "centesimas": 12.5,
    "origen": "misma altura que abriendo (L04)"
   },
@@ -1834,8 +1834,8 @@
    "midi_referencia": 54,
    "archivo": "bando-izq-abre-54.wav",
    "duracion": 1.6,
-   "loopStart": 0.5993,
-   "loopEnd": 1.297347,
+   "loopStart": 0.53644,
+   "loopEnd": 1.218458,
    "centesimas": 11.5,
    "origen": "misma altura que abriendo (L31)"
   },
@@ -1849,8 +1849,8 @@
    "midi_referencia": 55,
    "archivo": "bando-izq-abre-55.wav",
    "duracion": 1.6,
-   "loopStart": 0.5674,
-   "loopEnd": 1.44898,
+   "loopStart": 0.35644,
+   "loopEnd": 1.455873,
    "centesimas": 12.1,
    "origen": "misma altura que abriendo (L08)"
   },
@@ -1864,8 +1864,8 @@
    "midi_referencia": 56,
    "archivo": "bando-izq-abre-56.wav",
    "duracion": 3.25,
-   "loopStart": 0.5474,
-   "loopEnd": 1.250113,
+   "loopStart": 0.79644,
+   "loopEnd": 1.393968,
    "centesimas": 11.0,
    "origen": "misma altura que abriendo (L20)"
   },
@@ -1879,8 +1879,8 @@
    "midi_referencia": 57,
    "archivo": "bando-izq-abre-57.wav",
    "duracion": 1.819,
-   "loopStart": 0.5714,
-   "loopEnd": 1.587279,
+   "loopStart": 0.55644,
+   "loopEnd": 1.572313,
    "centesimas": 12.2,
    "origen": "misma altura que abriendo (L14)"
   },
@@ -1894,8 +1894,8 @@
    "midi_referencia": 58,
    "archivo": "bando-izq-abre-58.wav",
    "duracion": 1.54,
-   "loopStart": 0.4317,
-   "loopEnd": 1.232766,
+   "loopStart": 0.36644,
+   "loopEnd": 1.171769,
    "centesimas": 11.8,
    "origen": "misma altura que abriendo (L11)"
   },
@@ -1909,8 +1909,8 @@
    "midi_referencia": 59,
    "archivo": "bando-izq-abre-59.wav",
    "duracion": 1.68,
-   "loopStart": 0.5594,
-   "loopEnd": 1.522109,
+   "loopStart": 0.43644,
+   "loopEnd": 1.37093,
    "centesimas": 11.9,
    "origen": "misma altura que abriendo (L21)"
   },
@@ -1924,8 +1924,8 @@
    "midi_referencia": 60,
    "archivo": "bando-izq-abre-60.wav",
    "duracion": 1.58,
-   "loopStart": 0.5235,
-   "loopEnd": 1.40619,
+   "loopStart": 0.41644,
+   "loopEnd": 1.321882,
    "centesimas": 15.3,
    "origen": "misma altura que abriendo (L15)"
   },
@@ -1939,8 +1939,8 @@
    "midi_referencia": 61,
    "archivo": "bando-izq-abre-61.wav",
    "duracion": 1.58,
-   "loopStart": 0.4716,
-   "loopEnd": 1.181043,
+   "loopStart": 0.71644,
+   "loopEnd": 1.304059,
    "centesimas": 11.9,
    "origen": "misma altura que abriendo (L24)"
   },
@@ -1954,8 +1954,8 @@
    "midi_referencia": 62,
    "archivo": "bando-izq-abre-62.wav",
    "duracion": 1.62,
-   "loopStart": 0.4197,
-   "loopEnd": 1.039365,
+   "loopStart": 0.77644,
+   "loopEnd": 1.379138,
    "centesimas": 9.3,
    "origen": "misma altura que abriendo (L22)"
   },
@@ -1969,8 +1969,8 @@
    "midi_referencia": 63,
    "archivo": "bando-izq-abre-63.wav",
    "duracion": 1.64,
-   "loopStart": 0.5953,
-   "loopEnd": 1.414308,
+   "loopStart": 0.33644,
+   "loopEnd": 1.500884,
    "centesimas": 8.0,
    "origen": "misma altura que abriendo (L30)"
   },
@@ -1984,8 +1984,8 @@
    "midi_referencia": 64,
    "archivo": "bando-izq-abre-64.wav",
    "duracion": 1.44,
-   "loopStart": 0.3,
-   "loopEnd": 1.286508,
+   "loopStart": 0.66644,
+   "loopEnd": 1.214603,
    "centesimas": 12.6,
    "origen": "misma altura que abriendo (L16)"
   },
@@ -1999,8 +1999,8 @@
    "midi_referencia": 65,
    "archivo": "bando-izq-abre-65.wav",
    "duracion": 1.6,
-   "loopStart": 0.5913,
-   "loopEnd": 1.441678,
+   "loopStart": 0.79644,
+   "loopEnd": 1.413605,
    "centesimas": 11.7,
    "origen": "misma altura que abriendo (L10)"
   },
@@ -2014,8 +2014,8 @@
    "midi_referencia": 66,
    "archivo": "bando-izq-abre-66.wav",
    "duracion": 1.66,
-   "loopStart": 0.304,
-   "loopEnd": 1.347937,
+   "loopStart": 0.47644,
+   "loopEnd": 1.250023,
    "centesimas": 16.8,
    "origen": "misma altura que abriendo (L23)"
   },
@@ -2029,8 +2029,8 @@
    "midi_referencia": 67,
    "archivo": "bando-izq-abre-67.wav",
    "duracion": 1.46,
-   "loopStart": 0.3678,
-   "loopEnd": 1.135079,
+   "loopStart": 0.34644,
+   "loopEnd": 1.118776,
    "centesimas": 18.4,
    "origen": "misma altura que abriendo (L28)"
   },
@@ -2044,8 +2044,8 @@
    "midi_referencia": 69,
    "archivo": "bando-der-abre-69.wav",
    "duracion": 1.659,
-   "loopStart": 0.35,
-   "loopEnd": 1.157959,
+   "loopStart": 0.60644,
+   "loopEnd": 1.163084,
    "centesimas": 2.9,
    "origen": "el La4 grabado a la izquierda es muy corto (usa la muestra de la derecha, botón R20, de la misma altura)"
   },
@@ -2059,8 +2059,8 @@
    "midi_referencia": 71,
    "archivo": "bando-der-abre-71.wav",
    "duracion": 1.74,
-   "loopStart": 0.35,
-   "loopEnd": 1.242426,
+   "loopStart": 0.75644,
+   "loopEnd": 1.314512,
    "centesimas": 4.8,
    "origen": "esa altura no se grabó a la izquierda (usa la muestra de la derecha, botón R27, de la misma altura)"
   }
