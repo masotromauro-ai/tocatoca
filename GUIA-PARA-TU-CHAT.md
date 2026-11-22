@@ -90,7 +90,7 @@ Una web para que alumnos de bandoneón aprendan la **mecánica y la topografía 
 - `src/shared/teoria/` — notas, colores, escalas, acordes, progresiones, **cifrado**.
 - `src/shared/bandoneon/` — las tablas del teclado, las **formas recomendadas** (`voicings.js`), el dibujo del teclado y su editor, guardar y cargar, los caminos de notas.
 - `src/shared/ui/` — estilos y piezas visuales (piano, círculo, tarjetas).
-- `src/shared/audio/` — el sonido y el micrófono. Las grabaciones de cada botón: `public/muestras/` (cosidas) y `muestras-originales/` (tal cual); para tocarlas, `MUESTRAS.md`.
+- `src/shared/audio/` — el sonido y el micrófono. Las grabaciones de cada botón: `public/muestras/` (cosidas) y `public/muestras-originales/` (tal cual); para tocarlas, `MUESTRAS.md`.
 - `src/features/` — una carpeta por pestaña: `entrenador/`, `codigo/`, `teoria/`, `clases/`, `herramientas/` (Acorde, Progresión, Biblioteca, Quintas, Modos, Colores), `bandoneon/` y `aviso/`.
 
 ### Vocabulario

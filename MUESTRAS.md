@@ -38,9 +38,15 @@ Mauro probó el teclado en el teléfono y fue diciendo lo que no andaba. Cada pa
    cada muestra se lleva al mismo **volumen percibido** (los graves de la izquierda subieron hasta 6 dB; los agudos más
    brillantes bajaron hasta 5).
 
-Resultado: las 71 suenan **continuas** mientras se sostienen y **parejas de volumen** de punta a punta del teclado. Todo eso lo hace un programa que quedó en el repositorio,
+Resultado: las 71 suenan **continuas** mientras se sostienen y **parejas de volumen** de punta a punta del teclado.
+
+**Para comparar** (desde el 22-nov): en la pestaña Bandoneón, el interruptor **«Sonido»** cambia entre **«Cosido»** (lo de
+arriba: continuo y nivelado) y **«Grabación original»** (la grabación tal cual, entera, sin repetir ni nivelar: dura lo
+que dura la grabación o hasta que soltás). La primera vez que elegís «Original» tarda unos segundos en bajar. Al armar
+esto apareció un error de hace una semana: 25 de las 142 fichas no sonaban con su grabación sino con la de otro botón de la
+misma altura (casi todas de la mano izquierda); ahora cada botón suena con la suya. Todo eso lo hace un programa que quedó en el repositorio,
 `pruebas/coser-muestras.py` («coser» = empalmar el tramo), y una prueba, `pruebas/muestras.mjs`, que avisa si una muestra
-vuelve a hacer tic, corte o cambio de color. **Las grabaciones originales, sin tocar, están en `muestras-originales/`:
+vuelve a hacer tic, corte o cambio de color. **Las grabaciones originales, sin tocar, están en `public/muestras-originales/`:
 se cose siempre desde ellas.**
 
 ### Qué hay grabado hoy (y qué convendría grabar)
@@ -71,8 +77,8 @@ arranque y el cierre de verdad.
 1. **Bajá de GitHub** (`github.com/masotromauro-ai/tocatoca`; en cada archivo, el botón «Download raw file»):
    - `MUESTRAS.md` (este archivo),
    - `pruebas/coser-muestras.py` (el programa),
-   - `public/muestras/indice.json` (la lista de fichas) y `muestras-originales/indice.json` (la lista tal como estaba antes de coser),
-   - y la grabación: si **corregís** una nota, la original de `muestras-originales/` (no la de `public/muestras/`, que ya está
+   - `public/muestras/indice.json` (la lista de fichas) y `public/muestras-originales/indice.json` (la lista tal como estaba antes de coser),
+   - y la grabación: si **corregís** una nota, la original de `public/muestras-originales/` (no la de `public/muestras/`, que ya está
      cosida); si **cargás** una nueva, tu grabación.
 2. **Abrí un chat nuevo en claude.ai**, pegale el texto de la **Parte 2** y subile esos archivos. Contale qué querés: «el
    SOL♯ de la derecha cerrando, botón R35, suena raro» o «grabé el R35 cerrando».
@@ -80,18 +86,18 @@ arranque y el cierre de verdad.
    con el nombre correcto. Te dice «✓ al dar la vuelta no se nota» o qué falla (también si no la pudo dejar al volumen de las demás). **Si dice ✗, no subas nada**: casi siempre
    la grabación no da y conviene grabarla de nuevo.
 4. **Subí todo junto, en una sola subida.** Armá en tu compu las carpetas con las mismas rutas:
-   `public/muestras/<la muestra cosida>.wav`, `public/muestras/indice.json` y, si es nueva, `muestras-originales/<tu grabación>.wav`.
-   En GitHub, desde la **raíz** del repositorio: «Add file» → «Upload files» → arrastrá las carpetas `public` y
-   `muestras-originales` → una línea de qué hiciste («Muestras: R35 cerrando, grabación propia») → «Commit changes».
+   `public/muestras/<la muestra cosida>.wav`, `public/muestras/indice.json` y, si es nueva, `public/muestras-originales/<tu grabación>.wav`.
+   En GitHub, desde la **raíz** del repositorio: «Add file» → «Upload files» → arrastrá la carpeta `public` (adentro van
+   las dos: `muestras` y `muestras-originales`) → una línea de qué hiciste («Muestras: R35 cerrando, grabación propia») → «Commit changes».
    (Es lo mismo que en `GUIA-PARA-TU-CHAT.md`, «Cuando el cambio tiene más de un archivo».)
 5. **Mirá la ✓ verde** al lado de la subida (1–2 minutos) y **escuchala** en el sitio de desarrollo, en la pestaña
-   Bandoneón, dejando el botón apretado unos segundos. La ronda del chat de Mauro corre la prueba de las muestras y te avisa
+   Bandoneón, dejando el botón apretado unos segundos (con «Sonido» podés comparar con tu grabación original). La ronda del chat de Mauro corre la prueba de las muestras y te avisa
    si algo no cuadra.
 
 ### Si tu chat no puede correr el programa
 
 Algunos chats gratuitos no pueden ejecutar programas. Entonces: subí **sólo la grabación original** a
-`muestras-originales/` (con su nombre) y dejá un pedido en el panel («Ahora» → «Hacer un pedido»): «cosé
+`public/muestras-originales/` (con su nombre) y dejá un pedido en el panel («Ahora» → «Hacer un pedido»): «cosé
 `bando-der-cierra-80.wav` para el R35 cerrando». Lo cose el chat de Mauro con el mismo programa y la misma prueba.
 
 ---
@@ -112,8 +118,8 @@ Qué tenés que hacer:
 1. Fijate si podés ejecutar Python con numpy. Si NO podés, decíselo enseguida y pasale el plan B de MUESTRAS.md
    («Si tu chat no puede correr el programa»). No inventes resultados.
 2. Armá esta estructura de carpetas y poné cada archivo en su lugar:
-     muestras-originales/<grabaciones originales .wav>
-     muestras-originales/indice.json   ← si no te lo dio, creálo con {"muestras": []}
+     public/muestras-originales/<grabaciones originales .wav>
+     public/muestras-originales/indice.json   ← si no te lo dio, creálo con {"muestras": []}
      public/muestras/indice.json
      public/muestras/               ← acá el programa escribe la muestra cosida
      pruebas/coser-muestras.py
@@ -124,19 +130,19 @@ Qué tenés que hacer:
    origen, velocidad, duracion, centesimas, loopStart y loopEnd: el programa los calcula. Si no existe la ficha, creala.
    Cómo llenar cada campo: Parte 3 de MUESTRAS.md. Antes de seguir, mostrale a Mariano la ficha y pedile que confirme
    botón, fuelle y nota.
-   Si la nota YA EXISTE y suena mal: no toques la ficha; usá la grabación de muestras-originales/ (nunca la cosida).
+   Si la nota YA EXISTE y suena mal: no toques la ficha; usá la grabación de public/muestras-originales/ (nunca la cosida).
 4. Corré, parado en la carpeta de arriba de todo:
      python3 -I pruebas/coser-muestras.py --solo <archivo.wav>             (sólo mira, no escribe)
      python3 -I pruebas/coser-muestras.py --solo <archivo.wav> --aplicar   (cose y escribe)
    Leé la última línea: «✓ … lista para subir» o «✗ …» con el motivo. Si es ✗, NO entregues archivos para subir:
    explicale a Mariano qué falla en palabras simples y que conviene grabar de nuevo (cómo, en MUESTRAS.md).
 5. Si es ✓: devolvele para bajar, con su ruta, public/muestras/<archivo.wav>, public/muestras/indice.json y, si es
-   nueva, muestras-originales/<archivo.wav>. Idealmente en un .zip que ya tenga las carpetas public/ y
-   muestras-originales/ adentro, así las arrastra juntas a GitHub. Recordale el paso 4 y el 5 de MUESTRAS.md (una sola
+   nueva, public/muestras-originales/<archivo.wav>. Idealmente en un .zip que ya tenga la carpeta public/ con
+   todo adentro, así la arrastra entera a GitHub. Recordale el paso 4 y el 5 de MUESTRAS.md (una sola
    subida desde la raíz; mirar la ✓ verde; escuchar el botón sostenido).
 
 Lo que NO hacés nunca:
-- Coser sobre una muestra ya cosida (siempre desde muestras-originales/), ni cambiar el programa coser-muestras.py.
+- Coser sobre una muestra ya cosida (siempre desde public/muestras-originales/), ni cambiar el programa coser-muestras.py.
 - Tocar otras fichas del índice que no sean las del botón y fuelle pedidos, ni borrar grabaciones.
 - Subir nada vos ni pedirle a Mariano contraseñas o claves.
 - Tocar código de la app (src/, otras carpetas de public/). Si Mariano pide algo de eso, decile que es otro paquete
@@ -166,6 +172,6 @@ Lo que NO hacés nunca:
 de medio semitono, para y lo dice: suele ser botón o fuelle equivocado); que al dar la vuelta no cambien la onda, el
 volumen ni el color; y **nivela** la nota al volumen de las demás (si no puede sin saturar, lo dice).
 
-**Lo que no se cambia:** `muestras-originales/` es la grabación tal cual (lo único que entra ahí es una grabación nueva);
+**Lo que no se cambia:** `public/muestras-originales/` es la grabación tal cual (lo único que entra ahí es una grabación nueva);
 `pruebas/coser-muestras.py` y `pruebas/muestras.mjs` los mantiene el chat de Mauro. Si el programa no anda o da un error
 raro, Mariano lo pide en el panel y no se sube nada.

@@ -30,7 +30,21 @@ const _muestras=new Map();   // "mano|fuelle|botón" → {buf, loopStart, loopEn
 let _carga=null;
 
 export const claveMuestra=(mano,fuelle,boton)=>mano+"|"+fuelle+"|"+boton;
-export const buscarMuestra=(mano,fuelle,boton)=>_muestras.get(claveMuestra(mano,fuelle,boton))||null;
+// ─── QUÉ GRABACIÓN SUENA EN LOS BOTONES: la cosida (por defecto) o la ORIGINAL tal cual se grabó ───
+// La original (public/muestras-originales/) suena entera, sin repetir ningún tramo y sin nivelar: dura lo que dura la
+// grabación (o hasta soltar el botón). Sirve para comparar con lo cosido (22-nov-2026, Mauro: «un switch que active la nota
+// grabada o la modificada»). Se baja recién la primera vez que alguien la elige; mientras baja, suena la cosida.
+export const FUENTES_MUESTRAS=["cosidas","originales"];
+let _fuente="cosidas";
+const _originales=new Map();   // misma clave que _muestras → {buf, loopStart:0, loopEnd:0, pc, rate}
+let _cargaOriginales=null;
+export const getFuenteMuestras=()=>_fuente;
+export function setFuenteMuestras(f){ if(!FUENTES_MUESTRAS.includes(f))return Promise.resolve(); _fuente=f; return f==="originales"?precargarOriginales():Promise.resolve(); }
+export const originalesListas=()=>_originales.size>0;
+export const buscarMuestra=(mano,fuelle,boton)=>{
+  const k=claveMuestra(mano,fuelle,boton);
+  return (_fuente==="originales"&&_originales.get(k))||_muestras.get(k)||null;
+};
 // Control de seguridad: la muestra sólo vale si el botón sigue siendo la misma nota (pc 0–11) que cuando se grabó
 export const muestraVale=(m,midi)=>!!m&&m.pc===((midi%12)+12)%12;
 
@@ -86,7 +100,25 @@ export function precargarMuestras(){
   return _carga;
 }
 
-// Fuente de audio lista para una muestra: se repite el tramo del bucle hasta que alguien la detenga.
+// Baja y decodifica las grabaciones ORIGINALES (la primera vez que se eligen). Mismo índice y mismos archivos que las cosidas,
+// de la otra carpeta, sin bucle. Nunca lanza error.
+export function precargarOriginales(){
+  if(_cargaOriginales)return _cargaOriginales;
+  _cargaOriginales=(async()=>{
+    try{
+      const ctx=getCtx();if(!ctx||typeof fetch==="undefined"){_cargaOriginales=null;return;}
+      const idx=await (await fetch(BASE+"muestras/indice.json")).json();
+      const bufs=new Map();
+      const bajar=(a)=>{ if(!bufs.has(a))bufs.set(a,fetch(BASE+"muestras-originales/"+a).then(r=>r.arrayBuffer()).then(ab=>ctx.decodeAudioData(ab))); return bufs.get(a); };
+      await Promise.all((idx.muestras||[]).map(async m=>{
+        try{ _originales.set(claveMuestra(m.mano,m.fuelle,m.boton),{buf:await bajar(m.archivo),loopStart:0,loopEnd:0,pc:m.pc,rate:m.velocidad||1}); }catch(e){}
+      }));
+    }catch(e){_cargaOriginales=null;}
+  })();
+  return _cargaOriginales;
+}
+
+// Fuente de audio lista para una muestra: se repite el tramo del bucle hasta que alguien la detenga (la original, sin bucle, suena una vez).
 export function fuenteMuestra(ctx,m,t0=0){
   const src=ctx.createBufferSource();src.buffer=m.buf;
   if(m.rate&&m.rate!==1)src.playbackRate.value=m.rate;   // velocidad 0.5 = una octava más grave

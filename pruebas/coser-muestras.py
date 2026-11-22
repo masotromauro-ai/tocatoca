@@ -28,16 +28,16 @@
 #   python3 -I pruebas/coser-muestras.py --solo <archivo.wav> --aplicar
 #        cose esa una: escribe public/muestras/<archivo.wav> y su loopStart/loopEnd (y duracion/centesimas si faltan)
 #        en public/muestras/indice.json. Sin --aplicar no escribe nada.
-#   Opcionales: --originales <carpeta> (muestras-originales) · --destino <carpeta> (public/muestras) · --informe <x.json>
-# Se cose SIEMPRE desde la grabación original (muestras-originales/<archivo>), nunca sobre una ya cosida.
-# Una nota nueva: su grabación va a muestras-originales/ y su ficha a public/muestras/indice.json (ver MUESTRAS.md):
+#   Opcionales: --originales <carpeta> (public/muestras-originales) · --destino <carpeta> (public/muestras) · --informe <x.json>
+# Se cose SIEMPRE desde la grabación original (public/muestras-originales/<archivo>), nunca sobre una ya cosida.
+# Una nota nueva: su grabación va a public/muestras-originales/ y su ficha a public/muestras/indice.json (ver MUESTRAS.md):
 # lo que falte de la ficha (duracion, centesimas, loopStart, loopEnd) lo calcula esto.
 import json, sys, wave, numpy as np
 
 def opcion(nombre, defecto=None):
     return sys.argv[sys.argv.index(nombre) + 1] if nombre in sys.argv else defecto
 
-origen = opcion("--originales", "muestras-originales")
+origen = opcion("--originales", "public/muestras-originales")
 destino = opcion("--destino", "public/muestras")
 informe = opcion("--informe")
 solo = opcion("--solo")

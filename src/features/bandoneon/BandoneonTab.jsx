@@ -20,6 +20,7 @@ import { Desplegable } from "../../shared/ui/ayudas.jsx";
 import { txtSobre } from "../../shared/teoria/etiquetas.js";
 import { useRomanos } from "../../shared/almacen/romanos.js";
 import { useSonidoBandoneon, useEscuchaBandoneon, useMarcasBandoneon } from "./hooks.jsx";
+import { getFuenteMuestras, setFuenteMuestras } from "../../shared/audio/audio.js";
 
 export function BandoneonTab() {
   const [leftBtns,    setLeftBtns]    = useState([]);
@@ -115,7 +116,12 @@ export function BandoneonTab() {
   // juntas hasta que se sueltan. Acá guardamos los nodos de audio activos por
   // botón (id) en un ref: se crean al presionar y se apagan (con una rampa
   // corta para evitar clicks) al soltar.
-  const { startNote, stopAllNotes, stopNote } = useSonidoBandoneon({  });
+  const { startNote, stopAllNotes, stopNote } = useSonidoBandoneon({ bellows });   // el fuelle elige la grabación de cada botón (faltaba desde el 14-nov: sonaba la más cercana por altura)
+  // Qué grabación suena: la cosida (continua y nivelada) o la original tal cual se grabó, para comparar (MUESTRAS.md)
+  const [fuente,setFuente]=useState(getFuenteMuestras());
+  const [bajandoOriginales,setBajandoOriginales]=useState(false);
+  const elegirFuente=(f)=>{ stopAllNotes(); setPressedL([]); setPressedR([]); setFuente(f); setBajandoOriginales(f==="originales");
+    setFuenteMuestras(f).then(()=>setBajandoOriginales(false)); };
 
   // ─── Escucha física: varias notas a la vez, acotadas a lo que el teclado puede producir ───
   const { heardAcorde, heardIdsL, heardIdsR, heardNotas, heardTxt } = useEscuchaBandoneon({ LAT, bellows, getOct, heardMidis, isListening, leftBtns, micExacta, micMano, micModo, micOct, noteIdxB, rightBtns, setErrorAudio, setHeardMidis, setIsListening });
@@ -335,6 +341,14 @@ export function BandoneonTab() {
         <div style={segS}>
           {[["ambas","Ambas"],["izquierda","Izq."],["derecha","Der."]].map(([v,l])=>(
             <button key={v} style={acento(uiVista(view===v,{padding:isMobile?"5px 8px":"5px 12px"}),COLORES.vista,view===v)} onClick={()=>setView(v)}>{l}</button>
+          ))}
+        </div>
+      </GrupoColor>
+      <GrupoColor t="Sonido" color={COLORES.fuelle}>
+        <div style={segS} title="Cosida: continua mientras se sostiene y al mismo volumen que las demás. Original: la grabación tal cual, entera y sin nivelar">
+          {[["cosidas","Cosido"],["originales",bajandoOriginales?"Original…":"Grabación original"]].map(([f,l])=>(
+            <button key={f} aria-pressed={fuente===f} style={acento(uiVista(fuente===f,{padding:isMobile?"5px 8px":"5px 12px"}),COLORES.fuelle,fuente===f)}
+              onClick={()=>elegirFuente(f)}>{l}</button>
           ))}
         </div>
       </GrupoColor>

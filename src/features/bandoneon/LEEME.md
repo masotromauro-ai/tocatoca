@@ -11,4 +11,6 @@ Se partió en `hooks.jsx` sólo para no pasar las 400 líneas: el texto de adent
 
 **Dónde se toca (22-nov-2026, «el espacio que percibe la tocada es muy pequeño»):** en el teléfono cada botón queda de unos 20 px, así que el toque NO lo atiende cada botón sino el lienzo (`BandCanvas` de `shared/bandoneon/Teclado.jsx`): va al botón **más cercano** al dedo, hasta medio botón más allá de su borde (`ALCANCE`), con varios dedos a la vez. El editor de teclado sigue con el toque en cada botón (ahí se arrastran). No se vuelve a poner el toque en el botón: el círculo solo es muy chico para un dedo.
 
+**El interruptor «Sonido» (22-nov-2026, Mauro: «un switch que active la nota grabada o la modificada»):** «Cosido» toca `public/muestras/` (continuo y nivelado); «Grabación original» toca `public/muestras-originales/` tal cual, entera y sin repetir (`setFuenteMuestras` de `shared/audio/audio.js`; se baja recién al elegirla). Y `useSonidoBandoneon` recibe `{ bellows }`: desde el 14-nov le llegaba vacío y 25 de las 142 fichas sonaban con la grabación de otro botón de la misma altura.
+
 Cómo se prueba: `node pruebas/humo.mjs` (pestaña Bandoneón) y, para el sonido y el micrófono, abrirla y tocar un botón.
