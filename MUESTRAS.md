@@ -33,7 +33,12 @@ Mauro probó el teclado en el teléfono y fue diciendo lo que no andaba. Cada pa
    principio y el final del tramo se eligen donde el sonido está **igual, armónico por armónico**, y la mezcla corrige
    cada frecuencia.
 
-Resultado: las 71 suenan **continuas** mientras se sostienen. Todo eso lo hace un programa que quedó en el repositorio,
+6. **«Algunas, sobre todo los bajos, suenan con muy poco volumen.»** Todas tenían la misma energía, pero el oído (y más
+   el parlante de un teléfono) no oye igual los graves: entre la más baja y la más alta había 11 dB de diferencia. Ahora
+   cada muestra se lleva al mismo **volumen percibido** (los graves de la izquierda subieron hasta 6 dB; los agudos más
+   brillantes bajaron hasta 5).
+
+Resultado: las 71 suenan **continuas** mientras se sostienen y **parejas de volumen** de punta a punta del teclado. Todo eso lo hace un programa que quedó en el repositorio,
 `pruebas/coser-muestras.py` («coser» = empalmar el tramo), y una prueba, `pruebas/muestras.mjs`, que avisa si una muestra
 vuelve a hacer tic, corte o cambio de color. **Las grabaciones originales, sin tocar, están en `muestras-originales/`:
 se cose siempre desde ellas.**
@@ -72,7 +77,7 @@ arranque y el cierre de verdad.
 2. **Abrí un chat nuevo en claude.ai**, pegale el texto de la **Parte 2** y subile esos archivos. Contale qué querés: «el
    SOL♯ de la derecha cerrando, botón R35, suena raro» o «grabé el R35 cerrando».
 3. **Tu chat corre el programa** y te devuelve: la muestra cosida, el `indice.json` actualizado y, si es nueva, tu grabación
-   con el nombre correcto. Te dice «✓ al dar la vuelta no se nota» o qué falla. **Si dice ✗, no subas nada**: casi siempre
+   con el nombre correcto. Te dice «✓ al dar la vuelta no se nota» o qué falla (también si no la pudo dejar al volumen de las demás). **Si dice ✗, no subas nada**: casi siempre
    la grabación no da y conviene grabarla de nuevo.
 4. **Subí todo junto, en una sola subida.** Armá en tu compu las carpetas con las mismas rutas:
    `public/muestras/<la muestra cosida>.wav`, `public/muestras/indice.json` y, si es nueva, `muestras-originales/<tu grabación>.wav`.
@@ -158,8 +163,8 @@ Lo que NO hacés nunca:
 | `origen`, `velocidad` | sólo para botones que usan la grabación de otro | se sacan cuando el botón tiene grabación propia |
 
 **Lo que el programa controla solo:** que la grabación dure al menos 1,2 s; que sea la nota de la ficha (si está corrida más
-de medio semitono, para y lo dice: suele ser botón o fuelle equivocado); y que al dar la vuelta no cambien la onda, el
-volumen ni el color.
+de medio semitono, para y lo dice: suele ser botón o fuelle equivocado); que al dar la vuelta no cambien la onda, el
+volumen ni el color; y **nivela** la nota al volumen de las demás (si no puede sin saturar, lo dice).
 
 **Lo que no se cambia:** `muestras-originales/` es la grabación tal cual (lo único que entra ahí es una grabación nueva);
 `pruebas/coser-muestras.py` y `pruebas/muestras.mjs` los mantiene el chat de Mauro. Si el programa no anda o da un error

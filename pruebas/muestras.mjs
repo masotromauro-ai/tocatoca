@@ -11,6 +11,37 @@ let fallos = 0;
 const falla = (m) => { fallos++; console.log("✗ " + m); };
 
 const idx = JSON.parse(readFileSync(new URL("indice.json", carpeta), "utf8"));
+// El volumen percibido: la MISMA cuenta que nivel_percibido de pruebas/coser-muestras.py (si cambia una, cambia la otra)
+const NIVEL = -21.0;
+function fft(re, im) {
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++) { let b = n >> 1; for (; j & b; b >>= 1) j ^= b; j ^= b; if (i < j) { [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; } }
+  for (let len = 2; len <= n; len <<= 1) {
+    const a = -2 * Math.PI / len, wr = Math.cos(a), wi = Math.sin(a);
+    for (let i = 0; i < n; i += len) { let cr = 1, ci = 0;
+      for (let k = 0; k < len / 2; k++) {
+        const ur = re[i + k], ui = im[i + k], vr = re[i + k + len / 2] * cr - im[i + k + len / 2] * ci, vi = re[i + k + len / 2] * ci + im[i + k + len / 2] * cr;
+        re[i + k] = ur + vr; im[i + k] = ui + vi; re[i + k + len / 2] = ur - vr; im[i + k + len / 2] = ui - vi;
+        const t = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = t;
+      } }
+  }
+}
+function nivelPercibido(seg, sr) {
+  const L = seg.length; let n = 1; while (n < L) n <<= 1;
+  const re = new Float64Array(n), im = new Float64Array(n); let ww = 0;
+  for (let i = 0; i < L; i++) { const w = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (L - 1)); re[i] = seg[i] / 32768 * w; ww += w * w; }
+  fft(re, im);
+  let suma = 0;
+  for (let k = 0; k <= n / 2; k++) {
+    const f = k * sr / n, f2 = f * f;
+    const ra = (12194 ** 2 * f2 * f2) / ((f2 + 20.6 ** 2) * Math.sqrt((f2 + 107.7 ** 2) * (f2 + 737.9 ** 2)) * (f2 + 12194 ** 2)) * Math.pow(10, 2 / 20);
+    const parl = 1 / Math.sqrt(1 + Math.pow(250 / Math.max(f, 1e-9), 8));
+    const p = (re[k] * re[k] + im[k] * im[k]) * (ra * parl) ** 2;
+    suma += (k === 0 || k === n / 2) ? p : 2 * p;
+  }
+  return 10 * Math.log10(suma / (n * ww) + 1e-20);
+}
+
 const claves = new Set();
 const costuras = new Set();   // cada archivo se mira una vez (varios botones comparten muestra)
 
@@ -83,6 +114,10 @@ for (const m of idx.muestras) {
     lejos.sort((p, q) => p - q);
     const resto = lejos[Math.floor(lejos.length * 0.99)] ?? 0, costura = Math.max(...cerca);
     if (costura > 1.5 * resto + 0.4) falla(`${m.archivo}: al dar la vuelta el color cambia ${costura.toFixed(2)} dB (en el resto de la nota, ${resto.toFixed(2)}): se oye una caída y una subida`);
+    // Y el VOLUMEN PERCIBIDO (22-nov-2026, Mauro: «algunas, sobre todo los bajos, suenan con muy poco volumen»): el tramo que se
+    // repite, pesado con la curva A y el corte de un parlante de teléfono, tiene que estar a NIVEL ±1 dB (coser-muestras.py).
+    const nv = nivelPercibido(x.subarray(s, e), sr);
+    if (Math.abs(nv - NIVEL) > 1) falla(`${m.archivo}: suena ${(nv - NIVEL).toFixed(1)} dB respecto de las demás (se nivela con pruebas/coser-muestras.py)`);
   }
 }
 

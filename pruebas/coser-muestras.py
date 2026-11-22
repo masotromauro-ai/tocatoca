@@ -17,6 +17,8 @@
 #      al 10, pesado por cuánto suena), mirando 90 ms a cada lado. Así el latido de los armónicos empalma con su mismo momento.
 #   3. De los 60 mejores por estado, elige el que además tiene la ONDA igual (mirando la fundamental y los primeros armónicos),
 #      afina el final (±1,5 períodos) y funde 60 períodos (entre 80 y 300 ms) con el nivel corregido frecuencia por frecuencia.
+#   4. Nivela: lleva el volumen PERCIBIDO del tramo (curva A del oído y el corte de un parlante de teléfono) a NIVEL, el
+#      mismo para todas: así los graves no quedan bajos.
 # Y lo mide como suena en la app (arranque y cuatro vueltas): volumen, el cambio de color de 20 en 20 ms y la altura,
 # alrededor de cada costura contra el resto de la nota.
 #
@@ -50,6 +52,10 @@ LARGO_MIN = 0.55     # s: un tramo más corto se oye como zumbido
 COLA = 0.09          # s: lo último de la grabación es un fundido de salida, no se usa
 PASO = 0.010         # s: resolución del perfil de armónicos
 ARM = 10             # armónicos que se miran
+NIVEL = -21.0        # dB: el volumen percibido al que se llevan TODAS las notas (nivel_percibido del tramo que se repite).
+                     # 22-nov-2026, Mauro: «algunas, sobre todo los bajos, suenan con muy poco volumen». Entre la más baja y la
+                     # más alta había 11 dB (SOL♯1, L01, −6,8; SI5, R01, +4,3). −21 queda apenas abajo de la mediana: ningún
+                     # pico pasa del 80 %.
 
 def leer(c, a):
     w = wave.open(c + "/" + a); p = w.getparams()
@@ -173,6 +179,20 @@ def mezcla_pareja(A, B, k):
     out = out / np.maximum(norma, 1e-9)
     return out[n:n + len(A)]
 
+def nivel_percibido(seg, sr):
+    """Cuánto suena un tramo para el oído, por el parlante de un teléfono (dB): la energía pesada con la curva A (el oído) y
+    un corte de 4.º orden en 250 Hz (lo que un parlante chico no da). Ventana de Hann, sin depender del largo del tramo.
+    La MISMA cuenta está en pruebas/muestras.mjs (nivelPercibido): si cambia una, cambia la otra."""
+    n = 1 << int(np.ceil(np.log2(len(seg))))
+    w = np.hanning(len(seg))
+    X = np.fft.rfft(seg / 32768 * w, n); f = np.fft.rfftfreq(n, 1 / sr)
+    f2 = f * f
+    ra = (12194 ** 2 * f2 ** 2) / ((f2 + 20.6 ** 2) * np.sqrt((f2 + 107.7 ** 2) * (f2 + 737.9 ** 2)) * (f2 + 12194 ** 2)) * 10 ** (2.0 / 20)
+    parl = 1 / np.sqrt(1 + (250.0 / np.maximum(f, 1e-9)) ** 8)
+    P = np.abs(X) ** 2 * (ra * parl) ** 2
+    P[1:-1] *= 2
+    return float(10 * np.log10(P.sum() / (n * np.sum(w * w)) + 1e-20))
+
 def coser(x, sr, s0, f0, con_color):
     fin_util = len(x) - int(COLA * sr)
     y = emparejar_color(x, sr, int(COMIENZO[0] * sr), fin_util) if con_color else x
@@ -274,9 +294,17 @@ for a, ms in sorted(archivos.items()):
     opciones = [coser(x, sr, s0, f0, c) + (c,) for c in (False, True)]
     buenas = [o for o in opciones if sana(o[3])] or opciones
     y, s, me, despues, estado, corr, con_color = min(buenas, key=lambda o: nota(o[3]))
+    # 4) nivelar: el volumen percibido del tramo que se repite, a NIVEL (sin que ningún pico pase de 0,95)
+    nivel_antes = nivel_percibido(y[s:me], sr)
+    g_db = NIVEL - nivel_antes
+    tope = 20 * np.log10(0.95 * 32768 / np.abs(y).max())
+    if g_db > tope: g_db = tope
+    y = y * 10 ** (g_db / 20)
+    nivel_despues = nivel_percibido(y[s:me], sr)
     res.append(dict(archivo=a, botones=[f'{o["mano"]}/{o["fuelle"]}/{o["boton"]}' for o in ms],
                     antes=antes, despues=despues, loopStart=round(s / sr, 6), loopEnd=round(me / sr, 6),
-                    estado=round(estado, 2), parecido_onda=round(corr, 3), color_emparejado=con_color))
+                    estado=round(estado, 2), parecido_onda=round(corr, 3), color_emparejado=con_color,
+                    nivel_antes=round(nivel_antes, 1), ganancia_db=round(g_db, 1), nivel=round(nivel_despues, 1)))
     if aplicar:
         escribir(a, y, sr)
         for o in ms: o["loopStart"] = round(s / sr, 6); o["loopEnd"] = round(me / sr, 6)
@@ -298,9 +326,11 @@ def veredicto(D):
     if D["altura_costura"] > 2 * D["altura_resto"] + 2: malo.append(f'la altura se mueve {D["altura_costura"]} cents (el resto, {D["altura_resto"]})')
     if D["vol_min"] < 0.8 or D["vol_max"] > 1.25: malo.append(f'el volumen va de {D["vol_min"]} a {D["vol_max"]}')
     return malo
+def veredicto_nivel(r):
+    return [] if abs(r["nivel"] - NIVEL) <= 1.0 else [f'suena {r["nivel"] - NIVEL:+.1f} dB respecto de las demás (no se pudo nivelar sin saturar)']
 print()
 for r in res:
-    malo = veredicto(r["despues"])
+    malo = veredicto(r["despues"]) + veredicto_nivel(r)
     print(("✗ " + r["archivo"] + ": " + "; ".join(malo)) if malo else ("✓ " + r["archivo"] + ": al dar la vuelta no se nota" + (" — escrita, lista para subir" if aplicar else " (sin --aplicar no se escribió nada)")))
-if any(veredicto(r["despues"]) for r in res):
+if any(veredicto(r["despues"]) + veredicto_nivel(r) for r in res):
     print("  Si una nota no queda bien, la grabación no da: conviene grabarla de nuevo (MUESTRAS.md, «Cómo grabar»)."); sys.exit(1)
