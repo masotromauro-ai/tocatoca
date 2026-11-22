@@ -2,7 +2,7 @@
 
 Para **Mariano** y para su chat gratuito de Claude (claude.ai). La primera parte es para la persona; la segunda, para el chat.
 
-> **Actualizada el 17-nov-2026.** Un solo camino, en pasos cortos. Reemplaza los procedimientos anteriores (copias guardadas, pegar código en el panel, «App.jsx» entero): ya no hacen falta. El código está partido en archivos chicos, una carpeta por parte.
+> **Actualizada el 22-nov-2026** (cómo subir un cambio de varios archivos sin romper el sitio, abajo). **17-nov-2026:** Un solo camino, en pasos cortos. Reemplaza los procedimientos anteriores (copias guardadas, pegar código en el panel, «App.jsx» entero): ya no hacen falta. El código está partido en archivos chicos, una carpeta por parte.
 
 ---
 
@@ -16,6 +16,33 @@ Para **Mariano** y para su chat gratuito de Claude (claude.ai). La primera parte
    - «**Add file**» → «**Upload files**» → arrastrá el archivo (con el mismo nombre: reemplaza al viejo);
    - abajo, en una línea, qué cambiaste («Formas: agrego la forma lleno») → «**Commit changes**».
 5. **Mirá el sitio de desarrollo** a los 2 minutos. Si algo no anda, avisá en el panel («Ahora» → «Hacer un pedido») antes de subir otra cosa.
+
+### Cuando el cambio tiene más de un archivo (22-nov-2026)
+
+**Qué pasó.** Entre el 17 y el 21 de noviembre, 11 de las 87 subidas dejaron el sitio de desarrollo **sin poder armarse**
+(en GitHub, la ✗ roja con «0 / 2» al lado de la subida). Ningún archivo estaba mal: el problema fue el **orden**. Cada
+subida a GitHub es una foto completa del código, y Vercel intenta armar el sitio con cada una. Si se sube primero
+`BandoneonTab.jsx`, que ya usa algo nuevo (`sugerirVoicing`, `FormaSugerida`, `precargarMuestras`…), y el archivo que
+trae eso nuevo (`acorde.js`, `disposicion.jsx`, `audio.js`) se sube un minuto después, durante ese minuto el código pide
+algo que todavía no existe y la compilación falla. Con la subida siguiente se arregla solo, pero si uno se queda a mitad
+de camino, el sitio queda roto. Los alumnos no lo ven: Vercel sigue mostrando la última versión que sí se armó.
+
+**Cómo se evita, de mejor a peor:**
+
+1. **Todo junto, en una sola subida.** Descomprimí lo que te devolvió el chat en una carpeta que repita las rutas
+   (`src/shared/bandoneon/…`, `src/features/bandoneon/…`). En GitHub, desde la **raíz** del repositorio:
+   «Add file» → «Upload files» → arrastrá **la carpeta `src` entera**. GitHub respeta las rutas y reemplaza cada archivo en
+   su lugar. Un solo «Commit changes» = una sola foto, completa.
+2. **Si no se puede todo junto, en orden: primero lo que se USA, después lo que lo llama.** El chat te tiene que decir el
+   orden (ver la Parte 2). En general:
+   `src/shared/…` (tablas, acorde, disposición, audio) → `src/features/…` (`hooks.jsx`, `Pantalla.jsx`, y **al final**
+   `BandoneonTab.jsx`). Y sin pausas en el medio.
+3. **Antes de seguir, mirá la marca de la última subida** (en la lista de commits, al lado del nombre): **✓ verde** = el
+   sitio se armó; **✗ roja** = no se armó: no subas otra cosa, avisá en el panel. Tarda uno o dos minutos.
+
+**Lo que no se toca, también al apurarse:** `src/Puerta.jsx`, `public/cuenta/` y `firestore.rules` son la puerta de las
+cuentas. Un cambio ahí se pide en el panel («Hacer un pedido»): las reglas no hacen nada hasta que Mauro las publica en
+Firebase, y antes necesitan sus casos en `pruebas/reglas.mjs`.
 
 **Tres reglas que evitan todos los problemas:**
 
@@ -41,6 +68,12 @@ Una web para que alumnos de bandoneón aprendan la **mecánica y la topografía 
 - Antes del código: **qué cambia y por qué**, en 3 renglones sin jerga.
 - Después: **cómo probarlo** (qué pestaña abrir, qué tocar, qué debería verse) y **qué no tocaste**.
 - **Una parte, hasta 3 archivos, ningún archivo de más de 400 líneas.** Si hace falta más, proponé partirlo en dos cambios.
+- **Si devolvés más de un archivo, decí el ORDEN de subida**, numerado: primero los que traen algo nuevo (una función, un
+  componente, un nombre exportado), al final los que lo usan. Y recordale que lo mejor es subirlos **todos juntos en una
+  sola subida** (la carpeta `src` desde la raíz). Un archivo que usa algo que todavía no está subido rompe el sitio de
+  desarrollo hasta que llega el otro (pasó 11 veces entre el 17 y el 21-nov).
+- **Antes de entregar, revisá los nombres**: cada `import { X } from "…"` que agregaste tiene que existir, con ese nombre
+  exacto, en el archivo que lo da (y ese archivo tiene que venir en tu respuesta o estar ya subido).
 - **Si te falta un archivo, no lo inventes**: decí cuál, y la persona te baja el paquete de esa parte.
 - La lógica pura (teoría, formas, sonido) va con una prueba chica de `node`, sin navegador ni npm, como las de `pruebas/` (`teoria.mjs` es el modelo).
 
