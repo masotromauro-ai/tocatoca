@@ -1,13 +1,13 @@
 // El dibujo del teclado: botón, mapa de alturas y lienzo.
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { BTN_SIZE, snapV } from "./layouts.js";
 import { LAT } from "../teoria/notas.js";
 import { nc } from "../teoria/color.js";
 import { UI_FONT } from "../ui/tema.js";
 import { playBand } from "../audio/audio.js";
 
-function BandBtn({ btn, bellows, pressed, isHeard, onDown, onUp, draggable=false, onMove, oct=null, chordActive=false, chordLabel=null, softLabel=null, markLabel=null }) {
+function BandBtn({ btn, bellows, pressed, isHeard, onDown, onUp, draggable=false, onMove, oct=null, chordActive=false, chordLabel=null, softLabel=null, markLabel=null, tocaLienzo=false }) {
   const note  = bellows === "abre" ? btn.abre  : btn.cierra;
   const color = draggable ? (bellows === "abre" ? btn.color_abre : btn.color_cierra) : nc(LAT[note]||note);   // paleta real de las notas
   const isOn  = pressed.includes(btn.id);
@@ -33,20 +33,24 @@ function BandBtn({ btn, bellows, pressed, isHeard, onDown, onUp, draggable=false
     } else { onDown && onDown(btn); }
   }, [btn, draggable, onMove, onDown]);
 
+  // Para tocar, el que atiende es el lienzo (el botón más cercano al dedo): el botón sólo se dibuja
+  const manos = tocaLienzo ? {} : {
+      onMouseDown: handleMouseDown,
+      onMouseUp: ()=>!draggable&&onUp&&onUp(btn.id),
+      onMouseLeave: ()=>!draggable&&onUp&&onUp(btn.id),
+      onTouchStart: handleTouchStart,
+      onTouchEnd: e=>{e.preventDefault();!draggable&&onUp&&onUp(btn.id);},
+      onTouchCancel: ()=>!draggable&&onUp&&onUp(btn.id),
+  };
   return (
     <div
-      onMouseDown={handleMouseDown}
-      onMouseUp={()=>!draggable&&onUp&&onUp(btn.id)}
-      onMouseLeave={()=>!draggable&&onUp&&onUp(btn.id)}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={e=>{e.preventDefault();!draggable&&onUp&&onUp(btn.id);}}
-      onTouchCancel={()=>!draggable&&onUp&&onUp(btn.id)}   // el teléfono corta el toque (toque largo, otra app): la tecla se suelta igual
+      {...manos}
       onContextMenu={e=>e.preventDefault()}                // sin el menú del toque largo
       data-btn={btn.id}
       style={{
         position:"absolute", left:btn.x, top:btn.y,
         width:BTN_SIZE, height:BTN_SIZE, borderRadius:"50%",
-        cursor:draggable?"grab":"pointer", touchAction:"none", userSelect:"none", WebkitUserSelect:"none", WebkitTouchCallout:"none", WebkitTapHighlightColor:"transparent",
+        cursor:draggable?"grab":"pointer", touchAction:"none", pointerEvents: tocaLienzo ? "none" : "auto", userSelect:"none", WebkitUserSelect:"none", WebkitTouchCallout:"none", WebkitTapHighlightColor:"transparent",
         display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
         background: isAct
           ? `radial-gradient(circle at 36% 30%,${color}ff,${color}cc 55%,${color}88)`
@@ -145,8 +149,57 @@ export function BandCanvas({ buttons, bellows, pressed, heardIds=[], onDown, onU
   const scaledW = Math.ceil(W * scale);
   const scaledH = Math.ceil(H * scale);
 
+  // ─── EL TOQUE: va al botón MÁS CERCANO al dedo (22-nov-2026, Mauro: «el espacio que percibe la tocada es muy pequeño») ───
+  // En el teléfono el teclado se achica y cada botón quedaba de unos 20 px: había que acertarle al círculo justo.
+  // Ahora responde todo el círculo y el espacio de alrededor hasta la mitad del camino al vecino (los centros están a 60–86
+  // unidades y el botón mide 44); más allá de ALCANCE del centro no toca nada (los bordes del lienzo).
+  // Cada dedo recuerda su botón (varios a la vez) y se suelta al levantarlo o si el teléfono corta el toque.
+  // El editor (draggable) sigue con el toque en cada botón, porque ahí se arrastran.
+  const tocaLienzo = !draggable;
+  const lienzoRef = useRef(null);
+  const dedos = useRef(new Map());          // identificador del dedo → id del botón
+  const raton = useRef(null);               // el botón que tiene apretado el mouse
+  const ALCANCE = BTN_SIZE * 0.98;          // desde el centro: el botón más medio botón alrededor
+  const masCercano = (cx, cy) => {
+    const el = lienzoRef.current; if (!el) return null;
+    const r = el.getBoundingClientRect(), k = r.width / W;
+    const x = (cx - r.left) / k, y = (cy - r.top) / k;
+    let mejor = null, dm = ALCANCE;
+    for (const b of buttons) {
+      const d = Math.hypot(x - (b.x + BTN_SIZE / 2), y - (b.y + BTN_SIZE / 2));
+      if (d <= dm) { dm = d; mejor = b; }
+    }
+    return mejor;
+  };
+  const apretar = (b) => { onSelect && onSelect(b.id); onDown && onDown(b); };
+  const soltar  = (id) => { onUp && onUp(id); };
+  const alTocar = (e) => {
+    for (const t of e.changedTouches) {
+      const b = masCercano(t.clientX, t.clientY);
+      if (b) { dedos.current.set(t.identifier, b.id); apretar(b); }
+    }
+  };
+  const alLevantar = (e) => {
+    if (e.cancelable) e.preventDefault();   // sin el clic de mentira que el navegador manda después del toque
+    for (const t of e.changedTouches) {
+      const id = dedos.current.get(t.identifier);
+      if (id !== undefined) { dedos.current.delete(t.identifier); soltar(id); }
+    }
+  };
+  const alSoltarRaton = () => { if (raton.current !== null) { const id = raton.current; raton.current = null; soltar(id); } };
+  const alApretarRaton = (e) => {
+    if (e.button !== 0) return;
+    const b = masCercano(e.clientX, e.clientY); if (!b) return;
+    e.preventDefault(); raton.current = b.id; apretar(b);
+    window.addEventListener("mouseup", alSoltarRaton, { once: true });
+  };
+  const toques = tocaLienzo ? { onTouchStart: alTocar, onTouchEnd: alLevantar, onTouchCancel: alLevantar,
+    onMouseDown: alApretarRaton, onMouseLeave: alSoltarRaton } : {};
+
   const canvas = (
     <div
+      ref={lienzoRef}
+      {...toques}
       onClick={()=>onSelect&&onSelect(null)}
       onContextMenu={e=>e.preventDefault()}
       style={{
@@ -171,7 +224,7 @@ export function BandCanvas({ buttons, bellows, pressed, heardIds=[], onDown, onU
           pressed={selected?[selected]:pressed}
           isHeard={heardIds.includes(btn.id)}
           onDown={e=>{onSelect&&onSelect(btn.id); onDown&&onDown(btn);}}
-          onUp={onUp} draggable={draggable} onMove={onMove}
+          onUp={onUp} draggable={draggable} onMove={onMove} tocaLienzo={tocaLienzo}
           oct={octMap ? octMap[btn.id] : null}
           markLabel={markIds ? (markIds[btn.id]||null) : null}
           chordActive={!!(chordIds||chordMap)}
