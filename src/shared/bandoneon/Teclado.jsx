@@ -40,11 +40,13 @@ function BandBtn({ btn, bellows, pressed, isHeard, onDown, onUp, draggable=false
       onMouseLeave={()=>!draggable&&onUp&&onUp(btn.id)}
       onTouchStart={handleTouchStart}
       onTouchEnd={e=>{e.preventDefault();!draggable&&onUp&&onUp(btn.id);}}
+      onTouchCancel={()=>!draggable&&onUp&&onUp(btn.id)}   // el teléfono corta el toque (toque largo, otra app): la tecla se suelta igual
+      onContextMenu={e=>e.preventDefault()}                // sin el menú del toque largo
       data-btn={btn.id}
       style={{
         position:"absolute", left:btn.x, top:btn.y,
         width:BTN_SIZE, height:BTN_SIZE, borderRadius:"50%",
-        cursor:draggable?"grab":"pointer", touchAction:"none", userSelect:"none",
+        cursor:draggable?"grab":"pointer", touchAction:"none", userSelect:"none", WebkitUserSelect:"none", WebkitTouchCallout:"none", WebkitTapHighlightColor:"transparent",
         display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
         background: isAct
           ? `radial-gradient(circle at 36% 30%,${color}ff,${color}cc 55%,${color}88)`
@@ -146,6 +148,7 @@ export function BandCanvas({ buttons, bellows, pressed, heardIds=[], onDown, onU
   const canvas = (
     <div
       onClick={()=>onSelect&&onSelect(null)}
+      onContextMenu={e=>e.preventDefault()}
       style={{
         position: "relative",
         width: W, height: H, boxSizing: "border-box",
@@ -160,7 +163,7 @@ export function BandCanvas({ buttons, bellows, pressed, heardIds=[], onDown, onU
         border: draggable ? "2px solid #e6e6e655" : "none",                          // el editor conserva su borde
         borderRadius: 16,
         boxShadow: draggable ? "0 8px 24px rgba(0,0,0,.7)" : "none",
-        touchAction: "none",
+        touchAction: "none", userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none",
       }}
     >
       {buttons.map(btn=>(

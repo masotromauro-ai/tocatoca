@@ -7,6 +7,19 @@ let _ctx=null;
 
 export const getCtx=()=>{if(!_ctx)try{_ctx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}return _ctx;};
 
+// El navegador arranca el sonido «suspendido» y sólo deja despertarlo con un gesto que cuente: en el teléfono es LEVANTAR el dedo
+// (touchend / pointerup), no apoyarlo. Las teclas suenan al apoyar (touchstart), así que sin esto la primera vez —y cada vez que el
+// sistema lo vuelve a suspender (Bluetooth, otra app, pantalla apagada)— tocaban mudas hasta que se tocaba otro botón de la página.
+// Se escucha siempre (no una sola vez) porque el sonido se puede volver a suspender en cualquier momento.
+let _desbloqueo=false;
+export function desbloquearAudio(){
+  if(_desbloqueo||typeof window==="undefined")return;
+  _desbloqueo=true;
+  const despertar=()=>{const c=getCtx();if(c&&c.state!=="running")c.resume().catch(()=>{});};
+  ["touchend","pointerup","mousedown","keydown","click"].forEach(ev=>window.addEventListener(ev,despertar,{capture:true,passive:true}));
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)despertar();});
+}
+
 // ─── MUESTRAS REALES (el bandoneón del profesor) ──────────────────────────────
 // Los .wav viven en public/muestras/ con un indice.json que dice, para cada BOTÓN del teclado (R01, L01…) y fuelle,
 // qué muestra le toca y qué tramo se repite para sostenerla. Se busca por botón y no por el nombre de la octava,

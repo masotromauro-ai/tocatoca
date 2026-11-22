@@ -273,7 +273,7 @@ export function BandoneonTab() {
       </div>
   );
   const bTeclados = (
-    <div style={{display:"flex",flexDirection:an.fila?"row":(disp.invertir?"column-reverse":"column"),gap:an.gap,alignItems:an.fila?"flex-start":"center",paddingBottom:4}}>
+    <div style={{display:"flex",flexDirection:an.fila?"row":(disp.invertir?"column-reverse":"column"),gap:an.gap,alignItems:an.fila?"flex-start":"center",paddingBottom:4,userSelect:"none",WebkitUserSelect:"none",WebkitTouchCallout:"none"}}>
         {(view==="ambas"||view==="izquierda")&&(
           <div style={{width: an.aL, flexShrink:0}}>
             <div style={{fontSize:11,color:"#8a8a8a",marginBottom:5,letterSpacing:"0.12em",

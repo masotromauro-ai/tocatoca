@@ -2,21 +2,35 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { LAT, nombreLat } from "../../shared/teoria/notas.js";
-import { getCtx, playBandDur, buscarMuestra, muestraVale, muestraPorAltura, desfaseTimbre, fuenteMuestra, precargarMuestras } from "../../shared/audio/audio.js";
+import { getCtx, desbloquearAudio, playBandDur, buscarMuestra, muestraVale, muestraPorAltura, desfaseTimbre, fuenteMuestra, precargarMuestras } from "../../shared/audio/audio.js";
 import { RAIZ_NOM, analizarAcorde } from "../../shared/teoria/cifrado.js";
 import { micEstimar, fuenteWorklet } from "../../shared/audio/mic.js";
 
 export function useSonidoBandoneon({ bellows }) {
   const activeAudioRef = useRef({}); // { [btnId]: {gainMain, oscs[]} }
   const fuelleRef = useRef(bellows); fuelleRef.current = bellows;   // el fuelle de ahora, sin recrear startNote
-  useEffect(()=>{ precargarMuestras(); },[]);                          // baja las muestras reales una sola vez
+  useEffect(()=>{ precargarMuestras(); desbloquearAudio(); },[]);     // baja las muestras reales una sola vez, y deja despertar el sonido al levantar el dedo
   const MIDI_B={C:60,"C#":61,D:62,"D#":63,E:64,F:65,"F#":66,G:67,"G#":68,A:69,"A#":70,B:71};
+
+  const stopNote = useCallback((id)=>{
+    const n=activeAudioRef.current[id];
+    if(!n)return;
+    try{
+      const ctx=getCtx();if(!ctx)return;
+      const t=ctx.currentTime;
+      n.gainMain.gain.cancelScheduledValues(t);
+      n.gainMain.gain.setValueAtTime(n.gainMain.gain.value,t);
+      n.gainMain.gain.linearRampToValueAtTime(0.0001,t+0.09); // release corto, natural
+      n.oscs.forEach(o=>o.stop(t+0.11));
+    }catch(e){}
+    delete activeAudioRef.current[id];
+  },[]);
 
   const startNote = useCallback((id, eng, oct)=>{
     try{
       const ctx=getCtx();if(!ctx)return;
       if(ctx.state==="suspended")ctx.resume();
-      if(activeAudioRef.current[id]) return; // ya está sonando (evita doble-disparo)
+      if(activeAudioRef.current[id]) stopNote(id); // quedó sonando (un toque que el teléfono cortó): se vuelve a tocar, nunca se queda muda
       // Altura científica: Do4 = 60 (Do central). midi = 12·(octava+1) + semitono
       const midi=(MIDI_B[eng]??60)+(oct-4)*12;
       const freq=440*Math.pow(2,(midi+desfaseTimbre()-69)/12);   // altura real: una octava sobre lo escrito, igual que las muestras
@@ -47,21 +61,7 @@ export function useSonidoBandoneon({ bellows }) {
       });
       activeAudioRef.current[id]={gainMain,oscs};
     }catch(e){}
-  },[]);
-
-  const stopNote = useCallback((id)=>{
-    const n=activeAudioRef.current[id];
-    if(!n)return;
-    try{
-      const ctx=getCtx();if(!ctx)return;
-      const t=ctx.currentTime;
-      n.gainMain.gain.cancelScheduledValues(t);
-      n.gainMain.gain.setValueAtTime(n.gainMain.gain.value,t);
-      n.gainMain.gain.linearRampToValueAtTime(0.0001,t+0.09); // release corto, natural
-      n.oscs.forEach(o=>o.stop(t+0.11));
-    }catch(e){}
-    delete activeAudioRef.current[id];
-  },[]);
+  },[stopNote]);
 
   const stopAllNotes = useCallback(()=>{
     Object.keys(activeAudioRef.current).forEach(stopNote);
