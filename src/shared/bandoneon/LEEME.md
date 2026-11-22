@@ -4,6 +4,7 @@
 |---|---|
 | `tablas.js` | botones del bandoneón (izquierda y derecha, abre y cierra, octavas) e `itemsMano` (la altura real de cada botón) |
 | `voicings.js` | formas recomendadas: patrones por función de cada nota aplicados a los botones reales |
+| `marcato.js` | el marcato de la izquierda por la regla del profesor (`marcatoPorRegla`, `ZONAS_MARCATO`); lo usa `voicings.js`. Aparte desde el 22-nov-2026 |
 | `layouts.js` | posiciones por defecto, tamaños y ajuste a la grilla de los botones |
 | `almacen.js` | cómo se guarda el teclado de cada uno en el teléfono |
 | `csv.js` | importar y exportar el teclado (CSV y CSS) |
@@ -14,7 +15,7 @@
 | `acordes-base.js` | las piezas con que se arma un acorde en el teclado |
 | `camino.js` | caminos de notas, escalas y arpegios sobre el teclado, y armado de voces |
 
-Usa: `shared/teoria/notas.js`; `voicings.js` usa `tablas.js`.
+Usa: `shared/teoria/notas.js`; `voicings.js` usa `tablas.js` y `marcato.js`; `marcato.js` no usa nada.
 
 **Decisiones del profesor (9-nov):** dos formas por acorde (marcato y lleno), se puede omitir la 5ª, una regla por tipo de acorde repetida en las doce tonalidades. Ajustar `PATRONES_VOZ`, `elegirVoicing` y `voicingsDe`, no reescribir.
 

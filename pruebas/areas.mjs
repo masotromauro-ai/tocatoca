@@ -45,9 +45,19 @@ t("el paquete de las formas recomendadas sale de su archivo, es chico y avisa de
   assert.ok(texto.includes("function elegirVoicing") && texto.includes("function voicingsDe"));
   assert.ok(texto.split("\n").length < 80 && texto.length / 3.3 < 3000);
 });
-t("las formas recomendadas sólo dependen de tablas.js (shared no mira hacia arriba)", () => {
-  const imp = [...leer("src/shared/bandoneon/voicings.js").matchAll(/from "([^"]+)"/g)].map((m) => m[1]);
-  assert.deepEqual(imp, ["./tablas.js"]);
+t("las formas recomendadas sólo dependen de tablas.js y del marcato (shared no mira hacia arriba)", () => {
+  const imp = [...new Set([...leer("src/shared/bandoneon/voicings.js").matchAll(/from "([^"]+)"/g)].map((m) => m[1]))];
+  assert.deepEqual(imp, ["./tablas.js", "./marcato.js"]);
+});
+// 22-nov-2026: la regla del marcato de Mariano vive aparte (creció y el paquete de las formas dejó de ser chico).
+t("el marcato del profesor tiene su paquete: chico, sin imports, y voicings.js lo usa", () => {
+  const a = mapa.areas.find((x) => x.id === "marcato-del-profesor");
+  assert.ok(a, "falta el área marcato-del-profesor");
+  const texto = a.archivos.map(leer).join("\n");
+  assert.ok(texto.includes("export function marcatoPorRegla") && texto.includes("export const ZONAS_MARCATO"));
+  assert.ok(texto.split("\n").length < 80 && texto.length / 3.3 < 3000);
+  assert.ok(!/^import /m.test(texto), "lógica pura: no importa nada");
+  assert.match(leer("src/shared/bandoneon/voicings.js"), /marcatoPorRegla\(pcs,items\(bel\)\)/);
 });
 t("un área no se cita a sí misma", () => {
   for (const a of mapa.areas.filter((x) => (x.tramos || []).length)) for (const x of usa(src, a, mapa.areas, decls)) assert.notEqual(x.area, a.id, `${a.id} se cita a sí misma por ${x.nombre}`);

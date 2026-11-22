@@ -275,6 +275,20 @@
       ]
     },
     {
+      "id": "marcato-del-profesor",
+      "titulo": "Marcato del profesor (mano izquierda)",
+      "fase": 1,
+      "riesgo": "bajo",
+      "que": "La regla de Mariano para el marcato de la izquierda: el bajo más grave y, por zonas medidas en octavas desde el Do más grave, la tercera, la quinta y la séptima. Las zonas se cambian con un número (ZONAS_MARCATO). Si el acorde no es de este tipo, voicings.js usa el cálculo anterior.",
+      "tramos": [],
+      "destino": "src/shared/bandoneon/marcato.js",
+      "probar": "Entrenador → Acordes, la forma «Marcato» de Do △7 y Sol 7; y node pruebas/voicings.mjs",
+      "movida": "22-nov-2026 (sale de voicings.js)",
+      "archivos": [
+        "src/shared/bandoneon/marcato.js"
+      ]
+    },
+    {
       "id": "entrenador-pestana",
       "titulo": "Pestaña Entrenador",
       "fase": 6,

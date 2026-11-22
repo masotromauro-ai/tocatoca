@@ -28,6 +28,9 @@ await env.withSecurityRulesDisabled(async c => { const d=c.firestore();
   await setDoc(doc(d,"clases/c1"),{docente:"doc1",alumnos:["alu1"],titulo:"Escalas"});
   await setDoc(doc(d,"historico/ana"),{ingresos:3});
   await setDoc(doc(d,"progreso/alu1"),{hechas:{}});
+  // v3 (20-nov-2026): una solicitud que espera al admin (ficha inactiva con «pidio»).
+  await setDoc(doc(d,"usuarios/pend1"),{nombre:"Pendiente",mail:"pend@x.com",rol:"alumno",activo:false,pidio:"docente",creado:1});
+  await setDoc(doc(d,"invitaciones/conInv@x.com".toLowerCase()),{rol:"alumno"});
 });
 const db=(uid,email,verif=true)=>env.authenticatedContext(uid,email?{email,email_verified:verif}:{}).firestore();
 const anon=env.unauthenticatedContext().firestore();
@@ -92,4 +95,27 @@ await t("config: admin escribe", assertSucceeds(setDoc(doc(db("adm1"),"config/si
 await t("historial: agente crea", assertSucceeds(setDoc(doc(db("agente"),"_historial/h1"),{a:1})));
 await t("historial: nadie borra", assertFails(deleteDoc(doc(db("adm1"),"_historial/h1"))));
 await t("colección inventada cerrada", assertFails(setDoc(doc(db("adm1"),"otra/x"),{a:1})));
+// ── v3 (20-nov-2026, Mariano): la SOLICITUD sin invitación, por el link de alumnos o de profesores ──
+const sol = (mail, extra = {}) => ({ nombre: "Sol", mail, rol: "alumno", activo: false, pidio: "alumno", creado: 1, ...extra });
+await t("v3: sin invitación, con el mail verificado, deja una solicitud de alumno", assertSucceeds(setDoc(doc(db("s1","s1@x.com"),"usuarios/s1"), sol("s1@x.com"))));
+await t("v3: puede pedir ser docente: el rol sigue alumno hasta que un admin decida", assertSucceeds(setDoc(doc(db("s2","s2@x.com"),"usuarios/s2"), sol("s2@x.com", { pidio: "docente" }))));
+await t("v3: la solicitud no se pone rol docente", assertFails(setDoc(doc(db("s3","s3@x.com"),"usuarios/s3"), sol("s3@x.com", { rol: "docente" }))));
+await t("v3: la solicitud no nace activa", assertFails(setDoc(doc(db("s4","s4@x.com"),"usuarios/s4"), sol("s4@x.com", { activo: true }))));
+await t("v3: con el mail SIN verificar no hay solicitud", assertFails(setDoc(doc(db("s5","s5@x.com",false),"usuarios/s5"), sol("s5@x.com"))));
+await t("v3: no se pide ser admin", assertFails(setDoc(doc(db("s6","s6@x.com"),"usuarios/s6"), sol("s6@x.com", { pidio: "admin" }))));
+await t("v3: no se pide con un mail ajeno", assertFails(setDoc(doc(db("s7","s7@x.com"),"usuarios/s7"), sol("otro7@x.com"))));
+await t("v3: no se cuela un campo de más (usuario, permisos)", assertFails(setDoc(doc(db("s8","s8@x.com"),"usuarios/s8"), sol("s8@x.com", { permisos: { todo: true } }))));
+await t("v3: el nombre, hasta 60 letras", assertFails(setDoc(doc(db("s9","s9@x.com"),"usuarios/s9"), sol("s9@x.com", { nombre: "x".repeat(61) }))));
+await t("v3: quien tiene invitación no deja una solicitud (entra con su invitación)", assertFails(setDoc(doc(db("s10","coninv@x.com"),"usuarios/s10"), sol("coninv@x.com"))));
+await t("v3: no se crea la solicitud de otro uid", assertFails(setDoc(doc(db("s11","s11@x.com"),"usuarios/otro11"), sol("s11@x.com"))));
+await t("v3: la persona pendiente lee su ficha (para ver que espera)", assertSucceeds(getDoc(doc(db("pend1","pend@x.com"),"usuarios/pend1"))));
+await t("v3: la persona pendiente no se activa sola", assertFails(updateDoc(doc(db("pend1","pend@x.com"),"usuarios/pend1"),{activo:true})));
+await t("v3: la persona pendiente no se cambia el nombre (no está activa)", assertFails(updateDoc(doc(db("pend1","pend@x.com"),"usuarios/pend1"),{nombre:"Otra"})));
+await t("v3: la persona pendiente no lee la ficha de otro", assertFails(getDoc(doc(db("pend1","pend@x.com"),"usuarios/alu1"))));
+await t("v3: la persona pendiente no lee clases", assertFails(getDoc(doc(db("pend1","pend@x.com"),"clases/c1"))));
+await t("v3: un docente ve las solicitudes en la lista", assertSucceeds(getDocs(collection(db("doc1"),"usuarios"))));
+await t("v3: un docente no aprueba", assertFails(updateDoc(doc(db("doc1"),"usuarios/pend1"),{activo:true,rol:"docente",pidio:""})));
+await t("v3: el admin rechaza (rechazado: true)", assertSucceeds(updateDoc(doc(db("adm1"),"usuarios/s1"),{rechazado:true})));
+await t("v3: el admin aprueba con el rol que elige", assertSucceeds(updateDoc(doc(db("adm1"),"usuarios/pend1"),{activo:true,rol:"docente",pidio:""})));
+await t("v3: aprobada, entra como cualquiera: cambia su nombre", assertSucceeds(updateDoc(doc(db("pend1","pend@x.com"),"usuarios/pend1"),{nombre:"Ya adentro"})));
 console.log(`${ok} pasadas, ${mal} fallidas`); await env.cleanup(); process.exit(mal?1:0);

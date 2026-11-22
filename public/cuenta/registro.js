@@ -6,7 +6,7 @@
    sigue, qué dice un error, qué ficha se crea) vive acá y lo prueba
    pruebas/registro.mjs con node a secas.
    ═══════════════════════════════════════════════════════════ */
-export const VERSION = "registro-4";
+export const VERSION = "registro-5";
 
 /** El mail de Firebase suele caer en SPAM (pasó con el de Mauro, 7-nov-2026):
     se dice a la vista cada vez que se manda uno. */
@@ -57,7 +57,8 @@ export function fichaNueva(mail, nombre, invitacion) {
 /** La solicitud que crea quien entra por un link sin invitación: inactiva, rol alumno,
     y lo que pidió. Un admin la aprueba (activo=true y el rol que corresponda). */
 export function fichaPendiente(mail, nombre, pedido) {
-  return { nombre: String(nombre || "").trim().slice(0, 60) || limpiarMail(mail).split("@")[0],
+  // registro-5: el nombre de respaldo (lo de antes de la @) también hasta 60, como pide la regla v3.
+  return { nombre: String(nombre || "").trim().slice(0, 60) || limpiarMail(mail).split("@")[0].slice(0, 60),
     mail: limpiarMail(mail), rol: "alumno", activo: false, pidio: pedido === "docente" ? "docente" : "alumno", creado: Date.now() };
 }
 

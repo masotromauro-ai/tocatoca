@@ -9,7 +9,7 @@ UID del agente como marcador) y se prueban con `pruebas/reglas.mjs` en el emulad
 
 | Colección | Qué es | Quién escribe |
 |---|---|---|
-| `usuarios/{uid}` | la ficha: `nombre`, `mail`, `rol` (admin · docente · alumno), `activo`, `usuario` (el de la planilla vieja), `prefs`, y desde v2 `docente` (el uid de su docente) | el admin; cada uno sólo su `nombre` y sus `prefs`. **Nadie se cambia su propio rol** |
+| `usuarios/{uid}` | la ficha: `nombre`, `mail`, `rol` (admin · docente · alumno), `activo`, `usuario` (el de la planilla vieja), `prefs`, y desde v2 `docente` (el uid de su docente); desde **v3** (20-nov, Mariano) `pidio` (alumno · docente: lo que pidió por el link abierto `registro.html?rol=…`) y `rechazado` | el admin; cada uno sólo su `nombre` y sus `prefs`. **Nadie se cambia su propio rol**. **v3:** sin invitación, quien confirmó su mail deja una SOLICITUD (inactiva, rol alumno, con `pidio`) que sólo un admin aprueba o rechaza; mientras tanto no lee nada más que su ficha (21 casos en `pruebas/reglas.mjs`) |
 | `invitaciones/{mail}` | el alta: `rol` | admin (cualquier rol) · docente (sólo alumnos) · agente (migración) |
 | `config/{doc}` | parámetros del sitio (`config/sitio`: registro, aviso inicial, `esquema`) | admin |
 | `clases/{id}` | una clase: `docente`, `alumnos` (uids), ejercicios | el docente que la creó |
