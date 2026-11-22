@@ -17,6 +17,11 @@ Aplicación web musical interactiva construida en React + Vite + Tailwind CSS.
   números calculados en pantalla. Desarrollo **paralelo**: no toca la app
   compilada. Página aparte: [`/codigo.html`](public/codigo.html) ·
   documentación en [`EL-CODIGO.md`](EL-CODIGO.md)
+- **Bandoneón** — El teclado bisonoro (71 botones, abriendo y cerrando) con el
+  sonido real del bandoneón del profesor: cada botón suena con su grabación
+  (`public/muestras/`), continua mientras se sostiene y al mismo volumen que
+  las demás. En el teléfono, el toque va al botón más cercano al dedo. Para
+  corregir o cargar una nota: [`MUESTRAS.md`](MUESTRAS.md)
 - **Práctica** — Los tres ejercicios del capítulo 0 del manual, más el nivel 2
   del capítulo 9: los doce colores hasta que salgan sin pensar, con sonido y
   con repetición de lo que cuesta. Página aparte:
@@ -47,18 +52,16 @@ npm run dev
 
 ## Pruebas
 
-```bash
-npm run prueba
-```
-
-Sin dependencias y sin navegador. Encadena los dos bancos:
+Cada banco se corre con `node` a secas, sin dependencias (la lista completa, en `CLAUDE.md`). Los de esta parte:
 
 | Banco | Qué cubre | Casos |
 |---|---|---|
 | `pruebas/gestos.mjs` | la teoría musical del instrumento de gestos | 8 |
 | `pruebas/codigo.mjs` | el motor de color, la teoría y los ejercicios de «El Código», más los módulos que viven adentro de los `.html` | 60 |
+| `pruebas/muestras.mjs` | las 142 fichas de las muestras del bandoneón: que cada botón tenga la suya y su grabación original, y que al sostener la nota no haya tic, corte ni cambio de color, y todas al mismo volumen | — |
+| `pruebas/humo.mjs` | abre la app en un navegador, entra a las 11 pestañas y compara con su foto | 11 |
 
-El segundo compara contra **valores publicados** —los cents de la serie de
+El de «El Código» compara contra **valores publicados** —los cents de la serie de
 armónicos, la curva de sRGB, el rango del espectro visible— y no contra lo que
 devuelve el propio código: lo que ahí se explica es teoría musical para alguien
 que no la sabe, y un número mal puesto enseña algo falso sin que se note.
@@ -159,7 +162,8 @@ Toda estructura musical debe derivarse desde:
 - visualización armónica
 
 ## Audio
-- síntesis estilo bandoneón
+- muestras reales del bandoneón, cosidas para sostenerse sin cortes y niveladas al mismo volumen percibido ([`MUESTRAS.md`](MUESTRAS.md))
+- síntesis estilo bandoneón (donde no hay muestra)
 - microdesafinación
 - chorus leve
 - audio interactivo
