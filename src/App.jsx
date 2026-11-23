@@ -27,6 +27,7 @@ import { ArmadorAcordes } from "./shared/bandoneon/armador.jsx";
 import { ControlesDisposicion } from "./shared/bandoneon/disposicion.jsx";
 import { AvisoInicial } from "./features/aviso/AvisoInicial.jsx";
 import { BandoneonTab } from "./features/bandoneon/BandoneonTab.jsx";
+import { EjecucionTab } from "./features/bandoneon/EjecucionTab.jsx";
 import { AcordeTab } from "./features/herramientas/acorde/AcordeTab.jsx";
 import { ProgresionTab } from "./features/herramientas/progresion/ProgresionTab.jsx";
 import { BibliotecaTab } from "./features/herramientas/biblioteca/BibliotecaTab.jsx";
@@ -92,6 +93,7 @@ export default function BandoMapsApp(){
     {id:"codigo",label:"El Código",icon:"◐"},
     {id:"teoria",label:"Teoría",icon:"♩"},
     {id:"bandoneon",label:"Bandoneón",icon:"♬"},
+    {id:"ejecucion",label:"Ejecución",icon:"▣"},
     {id:"entrenador",label:"Entrenador",icon:"◎"},
     window.__ALUMNO ? {id:"tareas",label:"Mis tareas",icon:"✎"} : {id:"organizador",label:"Organizador",icon:"▦"},
   ];
@@ -224,6 +226,9 @@ export default function BandoMapsApp(){
                 <BandoneonTab/>
               </div>
             )}
+
+            {/* ══ EJECUCIÓN (pantalla completa) ══ */}
+            {tab==="ejecucion"&&<EjecucionTab onSalir={()=>setTab("bandoneon")}/>}
 
             {/* ══ ENTRENADOR ══ */}
             {tab==="entrenador"&&<EntrenadorTab preset={preset}/>}
