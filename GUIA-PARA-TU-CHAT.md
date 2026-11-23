@@ -50,7 +50,7 @@ Firebase, y antes necesitan sus casos en `pruebas/reglas.mjs`.
 - **Un cambio por subida**, y sólo los archivos de ese cambio.
 - **Si dudás, preguntá** en el panel («❓ Preguntar»). Es mejor una pregunta que una subida que hay que deshacer.
 
-Cada subida la revisa la ronda del chat de Mauro: que la app abra con sus 11 pestañas, las reglas de arquitectura y los bancos de pruebas. Si algo falla, te avisa con el nombre del archivo y se arregla o se deshace (con GitHub no se pierde nada). **Nada llega a los alumnos sin que Mauro lo pase del sitio de desarrollo al estable.**
+Cada subida la revisa la ronda del chat de Mauro: que la app abra con sus 12 pestañas, las reglas de arquitectura y los bancos de pruebas. Si algo falla, te avisa con el nombre del archivo y se arregla o se deshace (con GitHub no se pierde nada). **Nada llega a los alumnos sin que Mauro lo pase del sitio de desarrollo al estable.**
 
 Si no querés usar GitHub, en el paso 4 subí el archivo en el panel («Trabajar con tu chat gratuito» → «Subir el archivo que te devolvió») y lo sube Claude.
 

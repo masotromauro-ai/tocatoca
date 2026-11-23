@@ -59,7 +59,7 @@ Cada banco se corre con `node` a secas, sin dependencias (la lista completa, en 
 | `pruebas/gestos.mjs` | la teoría musical del instrumento de gestos | 8 |
 | `pruebas/codigo.mjs` | el motor de color, la teoría y los ejercicios de «El Código», más los módulos que viven adentro de los `.html` | 60 |
 | `pruebas/muestras.mjs` | las 142 fichas de las muestras del bandoneón: que cada botón tenga la suya y su grabación original, y que al sostener la nota no haya tic, corte ni cambio de color, y todas al mismo volumen | — |
-| `pruebas/humo.mjs` | abre la app en un navegador, entra a las 11 pestañas y compara con su foto | 11 |
+| `pruebas/humo.mjs` | abre la app en un navegador, entra a las 12 pestañas y compara con su foto | 12 |
 
 El de «El Código» compara contra **valores publicados** —los cents de la serie de
 armónicos, la curva de sRGB, el rango del espectro visible— y no contra lo que

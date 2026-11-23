@@ -11,4 +11,5 @@ export const CLAVES = {
   invertir: "bandomaps_invertir",
   hechas: "bandomaps_hechas_",          // más el usuario: bandomaps_hechas_<usuario>
   misAcordes: "bandomaps_mis_acordes",  // las tarjetas de acordes guardadas en el Entrenador (fase 6)
+  ejecucion: "bandomaps_ejecucion",     // los ajustes de la pestaña Ejecución (forma, mano, medida calibrada)
 };
