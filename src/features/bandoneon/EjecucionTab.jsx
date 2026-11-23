@@ -17,6 +17,8 @@ const GAP = 48;          // separación entre teclados cuando se muestran los do
 const MAX_ESCALA = 3.2;  // tope al ajustar a la pantalla
 const CLAVE = "bandomaps_ejecucion";   // ajustes de esta pestaña en el teléfono (clave nueva)
 const PXCM_BASE = 96 / 2.54;           // píxeles CSS por centímetro, antes de calibrar
+const EXTRA_MM = 2;      // cada botón se agranda esta cantidad de milímetros de diámetro (más zona de toque)
+const EXTRA_MAX = 12;    // tope, en unidades del dibujo, para que dos botones vecinos nunca se toquen
 
 // Sentido del giro en la forma «Real» (un cuarto de vuelta, según el profesor):
 // derecha: el borde derecho del dibujo (Sol agudo) queda abajo, girando hacia la derecha ("cw");
@@ -60,8 +62,9 @@ function leerAjustes() {
 }
 
 // ── Una tecla: suena mientras se la toca, varias a la vez ──
-function Tecla({ it, fuelle, activa, abajo, arriba }) {
+function Tecla({ it, fuelle, activa, abajo, arriba, extra }) {
   const { b, x, y } = it;
+  const d = BTN_SIZE + extra;   // el centro no se mueve: crece parejo hacia todos lados
   const lat = fuelle === "abre" ? b.abre : b.cierra;
   const oct = octDe(b, fuelle);
   const col = nc(LAT[lat] || lat);
@@ -74,7 +77,7 @@ function Tecla({ it, fuelle, activa, abajo, arriba }) {
       onPointerLeave={() => arriba(b.id)}
       onContextMenu={e => e.preventDefault()}
       style={{
-        position: "absolute", left: x, top: y, width: BTN_SIZE, height: BTN_SIZE, borderRadius: "50%",
+        position: "absolute", left: x - extra / 2, top: y - extra / 2, width: d, height: d, borderRadius: "50%", boxSizing: "border-box",
         display: "flex", alignItems: "center", justifyContent: "center",
         cursor: "pointer", touchAction: "none", userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none",
         background: activa
@@ -190,6 +193,7 @@ export function EjecucionTab({ onSalir }) {
   const TH = Math.max(...G.map(g => g.H));
   const ajustada = Math.min(Math.max(60, area.w - 24) / TW, Math.max(60, area.h - 24) / TH, MAX_ESCALA);
   const k = ajuste ? ajustada : escala;
+  const extra = Math.min(EXTRA_MAX, EXTRA_MM / 10 * pxcm / k);   // 2 mm de diámetro, medidos en unidades del dibujo
 
   const boton = { fontFamily: UI_FONT, fontSize: 14, fontWeight: 600, minHeight: 40, padding: "0 14px", borderRadius: 10, cursor: "pointer", background: "#121214", border: "1px solid #2a2a2e", color: "#d6d6da" };
   const etq = { fontFamily: UI_FONT, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "#7c7c82", fontWeight: 600 };
@@ -231,7 +235,7 @@ export function EjecucionTab({ onSalir }) {
               {manos.map((m, i) => (
                 <div key={m}>{m === "izq" ? "Izquierdo" : "Derecho"}: {cm(G[i].W * k / pxcm)} × {cm(G[i].H * k / pxcm)} cm</div>
               ))}
-              <div>Cada botón: {cm(BTN_SIZE * k / pxcm * 10)} mm de diámetro</div>
+              <div>Cada botón: {cm((BTN_SIZE + extra) * k / pxcm * 10)} mm de diámetro</div>
             </div>
           </div>
           <div>
@@ -256,7 +260,7 @@ export function EjecucionTab({ onSalir }) {
                 background: "linear-gradient(145deg,#1d1d1d,#101010)", borderRadius: 16,
                 boxShadow: "0 14px 22px -10px rgba(0,0,0,.95)", touchAction: "none",
               }}>
-                {g.items.map(it => <Tecla key={it.b.id} it={it} fuelle={fuelle} activa={pulsadas.includes(it.b.id)} abajo={abajo} arriba={arriba} />)}
+                {g.items.map(it => <Tecla key={it.b.id} it={it} fuelle={fuelle} activa={pulsadas.includes(it.b.id)} abajo={abajo} arriba={arriba} extra={extra} />)}
               </div>
             </div>
           ))}
