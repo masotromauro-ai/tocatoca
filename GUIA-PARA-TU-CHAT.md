@@ -2,7 +2,7 @@
 
 Para **Mariano** y para su chat gratuito de Claude (claude.ai). La primera parte es para la persona; la segunda, para el chat.
 
-> **Actualizada el 22-nov-2026** (cómo subir un cambio de varios archivos sin romper el sitio, abajo; y las muestras del bandoneón, en `MUESTRAS.md`). **17-nov-2026:** Un solo camino, en pasos cortos. Reemplaza los procedimientos anteriores (copias guardadas, pegar código en el panel, «App.jsx» entero): ya no hacen falta. El código está partido en archivos chicos, una carpeta por parte.
+> **Actualizada el 23-nov-2026** (la lista «Antes de entregar» y cómo se agrega un archivo o una pestaña nueva, en la Parte 2: la pestaña «Ejecución» del 22-nov escribió una clave a mano y puso un archivo en la carpeta equivocada). **22-nov-2026:** cómo subir un cambio de varios archivos sin romper el sitio, abajo; y las muestras del bandoneón, en `MUESTRAS.md`. **17-nov-2026:** Un solo camino, en pasos cortos. Reemplaza los procedimientos anteriores (copias guardadas, pegar código en el panel, «App.jsx» entero): ya no hacen falta. El código está partido en archivos chicos, una carpeta por parte.
 
 ---
 
@@ -44,6 +44,20 @@ de camino, el sitio queda roto. Los alumnos no lo ven: Vercel sigue mostrando la
 cuentas. Un cambio ahí se pide en el panel («Hacer un pedido»): las reglas no hacen nada hasta que Mauro las publica en
 Firebase, y antes necesitan sus casos en `pruebas/reglas.mjs`.
 
+### Cuando el cambio agrega un archivo o una pestaña nueva (23-nov-2026)
+
+**Qué pasó.** Con la pestaña «Ejecución» (22-nov) el archivo nuevo se subió primero a `src/` (la carpeta equivocada), hubo que borrarlo y
+volver a subirlo en `src/features/bandoneon/`, y la pestaña guardaba sus ajustes con una clave `bandomaps_…` escrita a mano, que las reglas
+del repositorio no permiten (el banco de arquitectura quedó en rojo). La app funcionaba; lo que falló fue el orden de la casa.
+
+**Cómo se evita:**
+1. **Pedile a tu chat la RUTA COMPLETA de cada archivo nuevo** («¿en qué carpeta va?»). Un archivo nuevo no tiene ruta en el .zip: si no te la
+   dice, preguntásela antes de subir nada. Una pestaña nueva va en `src/features/<carpeta>/`.
+2. **Una pestaña nueva toca tres archivos y van en la MISMA subida:** el archivo de la pestaña, `src/App.jsx` (3 renglones: el `import`, el
+   renglón del menú y dónde se dibuja) y, si guarda algo en el teléfono, `src/shared/claves.js`.
+3. **Con una pestaña nueva avisá en el panel** («Ahora» → «Hacer un pedido»): la prueba de humo necesita una foto nueva y el número de
+   pestañas cambia (12 → 13). Lo rehace la ronda, no vos.
+
 **Tres reglas que evitan todos los problemas:**
 
 - **Bajá el .zip de nuevo antes de cada cambio.** Así trabajás siempre sobre la versión de hoy (el 9-nov una copia vieja borró, sin que nadie lo notara, la medición del avance de los alumnos).
@@ -82,6 +96,33 @@ Una web para que alumnos de bandoneón aprendan la **mecánica y la topografía 
   exacto, en el archivo que lo da (y ese archivo tiene que venir en tu respuesta o estar ya subido).
 - **Si te falta un archivo, no lo inventes**: decí cuál, y la persona te baja el paquete de esa parte.
 - La lógica pura (teoría, formas, sonido) va con una prueba chica de `node`, sin navegador ni npm, como las de `pruebas/` (`teoria.mjs` es el modelo).
+- **Antes de entregar, pasá la lista de abajo («Antes de entregar»).** Es lo que comprueba la ronda en cada subida.
+
+### Antes de entregar: lo que comprueba el banco (23-nov-2026)
+
+Una subida que rompe una de estas cinco reglas queda en rojo **aunque la app abra y funcione**. Revisalas una por una antes de contestar:
+
+1. **Ningún archivo pasa de 400 líneas** (a las 300 ya avisa). Si pasa, partilo y decí cómo.
+2. **Las carpetas no se cruzan.** `src/shared/` no importa de `src/features/` ni de `src/App.jsx`; una pestaña (`features/<una>/`) no importa de
+   otra pestaña: lo que comparten sube a `shared/`.
+3. **La lógica pura no toca el navegador.** Los archivos de teoría y formas (`shared/teoria/`, `shared/bandoneon/` salvo los `.jsx`) no usan
+   `window`, `document`, `localStorage` ni React.
+4. **Una clave nueva de `localStorage` NO se escribe a mano.** Toda clave `bandomaps_…` se declara UNA vez en `src/shared/claves.js` y los
+   demás archivos la importan:
+   ```js
+   // src/shared/claves.js  →  agregar una línea dentro de CLAVES
+   ejecucion: "bandomaps_ejecucion",
+   // en la pestaña
+   import { CLAVES } from "../../shared/claves.js";
+   localStorage.getItem(CLAVES.ejecucion)
+   ```
+   Si lo que te devolvió tu chat trae `localStorage.getItem("bandomaps_algo")` escrito en la pestaña, está mal: pedile que la mueva a
+   `claves.js` y que te devuelva **los dos archivos completos**, para subirlos juntos. (Las claves que YA existen no se tocan.)
+5. **Toda carpeta nueva con código lleva su `LEEME.md`** (qué hay, qué usa, qué no se toca).
+
+**Y para un archivo o una pestaña nueva:** decí la ruta completa de cada uno, y si es una pestaña, los tres archivos que van juntos
+(la pestaña, `App.jsx` y, si guarda algo, `claves.js`). Si algo de esto no lo podés comprobar, decilo en una línea al final: es mejor
+que lo sepa quien sube.
 
 ### Dónde está cada cosa
 
@@ -109,7 +150,7 @@ Menos opciones y más claridad (lo avanzado, plegado) · **nunca sólo color**: 
 
 ### Lo que no se toca
 
-- Las claves `bandomaps_*` de `localStorage` (los alumnos perderían lo suyo).
+- Las claves `bandomaps_*` de `localStorage` que ya existen (los alumnos perderían lo suyo). Una clave NUEVA sí se agrega, pero sólo en `src/shared/claves.js` (regla 4 de arriba).
 - `medir()`, `medirLote()`, `window.__tab`, `window.__ALUMNO`, `window.__USUARIO`: miden el avance de cada alumno; sacarlos no da error, **sólo deja de medirse**.
 - `src/Puerta.jsx`, `public/cuenta/` y `firestore.rules`.
 - Contraseñas, claves o datos de alumnos: **nunca** en una respuesta ni en un archivo.
