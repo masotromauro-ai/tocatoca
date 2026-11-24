@@ -58,6 +58,20 @@ del repositorio no permiten (el banco de arquitectura quedó en rojo). La app fu
 3. **Con una pestaña nueva avisá en el panel** («Ahora» → «Hacer un pedido»): la prueba de humo necesita una foto nueva y el número de
    pestañas cambia (12 → 13). Lo rehace la ronda, no vos.
 
+### Subí SÓLO lo que cambió (23-nov-2026)
+
+**Qué pasó.** Anoche, para agregar la franja de presión del fuelle a «Ejecución», se subieron también `disposicion.jsx`,
+`armador.jsx` y `EntrenadorTab.jsx`, que no tenían que cambiar, y eran **versiones viejas**: pisaron lo hecho los días
+anteriores. Además `EntrenadorTab.jsx` traía por error el código de la pestaña Bandoneón, y el sitio dejó de armarse. Lo
+arregló la ronda (volvió esos tres archivos a su versión de antes de la subida y dejó tu función nueva).
+
+**Cómo se evita:**
+1. **Antes de subir, mirá la lista de archivos que te dio tu chat** (al final de su respuesta). Subí **sólo esos**. Si en la carpeta
+   `src` que armaste hay archivos que tu chat no mencionó, **sacalos**: son copias de antes.
+2. **El nombre manda:** un archivo se llama como lo que adentro dice que es. Si abrís `EntrenadorTab.jsx` y la primera línea
+   dice «La pestaña Bandoneón», no lo subas: avisá en el panel.
+3. **Bajá el .zip nuevo antes de CADA cambio** (ya estaba escrito: es la que más evita este problema).
+
 **Tres reglas que evitan todos los problemas:**
 
 - **Bajá el .zip de nuevo antes de cada cambio.** Así trabajás siempre sobre la versión de hoy (el 9-nov una copia vieja borró, sin que nadie lo notara, la medición del avance de los alumnos).
@@ -94,6 +108,7 @@ Una web para que alumnos de bandoneón aprendan la **mecánica y la topografía 
   desarrollo hasta que llega el otro (pasó 11 veces entre el 17 y el 21-nov).
 - **Antes de entregar, revisá los nombres**: cada `import { X } from "…"` que agregaste tiene que existir, con ese nombre
   exacto, en el archivo que lo da (y ese archivo tiene que venir en tu respuesta o estar ya subido).
+- **Devolvé SÓLO los archivos que de verdad cambiaste**, y al final la lista de cuáles son. Un archivo que no tocaste NO se devuelve: la persona lo sube igual y pisa lo más nuevo con una copia vieja. Un archivo `XxxTab.jsx` tiene que exportar `XxxTab`.
 - **Si te falta un archivo, no lo inventes**: decí cuál, y la persona te baja el paquete de esa parte.
 - La lógica pura (teoría, formas, sonido) va con una prueba chica de `node`, sin navegador ni npm, como las de `pruebas/` (`teoria.mjs` es el modelo).
 - **Antes de entregar, pasá la lista de abajo («Antes de entregar»).** Es lo que comprueba la ronda en cada subida.

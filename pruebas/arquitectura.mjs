@@ -53,6 +53,12 @@ t("regla 4: una clave bandomaps_ a mano fuera de shared/claves.js falla", () => 
   assert.ok(errs({ "shared/LEEME.md": FICHA, "shared/x.js": 'localStorage.getItem("bandomaps_a")' }).some((e) => /regla 4/.test(e)));
   assert.equal(errs({ "shared/LEEME.md": FICHA, "shared/claves.js": 'export const K = "bandomaps_a";' }).length, 0);
 });
+t("regla 6: un archivo XxxTab.jsx exporta XxxTab (no el código de otra pestaña con su nombre)", () => {
+  const ok = { "shared/LEEME.md": FICHA, "features/LEEME.md": FICHA, "features/a/LEEME.md": FICHA };
+  assert.deepEqual(errs({ ...ok, "features/a/PruebaTab.jsx": "export function PruebaTab(){ return null; }" }), []);
+  assert.ok(errs({ ...ok, "features/a/PruebaTab.jsx": "export function OtraTab(){ return null; }" }).some((e) => /regla 6/.test(e)));
+  assert.equal(errs({ ...ok, "features/a/helper.jsx": "export function Otra(){ return null; }" }).length, 0, "sólo los *Tab.jsx");
+});
 t("regla 5: cada carpeta con código necesita su LEEME.md", () => assert.ok(errs({ "shared/x.js": "export const a=1;" }).some((e) => /LEEME/.test(e))));
 
 // Lo de verdad: src/ de este repositorio

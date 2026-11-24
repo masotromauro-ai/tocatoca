@@ -11,11 +11,12 @@ import { UI_FONT } from "../../shared/ui/tema.js";
 import { BTN_SIZE } from "../../shared/bandoneon/layouts.js";
 import { loadBtns } from "../../shared/bandoneon/almacen.js";
 import { useSonidoEjecucion, PRESION_INICIAL } from "./sonidoEjecucion.js";
+import { CLAVES } from "../../shared/claves.js";
 
 const PAD = 14;          // margen del teclado alrededor de los botones
 const GAP = 48;          // separación entre teclados cuando se muestran los dos
 const MAX_ESCALA = 3.2;  // tope al ajustar a la pantalla
-const CLAVE = "bandomaps_ejecucion";   // ajustes de esta pestaña en el teléfono (clave nueva)
+const CLAVE = CLAVES.ejecucion;        // ajustes de esta pestaña en el teléfono (se declara en shared/claves.js)
 const PXCM_BASE = 96 / 2.54;           // píxeles CSS por centímetro, antes de calibrar
 const EXTRA_MM = 2;      // cada botón se agranda esta cantidad de milímetros de diámetro (más zona de toque)
 const EXTRA_MAX = 12;    // tope, en unidades del dibujo, para que dos botones vecinos nunca se toquen

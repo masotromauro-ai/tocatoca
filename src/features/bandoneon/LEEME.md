@@ -4,6 +4,7 @@
 |---|---|
 | `BandoneonTab.jsx` | la pestaña: el teclado, los dos lados, el editor y las tarjetas de acordes |
 | `EjecucionTab.jsx` | la pestaña **Ejecución** (Mariano, 22-nov-2026): el instrumento virtual en pantalla completa, «Piano» (teclados horizontales) o «Real» (verticales, uno a cada lado), una mano o ambas, con cada teclado fijable a una medida calibrada en centímetros (para la capa de silicona sobre la pantalla). Sus ajustes van en `CLAVES.ejecucion` (`shared/claves.js`), no escritos a mano |
+| `sonidoEjecucion.js` | el sonido de la pestaña Ejecución (Mariano, 23-nov-2026): toca con las mismas muestras que Bandoneón pero pasa por un «fuelle» con **presión** (más presión: más volumen y timbre más abierto; menos: más suave y con la entrada más lenta), que se mueve mientras suena. Sólo USA `shared/audio/audio.js` y `hooks.jsx`, no los modifica. La franja «Fuerte / Suave» de `EjecucionTab.jsx` la maneja |
 | `hooks.jsx` | tres bloques de lógica sacados tal cual de la pestaña: sonido (`useSonidoBandoneon`), escucha por micrófono (`useEscuchaBandoneon`) y marcas (`useMarcasBandoneon`) |
 
 Se partió en `hooks.jsx` sólo para no pasar las 400 líneas: el texto de adentro es el mismo y cada hook recibe lo que necesita del componente (`herramientas/hook.mjs`). El armador de acordes que usa vive en `shared/bandoneon/` (`armador.jsx`, `disposicion.jsx`).

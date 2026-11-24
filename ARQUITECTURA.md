@@ -215,7 +215,7 @@ No se tocó una línea de `App.jsx`. Entraron la red de seguridad y la limpieza:
 | Pieza | Qué hace | Cómo se corre |
 |---|---|---|
 | `herramientas/mover.mjs` + `pruebas/mover.mjs` | compara los renglones de código de antes y después, ignorando `import`/`export`: prueba que sólo se movió | `node herramientas/mover.mjs --base <rama> src/App.jsx <archivos nuevos…>` |
-| `pruebas/humo.mjs` + `pruebas/humo/` | compila, abre la app en un navegador (con una cuenta de mentira), entra a cada una de las 12 pestañas (11 hasta la pestaña Ejecución de Mariano, 22-nov-2026) y compara el HTML con la foto guardada; falla con cualquier error de consola | `node pruebas/humo.mjs` (`--guardar` sólo al empezar una fase con la app sana) |
+| `pruebas/humo.mjs` + `pruebas/humo/` | compila, abre la app en un navegador (con una cuenta de mentira), entra a cada una de las 12 pestañas (11 hasta la pestaña Ejecución de Mariano, 22-nov-2026). Regla 6 (23-nov): un `XxxTab.jsx` exporta `XxxTab` y compara el HTML con la foto guardada; falla con cualquier error de consola | `node pruebas/humo.mjs` (`--guardar` sólo al empezar una fase con la app sana) |
 | `herramientas/arquitectura.mjs` + `pruebas/arquitectura.mjs` | las seis reglas de arriba sobre `src/shared` y `src/features` (se exigen solas cuando existen) y los intocables hoy | `node pruebas/arquitectura.mjs` |
 
 La prueba de humo usa Playwright del entorno del chat; no agrega nada a `package.json`.

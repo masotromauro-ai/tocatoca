@@ -60,6 +60,11 @@ export function revisar(src) {
     // 3 · lógica pura
     if (esPuro(r, txt)) for (const [re, que] of PROHIBIDO_EN_PURO) if (re.test(sc)) errores.push(`${r}: es lógica pura y ${que} (regla 3).`);
     // 4 · claves de guardado con un solo dueño
+    // Regla 6 (23-nov-2026): un archivo «XxxTab.jsx» tiene que exportar «Xxx Tab». El 23-nov se subió el código de la
+    // pestaña Bandoneón con el nombre EntrenadorTab.jsx: la app dejó de compilar y el Entrenador desapareció.
+    const tab = path.basename(r).match(/^(\w+Tab)\.jsx$/);
+    if (tab && !new RegExp("export\\s+(default\\s+)?(function|const|class)\\s+" + tab[1] + "\\b").test(sc))
+      errores.push(`${r}: un archivo «${tab[1]}.jsx» tiene que exportar «${tab[1]}» y no lo hace: ¿se subió el contenido de otro archivo con este nombre? (regla 6).`);
     if (r !== "shared/claves.js" && /["'`]bandomaps_/.test(sc)) errores.push(`${r}: escribe una clave «bandomaps_…» a mano. Las claves se declaran en shared/claves.js y se importan (regla 4).`);
   }
 
