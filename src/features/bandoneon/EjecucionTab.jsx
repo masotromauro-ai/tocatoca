@@ -10,13 +10,12 @@ import { nc } from "../../shared/teoria/color.js";
 import { UI_FONT } from "../../shared/ui/tema.js";
 import { BTN_SIZE } from "../../shared/bandoneon/layouts.js";
 import { loadBtns } from "../../shared/bandoneon/almacen.js";
-import { useSonidoBandoneon } from "./hooks.jsx";
-import { CLAVES } from "../../shared/claves.js";
+import { useSonidoEjecucion, PRESION_INICIAL } from "./sonidoEjecucion.js";
 
 const PAD = 14;          // margen del teclado alrededor de los botones
 const GAP = 48;          // separación entre teclados cuando se muestran los dos
 const MAX_ESCALA = 3.2;  // tope al ajustar a la pantalla
-const CLAVE = CLAVES.ejecucion;        // ajustes de esta pestaña en el teléfono (se declara en shared/claves.js)
+const CLAVE = "bandomaps_ejecucion";   // ajustes de esta pestaña en el teléfono (clave nueva)
 const PXCM_BASE = 96 / 2.54;           // píxeles CSS por centímetro, antes de calibrar
 const EXTRA_MM = 2;      // cada botón se agranda esta cantidad de milímetros de diámetro (más zona de toque)
 const EXTRA_MAX = 12;    // tope, en unidades del dibujo, para que dos botones vecinos nunca se toquen
@@ -58,8 +57,9 @@ function leerAjustes() {
       ajuste: a.ajuste !== false,
       escala: Number.isFinite(a.escala) ? Math.min(4, Math.max(0.3, a.escala)) : 1,
       pxcm: Number.isFinite(a.pxcm) ? Math.min(80, Math.max(20, a.pxcm)) : PXCM_BASE,
+      presion: Number.isFinite(a.presion) ? Math.min(1, Math.max(0, a.presion)) : PRESION_INICIAL,
     };
-  } catch (e) { return { forma: "piano", mano: "der", ajuste: true, escala: 1, pxcm: PXCM_BASE }; }
+  } catch (e) { return { forma: "piano", mano: "der", ajuste: true, escala: 1, pxcm: PXCM_BASE, presion: PRESION_INICIAL }; }
 }
 
 // ── Una tecla: suena mientras se la toca, varias a la vez ──
@@ -117,6 +117,30 @@ function Opciones({ valor, opciones, onCambia, etiqueta }) {
   );
 }
 
+// ── Franja de presión del fuelle: se mueve con el dedo de la mano libre, también mientras suena una nota ──
+function FranjaFuelle({ valor, onCambia }) {
+  const ref = useRef(null);
+  const mover = (e) => {
+    const r = ref.current.getBoundingClientRect();
+    onCambia(Math.min(1, Math.max(0, 1 - (e.clientY - r.top) / r.height)));
+  };
+  const rotulo = { fontFamily: UI_FONT, fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#7c7c82", fontWeight: 600 };
+  return (
+    <div style={{ width: 76, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "12px 6px", userSelect: "none", WebkitUserSelect: "none", touchAction: "none" }}>
+      <span style={rotulo}>Fuerte</span>
+      <div ref={ref} role="slider" aria-label="Presión del fuelle" aria-orientation="vertical" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(valor * 100)}
+        onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); mover(e); }}
+        onPointerMove={e => { if (e.currentTarget.hasPointerCapture(e.pointerId)) mover(e); }}
+        style={{ flex: 1, width: 52, minHeight: 80, borderRadius: 26, background: "#121214", border: "1px solid #2a2a2e", position: "relative", overflow: "hidden", touchAction: "none", cursor: "ns-resize" }}>
+        <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: `${valor * 100}%`, background: "linear-gradient(180deg,#ececec,#6d6d73)" }} />
+        <div style={{ position: "absolute", left: 0, right: 0, bottom: `calc(${valor * 100}% - 2px)`, height: 4, background: "#ffffff", boxShadow: "0 0 8px rgba(255,255,255,.6)" }} />
+      </div>
+      <span style={rotulo}>Suave</span>
+      <span style={{ ...rotulo, color: "#a8a8ae", textTransform: "none", letterSpacing: 0 }}>Fuelle</span>
+    </div>
+  );
+}
+
 export function EjecucionTab({ onSalir }) {
   const inicial = useMemo(leerAjustes, []);
   const datos = useMemo(() => loadBtns(), []);
@@ -125,18 +149,20 @@ export function EjecucionTab({ onSalir }) {
   const [ajuste, setAjuste] = useState(inicial.ajuste);
   const [escala, setEscala] = useState(inicial.escala);
   const [pxcm, setPxcm] = useState(inicial.pxcm);
+  const [presion, setPresion] = useState(inicial.presion);
   const [fuelle, setFuelle] = useState("abre");
   const [panel, setPanel] = useState(false);
   const [pantallaCompleta, setPantallaCompleta] = useState(false);
   const [pulsadas, setPulsadas] = useState([]);
   const [area, setArea] = useState({ w: 0, h: 0 });
   const escenaRef = useRef(null);
-  const { startNote, stopNote, stopAllNotes } = useSonidoBandoneon({ bellows: fuelle });
+  const { startNote, stopNote, stopAllNotes, setPresion: aplicarPresion } = useSonidoEjecucion({ bellows: fuelle });
+  useEffect(() => { aplicarPresion(presion); }, [presion, aplicarPresion]);
 
   // Guarda los ajustes de la pestaña
   useEffect(() => {
-    try { localStorage.setItem(CLAVE, JSON.stringify({ forma, mano, ajuste, escala, pxcm })); } catch (e) {}
-  }, [forma, mano, ajuste, escala, pxcm]);
+    try { localStorage.setItem(CLAVE, JSON.stringify({ forma, mano, ajuste, escala, pxcm, presion })); } catch (e) {}
+  }, [forma, mano, ajuste, escala, pxcm, presion]);
 
   // Mide el espacio libre para el teclado
   useEffect(() => {
@@ -252,7 +278,10 @@ export function EjecucionTab({ onSalir }) {
       )}
 
       {/* Escena: el teclado, centrado */}
-      <div ref={escenaRef} style={{ flex: 1, minHeight: 0, display: "flex", overflow: ajuste ? "hidden" : "auto", touchAction: ajuste ? "none" : "pan-x pan-y" }}>
+      {/* La franja de presión va del lado de la mano libre: a la izquierda (o con ambas), a la derecha si se toca con la izquierda */}
+      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: mano === "izq" ? "row-reverse" : "row" }}>
+      <FranjaFuelle valor={presion} onCambia={setPresion} />
+      <div ref={escenaRef} style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: ajuste ? "hidden" : "auto", touchAction: ajuste ? "none" : "pan-x pan-y" }}>
         <div style={{ margin: "auto", display: "flex", gap: GAP * k, padding: 12, alignItems: "center" }}>
           {G.map((g, i) => (
             <div key={manos[i]} style={{ width: Math.ceil(g.W * k), height: Math.ceil(g.H * k), flexShrink: 0 }}>
@@ -266,6 +295,7 @@ export function EjecucionTab({ onSalir }) {
             </div>
           ))}
         </div>
+      </div>
       </div>
     </div>
   );
