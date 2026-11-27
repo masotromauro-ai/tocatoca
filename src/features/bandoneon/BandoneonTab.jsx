@@ -10,9 +10,9 @@ import { CHROMATIC, LAT } from "../../shared/teoria/notas.js";
 import { nc } from "../../shared/teoria/color.js";
 import { UI_FONT, uiGhost, uiLabel, uiMarcar, uiPill, uiPlay, uiVista } from "../../shared/ui/tema.js";
 import { buildOctMaps } from "../../shared/bandoneon/layouts.js";
-import { STORAGE_KEY_L, clearBtns, loadBtns, saveBtns } from "../../shared/bandoneon/almacen.js";
+import { STORAGE_KEY_L, loadBtns, saveBtns } from "../../shared/bandoneon/almacen.js";
 import { downloadCSV, generateCSS } from "../../shared/bandoneon/csv.js";
-import { BandCanvas, MapaAlturas } from "../../shared/bandoneon/Teclado.jsx";
+import { BandCanvas } from "../../shared/bandoneon/Teclado.jsx";
 import { ImportModal, SavedModal } from "../../shared/bandoneon/Modales.jsx";
 import { BandEditor } from "../../shared/bandoneon/Editor.jsx";
 import { PanelMarcadas, segS } from "../../shared/ui/controles.jsx";
@@ -117,11 +117,8 @@ export function BandoneonTab() {
   // botón (id) en un ref: se crean al presionar y se apagan (con una rampa
   // corta para evitar clicks) al soltar.
   const { startNote, stopAllNotes, stopNote } = useSonidoBandoneon({ bellows });   // el fuelle elige la grabación de cada botón (faltaba desde el 14-nov: sonaba la más cercana por altura)
-  // Qué grabación suena: la cosida (continua y nivelada) o la original tal cual se grabó, para comparar (MUESTRAS.md)
-  const [fuente,setFuente]=useState(getFuenteMuestras());
-  const [bajandoOriginales,setBajandoOriginales]=useState(false);
-  const elegirFuente=(f)=>{ stopAllNotes(); setPressedL([]); setPressedR([]); setFuente(f); setBajandoOriginales(f==="originales");
-    setFuenteMuestras(f).then(()=>setBajandoOriginales(false)); };
+  // El selector cosido/original se sacó: queda siempre la grabación cosida (si alguna vez quedó guardada la original, se vuelve a la cosida)
+  useEffect(()=>{ if(getFuenteMuestras()!=="cosidas") setFuenteMuestras("cosidas"); },[]);
 
   // ─── Escucha física: varias notas a la vez, acotadas a lo que el teclado puede producir ───
   const { heardAcorde, heardIdsL, heardIdsR, heardNotas, heardTxt } = useEscuchaBandoneon({ LAT, bellows, getOct, heardMidis, isListening, leftBtns, micExacta, micMano, micModo, micOct, noteIdxB, rightBtns, setErrorAudio, setHeardMidis, setIsListening });
@@ -233,22 +230,17 @@ export function BandoneonTab() {
             {errorAudio&&<p style={{margin:"8px 0 0",fontSize:11,color:"#d98f88"}}>⚠ {errorAudio}</p>}
           </div>
   );
-  const bMapa = (
-<div>
-              <p style={{fontFamily:UI_FONT,fontSize:11,color:"#7c7c82",lineHeight:1.5,marginBottom:12}}>
-                Las octavas siguen la numeración científica (Do4 es el Do central). Tocá una nota para oírla. Si una altura aparece repetida en dos teclas se marca con borde punteado.
-              </p>
-              <MapaAlturas btns={leftBtns}  bellows={bellows} titulo="Mano izquierda"/>
-              <MapaAlturas btns={rightBtns} bellows={bellows} titulo="Mano derecha"/>
-            </div>
-  );
   const bArm = (
         <ArmadorCompacto a={acorde}>
           <FormaSugerida tones={acorde.tones} leftBtns={leftBtns} rightBtns={rightBtns} bellows={bellows} voz={vozProp}/>
         </ArmadorCompacto>
   );
   const bNotas = (
-      <div style={{minHeight:40,marginBottom:6}}>
+      <div style={{minHeight:40,marginBottom:6,display:"flex",gap:8,alignItems:"flex-start"}}>
+      {marcar&&(
+        <button onClick={()=>setMarcar(false)} title="Salir de Marcar" style={uiMarcar(true,{padding:"7px 11px",fontSize:11,flexShrink:0})}>◎ Marcando · salir ✕</button>
+      )}
+      <div style={{flex:"1 1 auto",minWidth:0}}>
       {(activeNotes.length>0||heardMidis.length>0)&&(
         <div style={{padding:isMobile?"6px 10px":"6px 12px",background:"#121214",border:"1px solid #26262a",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:5}}>
           <div style={{display:"flex",gap:4,flexWrap:"wrap",flex:"1 1 auto"}}>
@@ -277,12 +269,13 @@ export function BandoneonTab() {
         </div>
       )}
       </div>
+      </div>
   );
   const bTeclados = (
     <div style={{display:"flex",flexDirection:an.fila?"row":(disp.invertir?"column-reverse":"column"),gap:an.gap,alignItems:an.fila?"flex-start":"center",paddingBottom:4,userSelect:"none",WebkitUserSelect:"none",WebkitTouchCallout:"none"}}>
         {(view==="ambas"||view==="izquierda")&&(
           <div style={{width: an.aL, flexShrink:0}}>
-            <div style={{fontSize:11,color:"#8a8a8a",marginBottom:5,letterSpacing:"0.12em",
+            <div style={{fontSize:11,color:"#8a8a8a",marginBottom:3,letterSpacing:"0.12em",
               display:"flex",alignItems:"center",gap:6}}>
               <span>MANO IZQUIERDA · {leftBtns.length} botones</span>
               {isMobile&&<span style={{opacity:.5,fontSize:8}}>↑ abre / cierra ↓</span>}
@@ -290,49 +283,31 @@ export function BandoneonTab() {
             <BandCanvas buttons={leftBtns} bellows={bellows}
               pressed={pressedL} heardIds={heardIdsL}
               onDown={downL} onUp={upL} mobile={isMobile}
-              maxWidth={an.aL} maxScale={3.6} chordMap={chordMap} chordIds={chordIds} chordSoft={vozVista==="suave"} markIds={markIds}
+              maxWidth={an.aL} maxScale={4.4} chordMap={chordMap} chordIds={chordIds} chordSoft={vozVista==="suave"} markIds={markIds}
               octMap={bellows==="abre" ? OCT_L_OPEN : OCT_L_CLOSE}/>
           </div>
         )}
         {(view==="ambas"||view==="derecha")&&(
           <div style={{width: an.aR, flexShrink:0}}>
-            <div style={{fontSize:11,color:"#8a8a8a",marginBottom:5,letterSpacing:"0.12em"}}>
+            <div style={{fontSize:11,color:"#8a8a8a",marginBottom:3,letterSpacing:"0.12em"}}>
               MANO DERECHA · {rightBtns.length} botones
             </div>
             <BandCanvas buttons={rightBtns} bellows={bellows}
               pressed={pressedR} heardIds={heardIdsR}
               onDown={downR} onUp={upR} mobile={isMobile}
-              maxWidth={an.aR} maxScale={3.6} chordMap={chordMap} chordIds={chordIds} chordSoft={vozVista==="suave"} markIds={markIds}
+              maxWidth={an.aR} maxScale={4.4} chordMap={chordMap} chordIds={chordIds} chordSoft={vozVista==="suave"} markIds={markIds}
               octMap={bellows==="abre" ? OCT_R_OPEN : OCT_R_CLOSE}/>
           </div>
         )}
     </div>
   );
-  const bTecladoCfg = (
-      <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
-        <div style={{display:"flex",alignItems:"center",gap:6,flex:"1 1 auto"}}>
-          <div style={{width:7,height:7,borderRadius:"50%",background:fromStorage?"#e6e6e6":"#8a8a8a"}}/>
-          <span style={{fontSize:11,color:"#8a8a8a",fontFamily:UI_FONT}}>
-            {fromStorage?"Configuración personalizada del teclado":"Configuración por defecto del teclado"} · Sistema Rheinische, 71 botones, bisonoro
-          </span>
-        </div>
-        <button onClick={()=>{stopAllNotes();setIsListening(false);setEditMode(true);}} style={uiPill(false,{padding:"5px 13px"})}>✏️ Editar teclado</button>
-        <button onClick={()=>setShowImport(true)} style={uiPill(false,{padding:"5px 13px"})}>↑ Importar CSV</button>
-        {fromStorage&&(
-          <button
-            onClick={()=>{clearBtns();const{left,right}=loadBtns();setLeftBtns(left);setRightBtns(right);setFromStorage(false);}}
-            style={uiPill(false,{padding:"5px 12px"})}>
-            ⟳ Valores por defecto
-          </button>
-        )}
-      </div>
-  );
+  const pad=isMobile?"4px 8px":"4px 11px";
   const barra = (
-    <div style={{...cardS,display:"flex",gap:"10px 18px",flexWrap:"wrap",alignItems:"flex-end",marginBottom:12,padding:"10px 14px"}}>
+    <div style={{...cardS,display:"flex",gap:"6px 14px",flexWrap:"wrap",alignItems:"flex-end",marginBottom:8,padding:"6px 10px"}}>
       <GrupoColor t="Fuelle" color={COLORES.fuelle}>
         <div style={segS}>
-          {[["abre","▷ Abre"],["cierra","◁ Cierra"]].map(([b,l])=>(
-            <button key={b} style={acento(uiVista(bellows===b,{padding:isMobile?"5px 10px":"5px 14px"}),COLORES.fuelle,bellows===b)}
+          {[["abre","◀ ▶","Abre"],["cierra","▶ ◀","Cierra"]].map(([b,l,n])=>(
+            <button key={b} aria-label={n} title={n} style={acento(uiVista(bellows===b,{padding:isMobile?"3px 12px":"3px 16px",fontSize:14,letterSpacing:"0.12em"}),COLORES.fuelle,bellows===b)}
               onClick={()=>{stopAllNotes();setBellows(b);setPressedL([]);setPressedR([]);}}>{l}</button>
           ))}
         </div>
@@ -340,37 +315,27 @@ export function BandoneonTab() {
       <GrupoColor t="Teclado" color={COLORES.vista}>
         <div style={segS}>
           {[["ambas","Ambas"],["izquierda","Izq."],["derecha","Der."]].map(([v,l])=>(
-            <button key={v} style={acento(uiVista(view===v,{padding:isMobile?"5px 8px":"5px 12px"}),COLORES.vista,view===v)} onClick={()=>setView(v)}>{l}</button>
-          ))}
-        </div>
-      </GrupoColor>
-      <GrupoColor t="Sonido" color={COLORES.fuelle}>
-        <div style={segS} title="Cosida: continua mientras se sostiene y al mismo volumen que las demás. Original: la grabación tal cual, entera y sin nivelar">
-          {[["cosidas","Cosido"],["originales",bajandoOriginales?"Original…":"Grabación original"]].map(([f,l])=>(
-            <button key={f} aria-pressed={fuente===f} style={acento(uiVista(fuente===f,{padding:isMobile?"5px 8px":"5px 12px"}),COLORES.fuelle,fuente===f)}
-              onClick={()=>elegirFuente(f)}>{l}</button>
+            <button key={v} style={acento(uiVista(view===v,{padding:pad}),COLORES.vista,view===v)} onClick={()=>setView(v)}>{l}</button>
           ))}
         </div>
       </GrupoColor>
       <GrupoColor t="Disposición" color={COLORES.vista}><ControlesDisposicion d={disp} isMobile={isMobile}/></GrupoColor>
-      <GrupoColor t="Marcar notas" color={COLORES.marcar}>
-        <div style={segS}>
-          <button style={acento(uiMarcar(marcar),COLORES.marcar,marcar)} onClick={()=>{stopAllNotes();setPressedL([]);setPressedR([]);setMarcar(v=>!v);}}
-            title="Con Marcar activo, tocar una tecla la agrega o la saca del acorde">◎ Marcar{marksB.length?` · ${marksB.length}`:""}</button>
-        </div>
-      </GrupoColor>
       <button onClick={()=>{stopAllNotes();setPressedL([]);setPressedR([]);}} title="Soltar todas las teclas"
         style={{...uiGhost,marginLeft:"auto"}}>✕ Soltar</button>
     </div>
   );
 
+  // «Marcar» vive en el panel de armar acorde (sirve para elegir las notas del acorde), no en la barra de arriba
+  const bMarcar = (
+    <button style={acento(uiMarcar(marcar),COLORES.marcar,marcar)} onClick={()=>{stopAllNotes();setPressedL([]);setPressedR([]);setMarcar(v=>!v);}}
+      title="Con Marcar activo, tocar una tecla la agrega o la saca del acorde">◎ Marcar{marksB.length?` · ${marksB.length}`:""}</button>
+  );
+
   return (
     <div style={{fontFamily:UI_FONT}}>
       <PantallaBandoneon barra={barra} notas={bNotas} teclados={bTeclados} kbRef={canvasWrapRef} paneles={[
-        {id:"acorde",titulo:"Armar acorde",color:COLORES.acorde,nodo:<>{bArm}<div style={{marginTop:12}}>{bPM}</div></>},
+        {id:"acorde",titulo:"Armar acorde",color:COLORES.acorde,nodo:<>{bArm}<div style={{marginTop:12}}><div style={{marginBottom:8}}>{bMarcar}</div>{bPM}</div></>},
         {id:"escuchar",titulo:"Escuchar",color:COLORES.escuchar,nodo:bMic},
-        {id:"mapa",titulo:"Mapa de alturas",color:COLORES.mapa,nodo:bMapa},
-        {id:"teclado",titulo:"Mi teclado",color:COLORES.teclado,nodo:bTecladoCfg},
       ]}/>
 
             {showSaved&&<SavedModal cssText={cssText} onClose={()=>setShowSaved(false)}/>}
