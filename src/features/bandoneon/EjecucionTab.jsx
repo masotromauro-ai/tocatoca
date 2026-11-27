@@ -80,7 +80,9 @@ export function EjecucionTab({ onSalir }) {
   const [pulsadas, setPulsadas] = useState([]);
   const [area, setArea] = useState({ w: 0, h: 0 });
   const [vista, setVista] = useState({ w: typeof window === "undefined" ? 1024 : window.innerWidth, h: typeof window === "undefined" ? 768 : window.innerHeight });
-  const raizRef = useRef(null), escenaRef = useRef(null), arrastre = useRef(null);
+  const [barraH, setBarraH] = useState(58);        // alto de la barra de arriba (en pantallas angostas ocupa dos filas): los paneles se ponen debajo
+  const [orientBloq, setOrientBloq] = useState(null);   // orientación del aparato al entrar al tamaño real: si cambia, se avisa
+  const raizRef = useRef(null), barraRef = useRef(null), escenaRef = useRef(null), arrastre = useRef(null);
   const { startNote, stopNote, stopAllNotes, setPresion: aplicarPresion } = useSonidoEjecucion({ bellows: fuelle });
   useEffect(() => { aplicarPresion(presion); }, [presion, aplicarPresion]);
 
@@ -95,10 +97,11 @@ export function EjecucionTab({ onSalir }) {
       const el = escenaRef.current, rz = raizRef.current;
       if (el) setArea({ w: el.clientWidth, h: el.clientHeight });
       if (rz) setVista({ w: rz.clientWidth, h: rz.clientHeight });
+      if (barraRef.current) setBarraH(barraRef.current.offsetHeight);
     };
     medir();
     let ro = null;
-    if (window.ResizeObserver) { ro = new ResizeObserver(medir); [escenaRef.current, raizRef.current].forEach(el => el && ro.observe(el)); }
+    if (window.ResizeObserver) { ro = new ResizeObserver(medir); [escenaRef.current, raizRef.current, barraRef.current].forEach(el => el && ro.observe(el)); }
     window.addEventListener("resize", medir);
     return () => { if (ro) ro.disconnect(); window.removeEventListener("resize", medir); };
   }, []);
@@ -149,13 +152,28 @@ export function EjecucionTab({ onSalir }) {
   const puedeFS = typeof document !== "undefined" && !!document.fullscreenEnabled;
 
   // Teclados a mostrar y escala
-  const enReal = real || alinear;   // alinear siempre va a tamaño real
+  const enReal = real || alinear;   // alinear siempre va a tamaño real. Estando a tamaño real el teclado queda BLOQUEADO: solo se sale con «Salir del tamaño real»
+  const orient = vista.w >= vista.h ? "h" : "v";
+  const girado = enReal && orientBloq && orientBloq !== orient;   // el aparato se giró: el teclado físico ya no coincide
+  useEffect(() => { setOrientBloq(enReal ? (vista.w >= vista.h ? "h" : "v") : null); }, [enReal]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // Bloqueado no se hace zoom con los dedos ni se desplaza la pantalla
+  useEffect(() => {
+    if (!enReal) return;
+    const frena = (e) => e.preventDefault();
+    const multi = (e) => { if (e.touches && e.touches.length > 1) e.preventDefault(); };
+    const gestos = ["gesturestart", "gesturechange", "gestureend"];
+    gestos.forEach(g => document.addEventListener(g, frena, { passive: false }));
+    document.addEventListener("touchmove", multi, { passive: false });
+    return () => { gestos.forEach(g => document.removeEventListener(g, frena)); document.removeEventListener("touchmove", multi); };
+  }, [enReal]);
+  const salirTamanoReal = () => { setReal(false); setAlinear(false); setCalib(false); setPanel(false); };
   const manos = mano === "ambas" ? ["izq", "der"] : [mano];
   const G = useMemo(() => manos.map(m => geometria(datos[m], forma, m)), [mano, forma, datos]);   // eslint-disable-line react-hooks/exhaustive-deps
   const TW = G.reduce((s, g) => s + g.W, 0) + GAP * (G.length - 1);
   const TH = Math.max(...G.map(g => g.H));
   const ajustada = Math.min(Math.max(60, area.w - 24) / TW, Math.max(60, area.h - 24) / TH, MAX_ESCALA);
   const kReal = pxcm / 10 / U;   // escala a la que el teclado mide lo mismo que el instrumento
+  const refCm = pxcm * 10 <= Math.min(520, vista.w - 60) ? 10 : 5;   // barra de referencia para la regla: 10 cm si entra en el panel, si no 5 cm
   const k = enReal ? kReal : ajuste ? ajustada : escala;
   const extraMax = Math.max(0, Math.min(...G.map(g => g.sep)) - BTN_SIZE - MARGEN_U);   // que ni agrandados se toquen dos botones
   const extra = Math.min(extraMax, EXTRA_MM / 10 * pxcm / k);   // 2 mm de diámetro, medidos en unidades del dibujo
@@ -191,39 +209,55 @@ export function EjecucionTab({ onSalir }) {
   const etq = { fontFamily: UI_FONT, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "#7c7c82", fontWeight: 600 };
 
   return (
-    <div ref={raizRef} style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", flexDirection: "column", background: "linear-gradient(160deg,#09090a 0%,#0f0f10 55%,#111113 100%)", color: "#ececec", fontFamily: UI_FONT }}>
-      {/* Barra: salir, las dos opciones del teclado, mano, fuelle */}
-      <div style={{ position: "relative", zIndex: 3, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, padding: "8px 12px", borderBottom: "1px solid #1f1f22", background: "rgba(10,10,11,.94)", flexShrink: 0 }}>
-        <button onClick={onSalir} style={boton} aria-label="Salir de la ejecución">✕ Salir</button>
-        <Opciones etiqueta="Forma del teclado" valor={forma} onCambia={setForma} opciones={[["piano", "Piano"], ["real", "Real"]]} />
-        <Opciones etiqueta="Mano" valor={mano} onCambia={setMano} opciones={[["izq", "Izquierda"], ["der", "Derecha"], ["ambas", "Ambas"]]} />
-        <Opciones etiqueta="Fuelle" valor={fuelle} onCambia={setFuelle} opciones={[["abre", "Abre"], ["cierra", "Cierra"]]} />
-        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-          <button onClick={() => { setAlinear(a => !a); setCalib(false); }} style={activo(alinear)} aria-pressed={alinear}>◎ Alinear</button>
-          <button onClick={() => setPanel(v => !v)} style={activo(panel)} aria-expanded={panel}>⚙ Tamaño</button>
-          {puedeFS && <button onClick={alternarPantallaCompleta} style={boton} aria-label="Pantalla completa del navegador">{pantallaCompleta ? "⤢ Achicar" : "⛶ Pantalla completa"}</button>}
-        </div>
+    <div ref={raizRef} style={{ position: "fixed", inset: 0, zIndex: 2147483000, display: "flex", flexDirection: "column", background: "linear-gradient(160deg,#09090a 0%,#0f0f10 55%,#111113 100%)", color: "#ececec", fontFamily: UI_FONT }}>
+      {/* Barra. Normal: salir, forma, mano, fuelle. Bloqueada (tamaño real): solo lo necesario, para que nada se mueva ni se dé vuelta sin querer */}
+      <div ref={barraRef} style={{ position: "relative", zIndex: 3, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, padding: "8px 12px", borderBottom: "1px solid #1f1f22", background: "rgba(10,10,11,.94)", flexShrink: 0 }}>
+        {enReal ? (
+          <>
+            <button onClick={salirTamanoReal} style={{ ...boton, background: "#ececec", color: "#101012" }} aria-label="Salir del tamaño real">✕ Salir del tamaño real</button>
+            <span style={{ ...etq, letterSpacing: "0.08em" }} aria-label="Teclado bloqueado">🔒 {forma === "real" ? "Real" : "Piano"} · {mano === "izq" ? "Izquierda" : mano === "der" ? "Derecha" : "Ambas"}</span>
+            <Opciones etiqueta="Fuelle" valor={fuelle} onCambia={setFuelle} opciones={[["abre", "Abre"], ["cierra", "Cierra"]]} />
+            <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+              <button onClick={() => { setAlinear(a => !a); setCalib(false); }} style={activo(alinear)} aria-pressed={alinear}>◎ Alinear</button>
+              <button onClick={() => setPanel(v => !v)} style={activo(panel)} aria-expanded={panel}>⚙ Calibrar</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <button onClick={onSalir} style={boton} aria-label="Salir de la ejecución">✕ Salir</button>
+            <Opciones etiqueta="Forma del teclado" valor={forma} onCambia={setForma} opciones={[["piano", "Piano"], ["real", "Real"]]} />
+            <Opciones etiqueta="Mano" valor={mano} onCambia={setMano} opciones={[["izq", "Izquierda"], ["der", "Derecha"], ["ambas", "Ambas"]]} />
+            <Opciones etiqueta="Fuelle" valor={fuelle} onCambia={setFuelle} opciones={[["abre", "Abre"], ["cierra", "Cierra"]]} />
+            <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+              <button onClick={() => { setAlinear(a => !a); setCalib(false); }} style={activo(alinear)} aria-pressed={alinear}>◎ Alinear</button>
+              <button onClick={() => setPanel(v => !v)} style={activo(panel)} aria-expanded={panel}>⚙ Tamaño</button>
+              {puedeFS && <button onClick={alternarPantallaCompleta} style={boton} aria-label="Pantalla completa del navegador">{pantallaCompleta ? "⤢ Achicar" : "⛶ Pantalla completa"}</button>}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Panel de tamaño y calibración */}
       {panel && (
-        <div style={{ position: "absolute", top: 58, right: 12, zIndex: 5, width: 340, maxWidth: "calc(100vw - 24px)", maxHeight: "calc(100% - 70px)", overflowY: "auto",
+        <div style={{ position: "absolute", top: barraH + 8, right: 12, zIndex: 5, boxSizing: "border-box", width: 560, maxWidth: "calc(100vw - 24px)", maxHeight: `calc(100% - ${barraH + 20}px)`, overflowY: "auto", touchAction: "pan-y",
           background: "#101012", border: "1px solid #2a2a2e", borderRadius: 14, padding: 14, boxShadow: "0 18px 40px rgba(0,0,0,.7)", display: "grid", gap: 14 }}>
-          <div>
-            <p style={etq}>Tamaño del teclado</p>
-            <div style={{ marginTop: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <p style={{ ...etq, flex: 1 }}>{enReal ? "Calibrar la pantalla" : "Tamaño del teclado"}</p>
+            <button onClick={() => setPanel(false)} style={{ ...boton, minHeight: 36, minWidth: 36, padding: 0 }} aria-label="Cerrar">✕</button>
+          </div>
+          {!enReal && <div>
+            <div style={{ marginTop: 0 }}>
               <Opciones etiqueta="Tamaño" valor={real ? "real" : ajuste ? "ajuste" : "fija"}
-                onCambia={v => { if (v === "fija") setEscala(Math.round(k * 20) / 20); setReal(v === "real"); setAjuste(v === "ajuste"); }}
+                onCambia={v => { if (v === "fija") setEscala(Math.round(k * 20) / 20); setReal(v === "real"); setAjuste(v === "ajuste"); if (v === "real") setPanel(false); }}
                 opciones={[["ajuste", "Ajustar"], ["real", "Tamaño real"], ["fija", "Medida fija"]]} />
             </div>
-            {enReal && <p style={{ fontSize: 12.5, color: "#9a9aa0", margin: "8px 0 0" }}>Mide lo mismo que el instrumento si la pantalla está bien calibrada (abajo).</p>}
-            {!ajuste && !enReal && (
+            {!ajuste && (
               <label style={{ display: "block", marginTop: 10, fontSize: 13, color: "#c8c8cc" }}>
                 Escala: {Math.round(escala * 100)} %
                 <input type="range" min="0.3" max="4" step="0.05" value={escala} onChange={e => setEscala(parseFloat(e.target.value))} style={{ width: "100%", height: 36 }} />
               </label>
             )}
-          </div>
+          </div>}
           <div>
             <p style={etq}>Lo que mide ahora</p>
             <div style={{ marginTop: 6, fontSize: 14, lineHeight: 1.6, color: "#d6d6da" }}>
@@ -234,10 +268,10 @@ export function EjecucionTab({ onSalir }) {
             </div>
           </div>
           <div>
-            <p style={etq}>Calibrar la pantalla</p>
-            <p style={{ fontSize: 12.5, color: "#9a9aa0", margin: "6px 0 8px" }}>Apoyá una regla sobre la barra y movela hasta que mida justo 10 cm. Con el zoom del navegador al 100 %. El valor de partida es una estimación según el aparato.</p>
-            <div style={{ width: pxcm * 10, maxWidth: "100%", height: 14, borderRadius: 3, background: "#ececec", position: "relative" }}>
-              {[0, 5, 10].map(c => <span key={c} style={{ position: "absolute", left: c === 10 ? "auto" : `${c * 10}%`, right: c === 10 ? 0 : "auto", top: 14, fontSize: 10, color: "#9a9aa0" }}>{c} cm</span>)}
+            {!enReal && <p style={etq}>Calibrar la pantalla</p>}
+            <p style={{ fontSize: 12.5, color: "#9a9aa0", margin: "6px 0 8px" }}>Apoyá una regla sobre la barra y movela hasta que mida justo {refCm} cm. Con el zoom del navegador al 100 %. El valor de partida es una estimación según el aparato.</p>
+            <div style={{ width: pxcm * refCm, height: 14, borderRadius: 3, background: "#ececec", position: "relative" }}>
+              {[0, refCm / 2, refCm].map(c => <span key={c} style={{ position: "absolute", left: c === refCm ? "auto" : `${c / refCm * 100}%`, right: c === refCm ? 0 : "auto", top: 14, fontSize: 10, color: "#9a9aa0" }}>{c} cm</span>)}
             </div>
             <input type="range" min="20" max="80" step="0.1" value={pxcm} onChange={e => setPxcm(parseFloat(e.target.value))} style={{ width: "100%", height: 36, marginTop: 22 }} />
             <button onClick={() => setPxcm(pxcmBase())} style={{ ...boton, minHeight: 34, fontSize: 12.5 }}>Volver al valor estimado</button>
@@ -256,7 +290,7 @@ export function EjecucionTab({ onSalir }) {
       <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: mano === "izq" ? "row-reverse" : "row" }}>
         {!alinear && <FranjaFuelle valor={presion} onCambia={setPresion} />}   {/* al alinear no hace falta y deja libre el costado */}
         <div ref={escenaRef} onPointerDown={empezarArrastre} onPointerMove={seguirArrastre} onPointerUp={terminarArrastre} onPointerCancel={terminarArrastre}
-          style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: ajuste && !enReal ? "hidden" : "auto", touchAction: (ajuste && !enReal) || alinear ? "none" : "pan-x pan-y" }}>
+          style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: (ajuste || enReal) ? "hidden" : "auto", touchAction: ajuste || enReal ? "none" : "pan-x pan-y" }}>
           {!enReal && (
             <div style={{ margin: "auto", display: "flex", gap: GAP * k, padding: 12, alignItems: "center" }}>
               {G.map((g, i) => (
@@ -271,6 +305,15 @@ export function EjecucionTab({ onSalir }) {
           )}
         </div>
       </div>
+
+      {/* Si se giró el aparato estando bloqueado, el teclado físico ya no coincide: se avisa y no se toca nada hasta volver */}
+      {girado && (
+        <div role="alertdialog" aria-label="El aparato se giró" style={{ position: "absolute", inset: 0, zIndex: 20, background: "#09090a", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18, padding: 24, textAlign: "center" }}>
+          <p style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>El aparato se giró</p>
+          <p style={{ fontSize: 15, color: "#b8b8be", margin: 0, maxWidth: 420, lineHeight: 1.5 }}>El teclado alineado quedó para el aparato en {orientBloq === "v" ? "vertical" : "horizontal"}. Volvé a ponerlo así para seguir, o salí del tamaño real.</p>
+          <button onClick={salirTamanoReal} style={{ ...boton, background: "#ececec", color: "#101012" }}>✕ Salir del tamaño real</button>
+        </div>
+      )}
 
       {/* A tamaño real: capa sobre toda la pantalla, centrada en ella; solo las teclas reciben toques */}
       {enReal && (

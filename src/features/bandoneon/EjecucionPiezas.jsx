@@ -115,7 +115,7 @@ export function PanelAlinear({ lado, onLado, p, mueve, centrar, paso, onPaso, se
   const gr = paso === 1 ? 1 : 0.1;
   const flecha = (txt, dx, dy, aria) => <button style={boton} aria-label={aria} onClick={() => mueve(dx * paso, dy * paso, 0)}>{txt}</button>;
   return (
-    <div style={{ position: "absolute", bottom: 12, [lado]: 8, zIndex: 6, width: 168, maxHeight: "calc(100% - 130px)", overflowY: "auto",
+    <div style={{ position: "absolute", bottom: 12, [lado]: 8, zIndex: 6, boxSizing: "border-box", width: 168, maxHeight: "calc(100% - 130px)", overflowY: "auto",
       background: "rgba(16,16,18,.97)", border: "1px solid #2a2a2e", borderRadius: 14, padding: 10, boxShadow: "0 18px 40px rgba(0,0,0,.7)", display: "grid", gap: 12, fontFamily: UI_FONT, color: "#ececec" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <p style={{ ...etq, flex: 1, margin: 0 }}>Alinear</p>
