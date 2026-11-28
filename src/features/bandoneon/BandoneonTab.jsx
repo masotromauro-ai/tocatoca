@@ -5,7 +5,7 @@ import { ArmadorCompacto, useAcorde } from "../../shared/bandoneon/armador.jsx";
 import { sugerirVoicing } from "../../shared/bandoneon/acorde.js";
 import { itemsMano } from "../../shared/bandoneon/tablas.js";
 import { COLORES, ControlesDisposicion, FormaSugerida, acento, calcAnchos, useAnchoMedido, useDisposicion } from "../../shared/bandoneon/disposicion.jsx";
-import { GrupoColor, PantallaBandoneon } from "./Pantalla.jsx";
+import { GrupoColor, PantallaBandoneon, useAltoVentana } from "./Pantalla.jsx";
 import { CHROMATIC, LAT } from "../../shared/teoria/notas.js";
 import { nc } from "../../shared/teoria/color.js";
 import { UI_FONT, uiGhost, uiLabel, uiMarcar, uiPill, uiPlay, uiVista } from "../../shared/ui/tema.js";
@@ -185,7 +185,8 @@ export function BandoneonTab() {
   const chordMap = acorde.open ? acorde.labelByPc : null;
   const canvasMaxWidth = wrapWidth; // cada teclado usa todo el ancho (apilados) para verse lo más grande posible
   const disp = useDisposicion();
-  const an = calcAnchos(wrapWidth,leftBtns,rightBtns,view==="ambas",disp.lado,isMobile);
+  const vh = useAltoVentana();
+  const an = calcAnchos(wrapWidth,leftBtns,rightBtns,view==="ambas",disp.lado,isMobile,{llenar:true,alto:vh-170});
 
   if (!leftBtns.length) return <div style={{color:"#555",padding:20,fontSize:13}}>Cargando...</div>;
 
@@ -237,9 +238,7 @@ export function BandoneonTab() {
   );
   const bNotas = (
       <div style={{minHeight:40,marginBottom:6,display:"flex",gap:8,alignItems:"flex-start"}}>
-      {marcar&&(
-        <button onClick={()=>setMarcar(false)} title="Salir de Marcar" style={uiMarcar(true,{padding:"7px 11px",fontSize:11,flexShrink:0})}>◎ Marcando · salir ✕</button>
-      )}
+      <div style={{flexShrink:0}}>{bMarcar}</div>
       <div style={{flex:"1 1 auto",minWidth:0}}>
       {(activeNotes.length>0||heardMidis.length>0)&&(
         <div style={{padding:isMobile?"6px 10px":"6px 12px",background:"#121214",border:"1px solid #26262a",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:5}}>
@@ -322,10 +321,12 @@ export function BandoneonTab() {
       <GrupoColor t="Disposición" color={COLORES.vista}><ControlesDisposicion d={disp} isMobile={isMobile}/></GrupoColor>
       <button onClick={()=>{stopAllNotes();setPressedL([]);setPressedR([]);}} title="Soltar todas las teclas"
         style={{...uiGhost,marginLeft:"auto"}}>✕ Soltar</button>
+      <button onClick={()=>{stopAllNotes();setIsListening(false);setEditMode(true);}} title="Editar teclado" style={uiGhost}>✏️ Editar</button>
+      <button onClick={()=>setShowImport(true)} title="Importar CSV" style={uiGhost}>↑ CSV</button>
     </div>
   );
 
-  // «Marcar» vive en el panel de armar acorde (sirve para elegir las notas del acorde), no en la barra de arriba
+  // «Marcar» va aparte de la barra de arriba: queda siempre visible junto a las notas
   const bMarcar = (
     <button style={acento(uiMarcar(marcar),COLORES.marcar,marcar)} onClick={()=>{stopAllNotes();setPressedL([]);setPressedR([]);setMarcar(v=>!v);}}
       title="Con Marcar activo, tocar una tecla la agrega o la saca del acorde">◎ Marcar{marksB.length?` · ${marksB.length}`:""}</button>
@@ -334,7 +335,7 @@ export function BandoneonTab() {
   return (
     <div style={{fontFamily:UI_FONT}}>
       <PantallaBandoneon barra={barra} notas={bNotas} teclados={bTeclados} kbRef={canvasWrapRef} paneles={[
-        {id:"acorde",titulo:"Armar acorde",color:COLORES.acorde,nodo:<>{bArm}<div style={{marginTop:12}}><div style={{marginBottom:8}}>{bMarcar}</div>{bPM}</div></>},
+        {id:"acorde",titulo:"Armar acorde",color:COLORES.acorde,peso:1.6,nodo:<>{bArm}<div style={{marginTop:12}}>{bPM}</div></>},
         {id:"escuchar",titulo:"Escuchar",color:COLORES.escuchar,nodo:bMic},
       ]}/>
 

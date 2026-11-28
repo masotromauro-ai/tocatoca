@@ -1,5 +1,6 @@
-// La pantalla de la pestaña Bandoneón: reparte el teclado y los paneles según el ancho que haya
-// (compu: teclado a la izquierda y paneles al costado; tableta y celular: teclado arriba y paneles abajo).
+// La pantalla de la pestaña Bandoneón: reparte el teclado y los paneles según el ancho que haya.
+// El teclado ocupa TODO el ancho, arriba. Debajo: en pantallas anchas (tableta apaisada, compu) los paneles van lado a lado, todos a la vista;
+// en pantallas angostas (celular, tableta vertical) van como pestañas.
 // El teclado queda fijo a la vista mientras se usan los paneles, siempre que no ocupe demasiado alto de la pantalla.
 
 import { useState, useEffect, useRef } from "react";
@@ -21,29 +22,29 @@ function useAlto() {
   }, []);
   return [ref, h];
 }
-function useAltoVentana() {
+export function useAltoVentana() {
   const [vh, setVh] = useState(() => (typeof window !== "undefined" ? window.innerHeight : 800));
   useEffect(() => { const f = () => setVh(window.innerHeight); window.addEventListener("resize", f); return () => window.removeEventListener("resize", f); }, []);
   return vh;
 }
 
-const FONDO = "#0b0b0d", BORDE = "#26262a", ANCHO_PANEL = 390;
+const FONDO = "#0b0b0d", BORDE = "#26262a";
 
 // barra: los controles de arriba · notas: lo que suena · teclados: los dos teclados · kbRef: para medir el ancho del teclado
-// paneles: [{id, titulo, color, nodo}] (una pestaña de color cada uno)
+// paneles: [{id, titulo, color, nodo, peso?}] (una pestaña de color cada uno; en pantalla ancha, una columna cada uno: «peso» es su ancho relativo, 1 por defecto)
 export function PantallaBandoneon({ barra, notas, teclados, kbRef, paneles }) {
   const [rootRef, rootW] = useAnchoMedido();
   const [bloque, alto] = useAlto();
   const vh = useAltoVentana();
   const [tab, setTab] = useState(paneles[0].id);
-  const modo = !rootW ? "tableta" : rootW >= 980 ? "compu" : rootW >= 620 ? "tableta" : "celular";
+  const modo = !rootW ? "tableta" : rootW >= 900 ? "ancho" : rootW >= 620 ? "tableta" : "celular";
   // Se fija solo si deja lugar para los paneles; si el teclado ocupara casi toda la pantalla, no (no se podría llegar a lo de abajo)
-  const fijo = alto > 0 && alto <= vh * (modo === "compu" ? 0.92 : 0.58);
+  const fijo = alto > 0 && alto <= vh * 0.6;
   const act = paneles.find((p) => p.id === tab) || paneles[0];
 
   const bloqueTeclado = (
-    <div ref={bloque} style={{ background: `linear-gradient(180deg, ${FONDO} 0%, ${FONDO} 84%, transparent 100%)`, borderRadius: 12, padding: "8px 10px 20px",   // sin borde: solo un esfumado abajo
-      ...(fijo ? { position: "sticky", top: modo === "compu" ? 8 : 0, zIndex: 20 } : {}) }}>
+    <div ref={bloque} style={{ background: `linear-gradient(180deg, ${FONDO} 0%, ${FONDO} 84%, transparent 100%)`, borderRadius: 12, padding: "4px 2px 12px",   // sin borde: solo un esfumado abajo
+      ...(fijo ? { position: "sticky", top: 0, zIndex: 20 } : {}) }}>
       {notas}
       <div ref={kbRef}>{teclados}</div>
     </div>
@@ -61,17 +62,23 @@ export function PantallaBandoneon({ barra, notas, teclados, kbRef, paneles }) {
     </div>
   );
 
+  // Pantalla ancha: todos los paneles a la vista, uno al lado del otro (sin pestañas)
+  const panelesAncho = (
+    <div style={{ display: "grid", gridTemplateColumns: paneles.map((p) => `minmax(0, ${p.peso || 1}fr)`).join(" "), gap: 10, alignItems: "start" }}>
+      {paneles.map((p) => (
+        <section key={p.id} style={{ background: "#121214", border: `1px solid ${BORDE}`, borderTop: `3px solid ${p.color}`, borderRadius: 12, padding: 12, minWidth: 0 }}>
+          <h3 style={{ margin: "0 0 8px", fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: p.color, fontWeight: 700 }}>{p.titulo}</h3>
+          {p.nodo}
+        </section>
+      ))}
+    </div>
+  );
+
   return (
     <div ref={rootRef}>
       {barra}
-      {modo === "compu" ? (
-        <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-          <div style={{ flex: "1 1 0", minWidth: 0 }}>{bloqueTeclado}</div>
-          <aside style={{ flex: `0 0 ${ANCHO_PANEL}px`, width: ANCHO_PANEL, position: "sticky", top: 8, maxHeight: "calc(100vh - 16px)", overflowY: "auto" }}>{panel}</aside>
-        </div>
-      ) : (
-        <>{bloqueTeclado}<div style={{ marginTop: 10 }}>{panel}</div></>
-      )}
+      {bloqueTeclado}
+      <div style={{ marginTop: 8 }}>{modo === "ancho" ? panelesAncho : panel}</div>
     </div>
   );
 }
