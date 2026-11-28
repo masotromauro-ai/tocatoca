@@ -103,24 +103,43 @@ export function FranjaFuelle({ valor, onCambia }) {
   );
 }
 
+// ── Contorno del teclado (línea punteada amarilla por las cuatro esquinas), para comparar la forma con el teclado físico ──
+export function Contorno({ g, ids }) {
+  const pts = ids.map(id => g.items.find(i => i.b.id === id)).filter(Boolean).map(i => `${i.x + BTN_SIZE / 2},${i.y + BTN_SIZE / 2}`);
+  if (pts.length < 3) return null;
+  return <svg width={g.W} height={g.H} style={{ position: "absolute", left: 0, top: 0, pointerEvents: "none" }}><polygon points={pts.join(" ")} fill="none" stroke="#ffd400" strokeOpacity=".55" strokeWidth="1.5" strokeDasharray="6 5" /></svg>;
+}
+
 // ── Panel «Alinear»: acomodar el teclado dibujado debajo del teclado físico ──
 // Es una columna angosta para dejarla al costado, fuera de la lámina de silicona (⇄ la pasa al otro lado).
-// p: {dx, dy, rot} del teclado elegido (mm y grados). mueve(ddx, ddy, drot) en mm y grados. res: ajuste calculado con los toques, o null.
-export function PanelAlinear({ lado, onLado, p, mueve, centrar, paso, onPaso, sel, onSel, hayAmbas, calib, onCalib, nToques, res, onAplicar, onAplicarTam, onBorrar, onCerrar, abrirTamano }) {
+// p: {dx, dy, rot, sx, sy} del teclado elegido (mm, grados y estirado). mueve(ddx, ddy, drot) en mm y grados. ext: ancho y alto del teclado en mm.
+// estira(dAncho, dAlto) en mm. res: ajuste calculado con los toques, o null.
+export function PanelAlinear({ lado, onLado, p, mueve, centrar, paso, onPaso, sel, onSel, hayAmbas, calib, onCalib, nToques, res, onAplicar, onBorrar, onCerrar, abrirTamano, ext, estira, quitarEstirado, modoFS }) {
   const boton = { fontFamily: UI_FONT, fontSize: 13, fontWeight: 600, minHeight: 44, minWidth: 44, borderRadius: 10, cursor: "pointer", background: "#17171a", border: "1px solid #2f2f34", color: "#e4e4e8", touchAction: "manipulation", padding: 0 };
   const chico = (on) => ({ ...boton, minHeight: 38, flex: 1, minWidth: 0, background: on ? "#ececec" : "#17171a", color: on ? "#101012" : "#e4e4e8" });
   const etq = { fontFamily: UI_FONT, fontSize: 10.5, letterSpacing: "0.12em", textTransform: "uppercase", color: "#7c7c82", fontWeight: 600, margin: "0 0 6px" };
   const nota = { fontSize: 12, color: "#9a9aa0", margin: "6px 0 0", lineHeight: 1.4 };
   const dato = { fontSize: 12.5, lineHeight: 1.5, color: "#d6d6da" };
   const gr = paso === 1 ? 1 : 0.1;
+  const estirado = Math.abs(p.sx - 1) > 1e-4 || Math.abs(p.sy - 1) > 1e-4;
   const flecha = (txt, dx, dy, aria) => <button style={boton} aria-label={aria} onClick={() => mueve(dx * paso, dy * paso, 0)}>{txt}</button>;
+  const eje = (nom, v, a, b) => (
+    <div key={nom} style={{ display: "grid", gridTemplateColumns: "40px 1fr 40px", alignItems: "center", gap: 4, marginBottom: 6 }}>
+      <button style={{ ...boton, minHeight: 40, minWidth: 40 }} aria-label={`Achicar el ${nom.toLowerCase()}`} onClick={() => estira(-a * paso, -b * paso)}>−</button>
+      <div style={{ ...dato, textAlign: "center" }}><div style={{ fontSize: 10.5, color: "#7c7c82" }}>{nom}</div>{coma(v)} mm</div>
+      <button style={{ ...boton, minHeight: 40, minWidth: 40 }} aria-label={`Agrandar el ${nom.toLowerCase()}`} onClick={() => estira(a * paso, b * paso)}>+</button>
+    </div>
+  );
   return (
-    <div style={{ position: "absolute", bottom: 12, [lado]: 8, zIndex: 6, boxSizing: "border-box", width: 168, maxHeight: "calc(100% - 130px)", overflowY: "auto",
+    <div style={{ position: "absolute", bottom: 12, [lado]: 8, zIndex: 6, boxSizing: "border-box", width: 168, maxHeight: "calc(100% - 130px)", overflowY: "auto", touchAction: "pan-y",
       background: "rgba(16,16,18,.97)", border: "1px solid #2a2a2e", borderRadius: 14, padding: 10, boxShadow: "0 18px 40px rgba(0,0,0,.7)", display: "grid", gap: 12, fontFamily: UI_FONT, color: "#ececec" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <p style={{ ...etq, flex: 1, margin: 0 }}>Alinear</p>
-        <button style={{ ...boton, minHeight: 36, minWidth: 36 }} onClick={onLado} aria-label="Pasar el panel al otro lado">⇄</button>
-        <button style={{ ...boton, minHeight: 36, minWidth: 36 }} onClick={onCerrar} aria-label="Cerrar alinear">✕</button>
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <p style={{ ...etq, flex: 1, margin: 0 }}>Alinear</p>
+          <button style={{ ...boton, minHeight: 36, minWidth: 36 }} onClick={onLado} aria-label="Pasar el panel al otro lado">⇄</button>
+          <button style={{ ...boton, minHeight: 36, minWidth: 36 }} onClick={onCerrar} aria-label="Cerrar alinear">✕</button>
+        </div>
+        <p style={nota}>Se guarda para: {modoFS ? "pantalla completa" : "pantalla con barra del navegador"}.</p>
       </div>
       {hayAmbas && (
         <div><p style={etq}>Mover</p><div style={{ display: "flex", gap: 6 }}>
@@ -150,6 +169,12 @@ export function PanelAlinear({ lado, onLado, p, mueve, centrar, paso, onPaso, se
         <div>→ {coma(p.dx)} mm</div><div>↓ {coma(p.dy)} mm</div><div>⟳ {coma(p.rot)}°</div>
       </div>
       <div style={{ borderTop: "1px solid #232326", paddingTop: 10 }}>
+        <p style={etq}>Estirar</p>
+        {eje("Ancho", ext.w, 1, 0)}
+        {eje("Alto", ext.h, 0, 1)}
+        {estirado && <button style={{ ...chico(false), width: "100%", flex: "none" }} onClick={quitarEstirado}>Quitar estirado</button>}
+      </div>
+      <div style={{ borderTop: "1px solid #232326", paddingTop: 10 }}>
         <p style={etq}>Con toques</p>
         <button style={chico(calib)} onClick={onCalib} aria-pressed={calib}>{calib ? "Tomando…" : "Empezar"}</button>
         {calib && <p style={nota}>{nToques === 0 ? "Tocá las esquinas amarillas." : `${nToques} ${nToques === 1 ? "toque" : "toques"}.`}</p>}
@@ -158,9 +183,10 @@ export function PanelAlinear({ lado, onLado, p, mueve, centrar, paso, onPaso, se
           <div style={{ ...dato, marginTop: 8 }}>
             <div>Correr {coma(res.dxmm)} mm y {coma(res.dymm)} mm</div>
             {nToques >= 2 && <div>Girar {coma(res.giro)}°</div>}
-            {nToques >= 2 && <div>Tamaño {coma(res.escala * 100)} %</div>}
+            {nToques >= 3 && <div>Ancho {coma(res.kx * 100)} %</div>}
+            {nToques >= 3 && <div>Alto {coma(res.ky * 100)} %</div>}
+            {nToques === 2 && <div>Tamaño {coma(res.kx * 100)} %</div>}
             <button style={{ ...chico(false), marginTop: 6, width: "100%", flex: "none" }} onClick={onAplicar}>Aplicar</button>
-            {nToques >= 3 && Math.abs(res.escala - 1) > 0.003 && <button style={{ ...chico(false), marginTop: 6, width: "100%", flex: "none" }} onClick={onAplicarTam}>Aplicar con tamaño</button>}
           </div>
         )}
       </div>
@@ -168,7 +194,8 @@ export function PanelAlinear({ lado, onLado, p, mueve, centrar, paso, onPaso, se
         <summary style={{ cursor: "pointer", padding: "6px 0", fontWeight: 600, color: "#c8c8cc" }}>Ayuda</summary>
         <p style={nota}>Tamaño real. Con el teclado físico encima, los discos blancos tienen que verse enteros por los agujeros, con un aro oscuro alrededor.</p>
         <p style={nota}>Arrastrá un dedo por la zona libre de la pantalla para mover el teclado dibujado.</p>
-        <p style={nota}>«Con toques»: tocá por los agujeros las cuatro teclas amarillas (y más si querés). La app calcula cuánto corrido, girado y de qué tamaño está.</p>
+        <p style={nota}>«Estirar» cambia el ancho o el alto del teclado dibujado, por si el físico tiene otras proporciones.</p>
+        <p style={nota}>«Con toques»: tocá por los agujeros las cuatro teclas amarillas. Con tres o más toques la app calcula cuánto corrido, girado y estirado (de ancho y de alto) está, y lo aplica con un botón.</p>
       </details>
       <button style={{ ...boton, fontSize: 12, minHeight: 40 }} onClick={abrirTamano}>Calibrar pantalla</button>
     </div>
