@@ -1,6 +1,6 @@
 // La pestaña Bandoneón.
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, Component } from "react";
 import { ArmadorCompacto, useAcorde } from "../../shared/bandoneon/armador.jsx";
 import { sugerirVoicing } from "../../shared/bandoneon/acorde.js";
 import { itemsMano } from "../../shared/bandoneon/tablas.js";
@@ -29,7 +29,7 @@ function useAltoVentana(){
   return vh;
 }
 
-export function BandoneonTab() {
+function BandoneonTabInner() {
   const [leftBtns,    setLeftBtns]    = useState([]);
   const [rightBtns,   setRightBtns]   = useState([]);
   const [editMode,    setEditMode]    = useState(false);
@@ -243,6 +243,12 @@ export function BandoneonTab() {
           <FormaSugerida tones={acorde.tones} leftBtns={leftBtns} rightBtns={rightBtns} bellows={bellows} voz={vozProp}/>
         </ArmadorCompacto>
   );
+  // «Marcar» va aparte de la barra de arriba: queda siempre visible junto a las notas
+  const bMarcar = (
+    <button style={acento(uiMarcar(marcar),COLORES.marcar,marcar)} onClick={()=>{stopAllNotes();setPressedL([]);setPressedR([]);setMarcar(v=>!v);}}
+      title="Con Marcar activo, tocar una tecla la agrega o la saca del acorde">◎ Marcar{marksB.length?` · ${marksB.length}`:""}</button>
+  );
+
   const bNotas = (
       <div style={{minHeight:40,marginBottom:6,display:"flex",gap:8,alignItems:"flex-start"}}>
       <div style={{flexShrink:0}}>{bMarcar}</div>
@@ -333,12 +339,6 @@ export function BandoneonTab() {
     </div>
   );
 
-  // «Marcar» va aparte de la barra de arriba: queda siempre visible junto a las notas
-  const bMarcar = (
-    <button style={acento(uiMarcar(marcar),COLORES.marcar,marcar)} onClick={()=>{stopAllNotes();setPressedL([]);setPressedR([]);setMarcar(v=>!v);}}
-      title="Con Marcar activo, tocar una tecla la agrega o la saca del acorde">◎ Marcar{marksB.length?` · ${marksB.length}`:""}</button>
-  );
-
   return (
     <div style={{fontFamily:UI_FONT}}>
       <PantallaBandoneon barra={barra} notas={bNotas} teclados={bTeclados} kbRef={canvasWrapRef} paneles={[
@@ -358,3 +358,16 @@ export function BandoneonTab() {
 // en capítulos navegables. Es la puerta de entrada a toda la app: todo lo
 // demás (piano, acordes, bandoneón, círculo de quintas) usa esta paleta.
 // ═══════════════════════════════════════════════════════════════════════════
+
+
+// Si algo falla al dibujar la pestaña, muestra el mensaje en pantalla en vez de dejarla en blanco
+class AvisoError extends Component {
+  constructor(p){ super(p); this.state={e:null}; }
+  static getDerivedStateFromError(e){ return {e}; }
+  render(){
+    if(!this.state.e) return this.props.children;
+    return <pre style={{whiteSpace:"pre-wrap",color:"#ff9b9b",background:"#1a0f0f",border:"1px solid #5a2a2a",borderRadius:10,padding:14,fontSize:12}}>
+      {"Error en la pestaña Bandoneón:\n"+String(this.state.e&&this.state.e.stack||this.state.e).slice(0,1500)}</pre>;
+  }
+}
+export function BandoneonTab(){ return <AvisoError><BandoneonTabInner/></AvisoError>; }
