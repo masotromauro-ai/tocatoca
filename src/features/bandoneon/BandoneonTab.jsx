@@ -5,7 +5,7 @@ import { ArmadorCompacto, useAcorde } from "../../shared/bandoneon/armador.jsx";
 import { sugerirVoicing } from "../../shared/bandoneon/acorde.js";
 import { itemsMano } from "../../shared/bandoneon/tablas.js";
 import { COLORES, ControlesDisposicion, FormaSugerida, acento, calcAnchos, useAnchoMedido, useDisposicion } from "../../shared/bandoneon/disposicion.jsx";
-import { GrupoColor, PantallaBandoneon, useAltoVentana } from "./Pantalla.jsx";
+import { GrupoColor, PantallaBandoneon } from "./Pantalla.jsx";
 import { CHROMATIC, LAT } from "../../shared/teoria/notas.js";
 import { nc } from "../../shared/teoria/color.js";
 import { UI_FONT, uiGhost, uiLabel, uiMarcar, uiPill, uiPlay, uiVista } from "../../shared/ui/tema.js";
@@ -21,6 +21,13 @@ import { txtSobre } from "../../shared/teoria/etiquetas.js";
 import { useRomanos } from "../../shared/almacen/romanos.js";
 import { useSonidoBandoneon, useEscuchaBandoneon, useMarcasBandoneon } from "./hooks.jsx";
 import { getFuenteMuestras, setFuenteMuestras } from "../../shared/audio/audio.js";
+
+// Alto de la ventana (propio de esta pestaña: así no depende de que otro archivo exporte algo nuevo)
+function useAltoVentana(){
+  const [vh,setVh]=useState(()=>typeof window!=="undefined"?window.innerHeight:800);
+  useEffect(()=>{ const f=()=>setVh(window.innerHeight); window.addEventListener("resize",f); return ()=>window.removeEventListener("resize",f); },[]);
+  return vh;
+}
 
 export function BandoneonTab() {
   const [leftBtns,    setLeftBtns]    = useState([]);
